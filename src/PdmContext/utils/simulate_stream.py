@@ -72,20 +72,31 @@ class simulate_stream():
         raise StopIteration
 
 
-def simulate_from_df(df: pd.DataFrame,target_name: str):
+def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
     '''
     **Parameters**:
 
     **df**: Dataframe with the data to simulate stream, the index has to be of Date type.
+
+    **eventTypes**: Which columns are representing events and of what type example [("column1","isolated"),("column3","configuration")]
 
     **target_name**: the target name data
 
     **return**: an itterator
     '''
     #TimeSeries:[(str,list[float],list[pd.Timestamp])]
+    Events=[]
+    dropcols=[]
+    for col,type in eventTypes:
+        timestamps=[dt for dt in df[df[col]==1].index]
+        Events.append((col,timestamps,type))
+        dropcols.append(col)
+    if len(dropcols)>0:
+        dfn=df.drop(dropcols,axis=1)
+    else:
+        dfn=df
     timeseries=[]
-    for col in df.columns:
-        timeseries.append((col, df[col].values, [dt for dt in df.index]))
-        print(col)
-    return simulate_stream(TimeSeries=timeseries,Events=[],targetname=target_name)
+    for col in dfn.columns:
+        timeseries.append((col, dfn[col].values, [dt for dt in dfn.index]))
+    return simulate_stream(TimeSeries=timeseries,Events=Events,targetname=target_name)
 

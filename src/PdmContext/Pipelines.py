@@ -1,10 +1,9 @@
 from PdmContext.ContextGeneration import ContextGenerator
-from PdmContext.utils.causal_discovery_functions import calculatewithPc
 
 
 class ContextAndClustering():
 
-    def __init__(self,Clustring_object,target,context_horizon="8",Causalityfunct=calculatewithPc,debug=False):
+    def __init__(self,Clustring_object,context_generator_object: ContextGenerator):
         """
                 This class build a pipeline of Cntext generator and Clustering technique running immediately in the results of Context Generator
 
@@ -12,20 +11,14 @@ class ContextAndClustering():
 
                 **Clustring_object**: The clustering technique to use to cluster the created context from Context generator
                 The class of the clustering technique must implement the method add_sample_to_cluster(context: Context)
-                target: The name of the target source, which will be used as the baseline in order to map different samples
-                 rate to that of the target sample rate.
-                context_horizon: The time period to look back for context data, the form of that parameter is "8 hours"
 
-                **Causalityfunct**: the causality discovery method to use to produce causal relationships between context data,
-                    This must be a function with parameters two equal size lists, one with names and the other
-                    with data (a list of list or 2D numpy array).
 
-                **debug**: If it runs on debug mode
+                 **context_generator_object**: A PdmContext.ContextGeneration import ContextGenerator object
                 """
 
 
         self.clustering=Clustring_object
-        self.Contexter=ContextGenerator(target,context_horizon=context_horizon,Causalityfunct=Causalityfunct,debug=debug)
+        self.Contexter=context_generator_object
 
 
     def collect_data(self,timestamp,source,name,value=None,type="Univariate"):
@@ -47,7 +40,7 @@ class ContextAndClustering():
         **return**: PdmContext.utils.structure.Context object when the data name match to the target name or None.
         """
 
-        contextTemp=self.Contexter.collect_data(timestamp,source,name,value=None,type="Univariate")
+        contextTemp=self.Contexter.collect_data(timestamp,source,name,value=value,type=type)
         if contextTemp is not None:
             self.clustering.add_sample_to_cluster(contextTemp)
 
@@ -69,6 +62,8 @@ class ContextAndClusteringAndDatabase():
                 The class of the clustering technique must implement the method add_sample_to_cluster(context: Context)
                 databaseStore_object: Class which implement insert_record(date : pd.datetime,target: str,context : Context, metadata: str)
 
+
+                **databaseStore_object**: An object of database connection from PdmContext.utils.dbconnector
                 """
 
 

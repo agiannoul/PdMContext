@@ -100,22 +100,33 @@ class simulate_stream():
         raise StopIteration
 
 
-def simulate_from_df(df: pd.DataFrame,target_name: str):
+def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
     &#39;&#39;&#39;
     **Parameters**:
 
     **df**: Dataframe with the data to simulate stream, the index has to be of Date type.
+
+    **eventTypes**: Which columns are representing events and of what type example [(&#34;column1&#34;,&#34;isolated&#34;),(&#34;column3&#34;,&#34;configuration&#34;)]
 
     **target_name**: the target name data
 
     **return**: an itterator
     &#39;&#39;&#39;
     #TimeSeries:[(str,list[float],list[pd.Timestamp])]
+    Events=[]
+    dropcols=[]
+    for col,type in eventTypes:
+        timestamps=[dt for dt in df[df[col]==1].index]
+        Events.append((col,timestamps,type))
+        dropcols.append(col)
+    if len(dropcols)&gt;0:
+        dfn=df.drop(dropcols,axis=1)
+    else:
+        dfn=df
     timeseries=[]
-    for col in df.columns:
-        timeseries.append((col, df[col].values, [dt for dt in df.index]))
-        print(col)
-    return simulate_stream(TimeSeries=timeseries,Events=[],targetname=target_name)</code></pre>
+    for col in dfn.columns:
+        timeseries.append((col, dfn[col].values, [dt for dt in dfn.index]))
+    return simulate_stream(TimeSeries=timeseries,Events=Events,targetname=target_name)</code></pre>
 </details>
 </section>
 <section>
@@ -126,33 +137,45 @@ def simulate_from_df(df: pd.DataFrame,target_name: str):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="PdmContext.utils.simulate_stream.simulate_from_df"><code class="name flex">
-<span>def <span class="ident">simulate_from_df</span></span>(<span>df: pandas.core.frame.DataFrame, target_name: str)</span>
+<span>def <span class="ident">simulate_from_df</span></span>(<span>df: pandas.core.frame.DataFrame, eventTypes: [(<class 'str'>, <class 'str'>)], target_name: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p><strong>Parameters</strong>:</p>
 <p><strong>df</strong>: Dataframe with the data to simulate stream, the index has to be of Date type.</p>
+<p><strong>eventTypes</strong>: Which columns are representing events and of what type example [("column1","isolated"),("column3","configuration")]</p>
 <p><strong>target_name</strong>: the target name data</p>
 <p><strong>return</strong>: an itterator</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def simulate_from_df(df: pd.DataFrame,target_name: str):
+<pre><code class="python">def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
     &#39;&#39;&#39;
     **Parameters**:
 
     **df**: Dataframe with the data to simulate stream, the index has to be of Date type.
+
+    **eventTypes**: Which columns are representing events and of what type example [(&#34;column1&#34;,&#34;isolated&#34;),(&#34;column3&#34;,&#34;configuration&#34;)]
 
     **target_name**: the target name data
 
     **return**: an itterator
     &#39;&#39;&#39;
     #TimeSeries:[(str,list[float],list[pd.Timestamp])]
+    Events=[]
+    dropcols=[]
+    for col,type in eventTypes:
+        timestamps=[dt for dt in df[df[col]==1].index]
+        Events.append((col,timestamps,type))
+        dropcols.append(col)
+    if len(dropcols)&gt;0:
+        dfn=df.drop(dropcols,axis=1)
+    else:
+        dfn=df
     timeseries=[]
-    for col in df.columns:
-        timeseries.append((col, df[col].values, [dt for dt in df.index]))
-        print(col)
-    return simulate_stream(TimeSeries=timeseries,Events=[],targetname=target_name)</code></pre>
+    for col in dfn.columns:
+        timeseries.append((col, dfn[col].values, [dt for dt in dfn.index]))
+    return simulate_stream(TimeSeries=timeseries,Events=Events,targetname=target_name)</code></pre>
 </details>
 </dd>
 </dl>

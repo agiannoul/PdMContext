@@ -2,13 +2,14 @@ from random import random
 import pandas as pd
 from PdmContext.ContextGeneration import ContextGenerator
 from PdmContext.ContextClustering import DBscanContextStream
-from PdmContext.utils.causal_discovery_functions import calculatewithPc,emptyCause
-from PdmContext.utils.structure import Context
-from PdmContext.utils.distances import distance_cc
-from PdmContext.utils.simulate_stream import simulate_stream, simulate_from_df
-from PdmContext.utils.dbconnector import SQLiteHandler,InfluxDBHandler
-from PdmContext.Pipelines import ContextAndClusteringAndDatabase,ContextAndDatabase
+from src.PdmContext.utils.causal_discovery_functions import calculatewithPc,emptyCause
+from src.PdmContext.utils.structure import Context
+from src.PdmContext.utils.distances import distance_cc
+from src.PdmContext.utils.simulate_stream import simulate_stream, simulate_from_df
+from src.PdmContext.utils.dbconnector import SQLiteHandler,InfluxDBHandler
+from src.PdmContext.Pipelines import ContextAndClusteringAndDatabase,ContextAndDatabase
 from PdmContext.utils.showcontext import show_Context_list
+from tqdm import tqdm
 # Press the green button in the gutter to run the script.
 
 def my_distance(c1:Context,c2:Context):
@@ -173,7 +174,12 @@ def get_df():
     return df
 
 if __name__ == '__main__':
-    test_context_Generation_dummy()
+
+
+    #Test_simulator_dataframe_with_pipeline_and_Influx()
+    showfrombaseInflux()
+    #showfrombase()
+
 
 
 
