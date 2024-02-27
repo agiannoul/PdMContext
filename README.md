@@ -1,37 +1,37 @@
 # PdMContext
 
-A python package for ectracting context in streaming application (related to Predictive Maintenance and Anomaly Detection)
+A Python package for extracting context in streaming applications (related to Predictive Maintenance and Anomaly Detection)
 
-### Documentation can be found in Documentation folder
+### Documentation can be found in the Documentation folder
 
 ### See src/Example.ipynb for usage
 
 # Context and Data types 
 
-**Context** is used here to provide a better understanding of the difference cases the data are each time.
+**Context** is used here to provide a better understanding of the different cases the data are each time.
 
-In esense Context represent the data (**CD**), existing in a time window, and their relationships (**CR**), where the relationships are extracted using **causal discovery** between the data (the causal discovery method can be user defiend).
+Essentially Context represents the data (**CD**), existing in a time window, and their relationships (**CR**), where the relationships are extracted using **causal discovery** between the data (the causal discovery method can be user defined).
 
-**PdmContext.utils.structure.Context** is used to Represent such a context.
+**PdmContext.utils.structure.Context** is used to represent such a context.
 
 ### Data Types
 
-#### Continiuous (analog, real, Univariate series ...):
+#### Continuous (analog, real, Univariate series ...):
 
-To this point **CD** contain data from different sources, and support different sample rates of signals, and event discrete data. The difference in sample rate is handled internally in the context generation process where all the series are maped to a single series sample rate callse **target** series (also reffered to the code and documentation as such): 
+To this point **CD** contains data from different sources, and supports different sample rates of signals, and event discrete data. The difference in sample rate is handled internally in the context generation process where all the series are mapped to a single series sample rate called **target** series (also referred to the code and documentation as such): 
 
-1) For series with sample rate higher than that of target, the samples between two timestamps of targets series, are aggregated (mean)
-2) For series with lower sample rate, repetition of their values is used.
+1) For series with a sample rate higher than that of the target, the samples between two timestamps of the targets series, are aggregated (mean)
+2) For series with lower sample rates, repetition of their values is used.
 
 
 #### Event Data: 
 
-The context suppor also data which are not numeric, but related to some kind of event (events that occur in time). These are oftenly refered as discrete data. To this end the Context support two types of such events:
+The context supports also data that are not numeric, but related to some kind of event (events that occur in time). These are often referred to as discrete data. To this end, the Context supports two types of such events:
 
-1) isolated: Event that have instant impact when they occur.
-2) configuration: Events that refer to a configuration change that has impact and after its occurance.
+1) isolated: Events that have an instant impact when they occur.
+2) configuration: Events that refer to a configuration change that has an impact after its occurrence.
 
-The type of events is used to tranform the in to contiuous space and add them to **CD**.
+The type of events is used to transform them into continuous space and add them to **CD**.
 
 ![alt text](src/images/CDextraction.png)
 
