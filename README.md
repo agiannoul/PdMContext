@@ -4,7 +4,7 @@ A python package for ectracting context in streaming application (related to Pre
 
 ### Documentation can be found in Documentation folder
 
-### See Example.ipynb for usage
+### See src/Example.ipynb for usage
 
 # Context and Data types 
 
