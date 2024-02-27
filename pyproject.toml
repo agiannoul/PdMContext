@@ -1,10 +1,10 @@
 [project]
 name = "PdmContext"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Apostolos Giannoulidis", email="agiannous@csd.auth.gr" },
 ]
-description = "Context is used here to provide a better understanding of the difference cases the data are each time. In esense Context represent the data (CD), existing in a time window, and their relationships (CR), where the relationships are extracted using causal discovery between the data (the causal discovery method can be user defiend)."
+description = "Context is used here to provide a better understanding of the difference cases the data are each time. Essentially, Context represent the data (CD), existing in a time window, and their relationships (CR), where the relationships are extracted using causal discovery between the data (the causal discovery method can be user defiend)."
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
