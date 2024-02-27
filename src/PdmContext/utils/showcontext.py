@@ -11,12 +11,16 @@ def filter_edges(edge,char,filteredges):
 
 def show_Context_list(contextlist: list[Context], target_text, filteredges=[["", "", ""]]):
     """
+    Visualization of Contexts in the contextlist
 
-    :param contextlist: List of Context objects
-    :param target_text: The target data that the context built with
-    :param filteredges: A list of list, where each list define which of the edges in Context.Cr should be displayed
+    **Parameters**:
+
+    **contextlist**: List of Context objects
+
+    **target_text**: The target data that the context built with
+
+    **filteredges**: A list of list, where each list define which of the edges in Context.Cr should be displayed
         where each time we check if the fields of the list are part of the edges text and characterization.
-    :return:
     """
 
     fig, ax = plt.subplots()

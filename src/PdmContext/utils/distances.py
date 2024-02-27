@@ -11,10 +11,13 @@ def nearest(TargetSet :list[Context], query : Context, threshold: float,distance
     This method searches if there is a similar context object as query in the TargetSet.
     Where the similar means with similarity at least as threshold
 
-    TargetSet: A list from context objects to search for similar ones
+    **Parameters**:
 
-    query : The query context object
-    threshold : The similarity threshold (real value in [0,1]
+    **TargetSet**: A list from context objects to search for similar ones
+
+    **query** : The query context object
+
+    **threshold** : The similarity threshold (real value in [0,1]
     '''
     maxdist = 0
     # starting=time.time()

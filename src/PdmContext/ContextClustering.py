@@ -10,11 +10,16 @@ class DBscanContextStream():
         """
         A simple clustering method for context (inspired from streaming DBSCAN)
 
-        :param cluster_similarity_limit:
-        :param min_points:
-        :param distancefunc: The function to use in order to calculate two Contexts' similarity. None value results in
+        Parameters:
+
+        cluster_similarity_limit: The similarity upon two clusters are merged
+
+        min_points:
+
+        distancefunc: The function to use in order to calculate two Contexts' similarity. None value results in
         the usage of default distance function implemented in the class.
-        In cas of user's distance function, this has to take the two contexts as parameter and
+        In case of user's distance function, this has to take the two contexts as parameter and
+
         return a real number in [0,1] indicating their similarity (1 is maximum similarity)
         """
 

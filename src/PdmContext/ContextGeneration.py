@@ -12,14 +12,23 @@ class ContextGenerator:
 
     def __init__(self,target,context_horizon="8",Causalityfunct=calculatewithPc,debug=False):
         """
+        This Class handle the Context Generation. It keeps an internal buffer to build the context for a target series based
+        on the provided context_horizon. All data are passed though the collect_data method, which return a correspoding
+        Context when target data are passed.
 
-        :param target: The name of the target source, which will be used as the baseline in order to map different samples
+
+        **Parameters**:
+
+        **target**: The name of the target source, which will be used as the baseline in order to map different samples
          rate to that of the target sample rate.
-        :param context_horizon: The time period to look back for context data, the form of that parameter is "8 hours"
-        :param Causalityfunct: the causality discovery method to use to produce causal relationships between context data,
+
+        **context_horizon**: The time period to look back for context data, the form of that parameter is "8 hours"
+
+        **Causalityfunct**: the causality discovery method to use to produce causal relationships between context data,
             This must be a function with parameters two equal size lists, one with names and the other
             with data (a list of list or 2D numpy array).
-        :param debug: If it runs on debug mode
+
+        **debug**: If it runs on debug mode
         """
 
 
@@ -52,19 +61,29 @@ class ContextGenerator:
         This method is used when data are passed iteratively, and stored in buffer
         When data of target source arrive, a corresponding context is produced.
         Sources can be of different sample rate (all sources are mapped to the targets sample rate when context is produced)
-        Sources can be of either
-            1) Continuous type (those that have some kind of arithmetic value)
-            2) Discrete events (without value) , where one of the type isolated or configuration must be assigned
-                A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
-                isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
-                Essentially the type of the events define the way that will be transformed to real values time-series.
 
-        :param timestamp:  The timestamp of the arrived value
-        :param source: The source of the arrived value
-        :param name: The name (or identifier) of the arrived value
-        :param value: The value (float), in case this is None the arrived data is considered as event
-        :param type: the type of the data can be one of "isolated","configuration" when no value is passed
-        :return: structure.Context object when the data name match to the target name or None.
+        Sources can be of either:
+
+        1) Continuous type (those that have some kind of arithmetic value)
+
+        2) Discrete events (without value) , where one of the type isolated or configuration must be assigned
+            A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
+            isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
+            Essentially the type of the events define the way that will be transformed to real values time-series.
+
+        **Parameters**:
+
+        **timestamp**:  The timestamp of the arrived value
+
+        **source**: The source of the arrived value
+
+        **name**: The name (or identifier) of the arrived value
+
+        **value**: The value (float), in case this is None the arrived data is considered as event
+
+        **type**: the type of the data can be one of "isolated","configuration" when no value is passed
+
+        **return**:  structure.Context object when the data name match to the target name or None.
         '''
 
         if value is None:

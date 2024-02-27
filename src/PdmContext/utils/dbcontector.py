@@ -14,7 +14,7 @@ class SQLiteHandler:
     def __init__(self, db_name):
         """
 
-        :param db_name: the name of the database to load or create
+        **db_name**: the name of the database to load or create
         """
         self.conn = sqlite3.connect(db_name,isolation_level = 'DEFERRED')
         self.cursor = self.conn.cursor()
@@ -29,8 +29,8 @@ class SQLiteHandler:
         target is the name of the target values,
         context pickle contain a Context object in binary form after pickle.dump()
         metadata, contain users metadate
-        value, contain the last valuw of target series.
-        :return:
+        value, contain the last value of target series.
+
         """
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS my_table (
@@ -49,11 +49,25 @@ class SQLiteHandler:
         self.cursor.execute(f'CREATE INDEX IF NOT EXISTS idx_{field_name} ON my_table({field_name})')
         self.conn.commit()
 
-    def insert_record(self, date : pandas.Timestamp, target, contextpickle: Context,metadata=""):
+    def insert_record(self, date : pandas.Timestamp, target, context: Context,metadata=""):
+        """
+        Inserts a record of DATE,TARGET,Context (after pickle) , Meta data text, Value (which is the last target value from context)
+
+        **Parameters**:
+
+        **date**: The timestamp of the context
+
+        **target**: The target name on which the context was built
+
+        **context**: The Context object
+
+        **metadata**: Text of possible meta data.
+        """
+
         unix_timestamp = int(time.mktime(date.timetuple()))
-        tosave=self.create_pickle(contextpickle)
+        tosave=self.create_pickle(context)
         self.cursor.execute('INSERT OR REPLACE INTO my_table (Date, target, contextpickle,metadata,value) VALUES (?, ?, ?, ?, ?)',
-                            (unix_timestamp, str(target), tosave,metadata,contextpickle.CD[target][-1]))
+                            (unix_timestamp, str(target), tosave,metadata,context.CD[target][-1]))
         self.conn.commit()
 
     def get_records_between_dates(self, start_date, end_date,target):
@@ -66,6 +80,19 @@ class SQLiteHandler:
         return records
 
     def get_contex_between_dates(self, start_date :pd.Timestamp, end_date:pd.Timestamp,target):
+        """
+           Returns all Context object in list of the specified target between the start and end dates given.
+
+           **Parameter**:
+
+           **start_date**: Begin date of the query objects
+
+           **end_date**: End date of the query objects
+
+           **target**: the target of which the context will be returned
+
+           **return**: A list of from PdmContext.utils.structure.Context objects
+        """
         # Convert the start and end dates to Unix timestamps
         start_timestamp = int(time.mktime(start_date.timetuple()))
         end_timestamp = int(time.mktime(end_date.timetuple()))
@@ -82,6 +109,15 @@ class SQLiteHandler:
         return return_list
 
     def get_all_context_by_target(self,target):
+        """
+           Returns all Context object in list of the specified target.
+
+           **Parameter**:
+
+           **target**: the target of which the context will be returned
+
+           **return**: A list of from PdmContext.utils.structure.Context objects
+        """
         # Convert the start and end dates to Unix timestamps
 
         # Retrieve records between the specified dates
@@ -137,10 +173,13 @@ class InfluxDBHandler:
     def __init__(self, host='localhost', port=8086, db_name='my_database',measurment_name="my_table"):
         """
 
-        :param host: location of host (ip)
-        :param port: port where the database is hosted
-        :param db_name: Database name
-        :param measurment_name:  measurment name to be used
+        **host**: location of host (ip)
+
+        **port**: port where the database is hosted
+
+        **db_name**: Database name
+
+        **measurment_name**:  measurment name to be used
         """
         self.client = InfluxDBClient(host, port, db_name)
         self.client.create_database(db_name)
@@ -153,22 +192,26 @@ class InfluxDBHandler:
 
     def insert_record(self, date: pd.Timestamp, target, context: Context, meta_data=""):
         """
-        Create a measurment with fields Date (datetime) and 3 text fields (target, contextpickle, metadata,value)
+        Create a measurment with fields Date (datetime) and 3 text fields (target, contex (pickle), metadata,value)
         target is the name of the target values,
         context pickle contain a Context object in binary form after pickle.dump()
         metadata, contain users metadate
-        value, contain the last valuw of target series.
+        value, contain the last value of target series.
 
-        :param date: Date of the context
-        :param target: name of target series
-        :param context: context object
-        :param meta_data: meta data passed by user
-        :return:
+        **Parameters**:
+
+        **date**: Date of the context
+
+        **target**: name of target series (for tag field)
+
+        **context**: context object
+
+        **meta_data**: meta data passed by user
+
         """
         unix_timestamp = int(time.mktime(date.timetuple()))
         contextpickle = self.create_pickle(context)
 
-        kati="mpla"
         data = [
             {
                 "measurement": f"{self.my_measurment}",
@@ -179,7 +222,6 @@ class InfluxDBHandler:
                 "fields": {
                     "contextpickle": contextpickle,
                     "metadata": meta_data,
-                    "kati": kati,
                     "value": context.CD[target][-1]
                 }
             }
@@ -189,6 +231,20 @@ class InfluxDBHandler:
 
 
     def get_contex_between_dates(self, start_date: pd.Timestamp, end_date: pd.Timestamp, target):
+        """
+           Returns all Context object in list of the specified target between the start and end dates given.
+
+           **Parameter**:
+
+           **start_date**: Begin date of the query objects
+
+           **end_date**: End date of the query objects
+
+           **target**: the target of which the context will be returned (tag)
+
+           **return**: A list of from PdmContext.utils.structure.Context objects
+        """
+
         query = f'SELECT * FROM "{self.my_measurment}" WHERE ("target"::tag = \'{target}\') AND time >= {start_date.timestamp()} AND time <= {end_date.timestamp()}'
         result = self.client.query(query,database=self.db_name)
         return_list = []
@@ -200,6 +256,15 @@ class InfluxDBHandler:
         return return_list
 
     def get_all_context_by_target(self,  target):
+        """
+        Returns all Context object in list of the specified target.
+
+        **Parameter**:
+
+        **target**: the target of which the context will be returned (tag)
+
+        **return**: A list of from PdmContext.utils.structure.Context objects
+        """
         query = (f'SELECT * FROM "{self.my_measurment}" WHERE ("target"::tag = \'{target}\') ')
         result = self.client.query(query,database=self.db_name)
         return_list = []

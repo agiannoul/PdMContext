@@ -4,9 +4,12 @@ class simulate_stream():
     def __init__(self,TimeSeries:[(str,list[float],list[pd.Timestamp])],Events:[(str,list[pd.Timestamp],str)],targetname):
         """
         This method simulate the traffic of the data
-        :param TimeSeries: A list of time series data in form of (name,list with data, list of timestamp)
-        :param Events: A list of events in form of (name, list of timestamp when the event occured,type of the Event (isolated or configuration)) as expected in ContextGenerator.
-        :return:
+
+        **Parameters**:
+
+        **TimeSeries**: A list of time series data in form of (name,list with data, list of timestamp)
+
+        **Events**: A list of events in form of (name, list of timestamp when the event occured,type of the Event (isolated or configuration)) as expected in ContextGenerator.
         """
         # build dataframe with columns dt, name, value, type
         dict_df={
@@ -71,9 +74,13 @@ class simulate_stream():
 
 def simulate_from_df(df: pd.DataFrame,target_name: str):
     '''
-    :param df: Dataframe with the data to simulate stream, the index has to be of Date type.
-    :param target_name: the target name data
-    :return: an itterator
+    **Parameters**:
+
+    **df**: Dataframe with the data to simulate stream, the index has to be of Date type.
+
+    **target_name**: the target name data
+
+    **return**: an itterator
     '''
     #TimeSeries:[(str,list[float],list[pd.Timestamp])]
     timeseries=[]

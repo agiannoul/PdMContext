@@ -5,6 +5,14 @@ from matplotlib import pyplot as plt
 class Eventpoint():
 
     def __init__(self,code,source,timestamp,details=None,type=None):
+
+        """
+        This class is used as structure to help in the flow of data for Context generation, essentially each
+        instance of such class represent a single data sample from specific source
+        (where the code refers to the feature name), The details are used to sotre the actual data, while the type
+        refer to the type of data (crucial for event data which must be on of isolated or configuration)
+        
+        """
         self.code = code
         self.source = source
         self.timestamp = timestamp
@@ -16,14 +24,18 @@ class Context():
 
     def __init__(self,timestamp,CD: dict,CR :dict,details=None):
         '''
+        Representation of the Context
+        
+        **timestamp**: A timestamp of the context
 
-        :param timestamp: A timestamp of the context
-        :param CD: a dictionary with names the different data sources (names)
+        **CD**: a dictionary with names the different data sources (names)
         and values equal size of data (time series) that correspond to that source.
-        :param CR: dictionary with keys "edges","characterization","interpertation"
+
+        **CR**: dictionary with keys "edges","characterization","interpertation"
             Where edges contain causal relationships of CD data
             characterization is a parallel list with edges which provide an characterization over the relationship (increase,decrease,uknown)
-        :param details:
+
+        **details**:
             String with details from user
         '''
 
@@ -36,10 +48,10 @@ class Context():
     def ContextFromDict(cls,contextdict: dict,details=None):
         '''
 
-        :param contextdict: Which contain timestamp,
+        contextdict: Which contain timestamp,
          multiple keys of data sources (each one a time-series) to build CD
         and "edges","characterization" to build CR
-        :param details:
+        details:
             String with details from user
         '''
 
