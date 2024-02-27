@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Example</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>PdM Context</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -15281,26 +15281,28 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 
+
+</div>
 <div id="cell-id=4667b4ab-45db-4da4-87c6-3e5b3c50ca88" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Context-and-Data-types-">Context and Data types <a class="anchor" id="Context-and-Data-types" /><a class="anchor-link" href="#Context-and-Data-types-">&#182;</a></h1><p><strong>Context</strong> is used here to provide a better understanding of the difference cases the data are each time.</p>
-<p>In esense Context represent the data (<strong>CD</strong>), existing in a time window, and their relationships (<strong>CR</strong>), where the relationships are extracted using <strong>causal discovery</strong> between the data (the causal discovery method can be user defiend).</p>
-<p><strong>PdmContext.utils.structure.Context</strong> is used to Represent such a context.</p>
-<h2 id="Data-Types">Data Types<a class="anchor-link" href="#Data-Types">&#182;</a></h2><h3 id="Continiuous-(analog,-real,-Univariate-series-...):">Continiuous (analog, real, Univariate series ...):<a class="anchor-link" href="#Continiuous-(analog,-real,-Univariate-series-...):">&#182;</a></h3><p>To this point <strong>CD</strong> contain data from different sources, and support different sample rates of signals, and event discrete data. The difference in sample rate is handled internally in the context generation process where all the series are maped to a single series sample rate callse <strong>target</strong> series (also reffered to the code and documentation as such):</p>
+<h1 id="Context-and-Data-types-">Context and Data types <a class="anchor" id="Context-and-Data-types" /><a class="anchor-link" href="#Context-and-Data-types-">&#182;</a></h1><p><strong>Context</strong> is used here to provide a better understanding of the different cases the data are used each time.</p>
+<p>Essentially Context represents the data (<strong>CD</strong>), existing in a time window, and their relationships (<strong>CR</strong>), where the relationships are extracted using <strong>causal discovery</strong> between the data (the causal discovery method can be user defined).</p>
+<p><strong>PdmContext.utils.structure.Context</strong> is used to represent such a context.</p>
+<h2 id="Data-Types">Data Types<a class="anchor-link" href="#Data-Types">&#182;</a></h2><h3 id="Continuous-(analog,-real,-Univariate-series-...):">Continuous (analog, real, Univariate series ...):<a class="anchor-link" href="#Continuous-(analog,-real,-Univariate-series-...):">&#182;</a></h3><p>To this point <strong>CD</strong> contains data from different sources, and support different sample rates of signals, and event discrete data. The difference in sample rate is handled internally in the context generation process where all the series are mapped to a single series sample rate called <strong>target</strong> series (also referred to in the code and documentation as such):</p>
 <ol>
-<li>For series with sample rate higher than that of target, the samples between two timestamps of targets series, are aggregated (mean)</li>
-<li>For series with lower sample rate, repetition of their values is used.</li>
+<li>For series with a sample rate higher than that of the target, the samples between two timestamps of target series, are aggregated (mean)</li>
+<li>For series with lower sample rates, repetition of their values is used.</li>
 </ol>
-<h3 id="Event-Data:">Event Data:<a class="anchor-link" href="#Event-Data:">&#182;</a></h3><p>The context suppor also data which are not numeric, but related to some kind of event (events that occur in time). These are oftenly refered as discrete data. To this end the Context support two types of such events:</p>
+<h3 id="Event-Data:">Event Data:<a class="anchor-link" href="#Event-Data:">&#182;</a></h3><p>The context support also data which are not numeric, but related to some kind of event (events that occur in time). These are often referred to as discrete data. To this end, the Context supports two types of such events:</p>
 <ol>
-<li>isolated: Event that have instant impact when they occur.</li>
-<li>configuration: Events that refer to a configuration change that has impact and after its occurance.</li>
+<li>isolated: Events that have an instant impact when they occur.</li>
+<li>configuration: Events that refer to a configuration change that has an impact after its occurrence.</li>
 </ol>
-<p>The type of events is used to tranform the in to contiuous space and add them to <strong>CD</strong>.</p>
+<p>The type of events is used to transform them into continuous space and add them to <strong>CD</strong>.</p>
 <p><img src="images/CDextraction.png" alt="title" /></p>
 
 </div>
@@ -15360,7 +15362,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Creating-a-Context-Generation-object-">Creating a Context Generation object <a class="anchor" id="con-obj" /><a class="anchor-link" href="#Creating-a-Context-Generation-object-">&#182;</a></h2><p>Provide the name of the target series, the time window length using the context_horizon parameter, and Causality function to calculate CR (we leave this for later).</p>
+<h2 id="Creating-a-Context-Generation-object-">Creating a Context Generation object <a class="anchor" id="con-obj" /><a class="anchor-link" href="#Creating-a-Context-Generation-object-">&#182;</a></h2><p>Provide the name of the target series, the time window length using the context_horizon parameter, and the Causality function to calculate CR (we leave this for later).</p>
 
 </div>
 </div>
@@ -15391,7 +15393,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Iteratevly we pass the data to the Context Generator by calling collec_data() method. Each time we pass a single data sample or event from a single source. This method will return a Context object when we pass data with name of the specified target name</p>
+<p>Iteratevly we pass the data to the Context Generator by calling collec_data() method. Each time we pass a single data sample or event from a single source. This method will return a Context object when we pass data with the name of the specified target name</p>
 
 </div>
 </div>
@@ -15426,8 +15428,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We can plot the last context object which was returned (this object is refered to the last timestamp)
-We see in the first plot the CD part of Context and in the second plot the CR (in form of graph).</p>
+<p>We can plot the last context object that was returned (this object is referred to as the last timestamp)
+We see in the first plot the CD part of Context and in the second plot the CR (in the form of a graph).</p>
 
 </div>
 </div>
@@ -15506,7 +15508,7 @@ class="
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Moreover we can plot all the context of ContextGeneration (in more abstract level) using plot method.</p>
+<p>Moreover, we can plot all the context of ContextGeneration (at a more abstract level) using the plot method.</p>
 
 </div>
 </div>
@@ -15560,7 +15562,7 @@ class="
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>The values on this plot refer to the target value which used to build each context sample, and the colors are refered to the relationshios that exist in the CR of each context object). In that example we can see that the anomaly1 sereis has an increase due to the config event (as seemed from the CR)</p>
+<p>The values on this plot refer to the target value used to build each context sample, and the colors are refered to the relationships that exist in the CR of each context object). In that example, we can see that the anomaly1 series has an increase due to the config event (as seen from the CR)</p>
 
 </div>
 </div>
@@ -15573,10 +15575,10 @@ class="
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h2 id="Causality-Discovery-">Causality Discovery <a class="anchor" id="con-caus" /><a class="anchor-link" href="#Causality-Discovery-">&#182;</a></h2><p>The user can implement and provide to the Context Generator its own causality discovery method:</p>
-<p>To do this simple needs to implement a python function, that takes as a parameter:</p>
+<p>To do this simply needs to implement a Python function, that takes as a parameter:</p>
 <ol>
 <li>A list with names of time series data</li>
-<li>The time series data in form of 2D array</li>
+<li>The time series data in the form of a 2D array</li>
 </ol>
 <p>Example: PdmContext.utils.causal_discovery_functions.calculatewithPc</p>
 
@@ -15622,12 +15624,12 @@ class="
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Database-Connections-">Database Connections <a class="anchor" id="con-db" /><a class="anchor-link" href="#Database-Connections-">&#182;</a></h2><p>The current implementation support connection with two databases (SQLlite3 and Influxdb) using the PdmContext.utils.dbconnector.SQLiteHandler, and PdmContext.utils.dbconnector.InfluxDBHandler</p>
-<p>Using SQLlite will create a database in the location of the main file.</p>
-<p>Using Influxdb need to start the Influxdb services before start:
+<h2 id="Database-Connections-">Database Connections <a class="anchor" id="con-db" /><a class="anchor-link" href="#Database-Connections-">&#182;</a></h2><p>The current implementation supports connection with two databases (SQLlite3 and Influxdb) using the PdmContext.utils.dbconnector.SQLiteHandler, and PdmContext.utils.dbconnector.InfluxDBHandler</p>
+<p>Using SQLite will create a database in the location of the main file.</p>
+<p>Using Influxdb need to start the Influxdb services before starting:
 (For example in Linux: sudo service influxdb start)</p>
-<p>Both databases Connections can be used with implemented pipeline: PdmContext.Pipelines.ContextAndDatabase</p>
-<p>Let's generate same example as befor but this time store it to the Database</p>
+<p>Both databases Connections can be used with the implemented pipeline: PdmContext.Pipelines.ContextAndDatabase</p>
+<p>Let's generate the same example as before but this time store it to the Database</p>
 
 </div>
 </div>
@@ -15814,8 +15816,8 @@ class="
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We can use filter to exlcude some relationships from the plot (this is quite usefull when many data series are involved)
-Althoug there is no practial use in our example, we will now exclude config-&gt;anomaly1 relationships and keep only anomaly1-&gt;config, which are the same samples (this is done here only for presentation purposes)</p>
+<p>We can use filter to exclude some relationships from the plot (this is quite useful when many data series are involved)
+Although there is no practical use in our example, we will now exclude config-&gt;anomaly1 relationships and keep only anomaly1-&gt;config, which are the same samples (this is done here only for presentation purposes)</p>
 
 </div>
 </div>
@@ -15869,9 +15871,9 @@ class="
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Distance-Function-">Distance Function <a class="anchor" id="con-dist" /><a class="anchor-link" href="#Distance-Function-">&#182;</a></h2><p>To compare two Context object we need a similarity (or distacne measure).</p>
-<p>The user can implement its own distance function, which accept only two paramters (two Context objects)</p>
-<p>Below there is an example which use the distance_cc (which is the SBD distance of between the CD and jaccard similarity between the CR of tte two context weigthed by a factor a and b=1-a)</p>
+<h2 id="Distance-Function-">Distance Function <a class="anchor" id="con-dist" /><a class="anchor-link" href="#Distance-Function-">&#182;</a></h2><p>To compare two Context objects we need a similarity (or distance measure).</p>
+<p>The user can implement its own distance function, which accepts only two parameters (two Context objects)</p>
+<p>Below there is an example which uses the distance_cc (which is the SBD distance of between the CD and Jaccard similarity between the CR of the two contexts weighted by a factor a and b=1-a)</p>
 <p>In this example we builr our own distance function <strong>my_distance(c1: Context,c2 Context)</strong> by using specific a and b</p>
 
 </div>
@@ -15933,11 +15935,11 @@ class="
 <h2 id="Clustering-Context-">Clustering Context <a class="anchor" id="con-clust" /><a class="anchor-link" href="#Clustering-Context-">&#182;</a></h2><p>Using the PdmContext.ContextClustering.DBscanContextStreamClustering we can cluster over Context objects.</p>
 <p>Clustering over context object has two main limitations:</p>
 <ol>
-<li>streaming interface (when we want to cluster the context objects as they arrive from Context Generator</li>
-<li>appropriate distance measurment</li>
+<li>streaming interface (when we want to cluster the context objects as they arrive from the Context Generator</li>
+<li>appropriate distance measurement</li>
 </ol>
-<p>Regarding 1) an example of simplefied DBscan algorithm for streaming data has been developed in PdmContext.ContextClustering.DBscanContextStreamClustering (we can iteratevly feed cluster method using add_sample_to_cluster method)</p>
-<p>While for 2) a sample of ditance functions exist in PdmContext.utils.distances, and the user can define its own as shown previously</p>
+<p>Regarding 1) an example of a simplified DBscan algorithm for streaming data has been developed in PdmContext.ContextClustering.DBscanContextStreamClustering (we can iteratively feed cluster method using add_sample_to_cluster method)</p>
+<p>While for 2) a sample of distance functions exist in PdmContext.utils.distances, and the user can define its own as shown previously</p>
 
 </div>
 </div>
@@ -16109,10 +16111,10 @@ class="
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Pipelines-">Pipelines <a class="anchor" id="con-pipe" /><a class="anchor-link" href="#Pipelines-">&#182;</a></h2><p>There are three pipeline which wrap the Database Conenctor, Context Generator and Clustering (all using the same API of collect_data as Context Generator)</p>
+<h2 id="Pipelines-">Pipelines <a class="anchor" id="con-pipe" /><a class="anchor-link" href="#Pipelines-">&#182;</a></h2><p>There are three pipeline that wrap the Database Connector, Context Generator, and Clustering (all using the same API of collect_data as Context Generator)</p>
 <ol>
 <li>PdmContext.Pipelines.ContextAndClustering (wrap Context generator and feed its result to clustering)</li>
-<li>PdmContext.Pipelines import ContextAndDatabase (wrap Context generator and feed its result to database)</li>
+<li>PdmContext.Pipelines import ContextAndDatabase (wrap Context generator and feed its result to the database)</li>
 <li>PdmContext.Pipelines import ContextAndClusteringAndDatabase (wrap Context generator and feed its result to database and clustering)</li>
 </ol>
 
@@ -16126,7 +16128,7 @@ class="
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Simulators-">Simulators <a class="anchor" id="con-simulator" /><a class="anchor-link" href="#Simulators-">&#182;</a></h2><p>Because Context Generator works in streaming fashion there are implemented simulatores that can be used as helpers for the user (PdmContext.utils.simulate_stream)</p>
+<h2 id="Simulators-">Simulators <a class="anchor" id="con-simulator" /><a class="anchor-link" href="#Simulators-">&#182;</a></h2><p>Because Context Generator works in a streaming fashion there are implemented simulators that can be used as helpers for the user (PdmContext.utils.simulate_stream)</p>
 
 </div>
 </div>
@@ -16139,11 +16141,11 @@ class="
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h3 id="Simulator-stream-">Simulator stream <a class="anchor" id="con-simulator-stream" /><a class="anchor-link" href="#Simulator-stream-">&#182;</a></h3><p>Example (PdmContext.utils.simulate_stream.simulate_stream):</p>
-<p>This simulator need to pass two list</p>
+<p>This simulator needs to pass two list</p>
 <ol>
-<li>Time series data : which contain tuples of with shape ( name : str, timestamps :list, values :list )</li>
-<li>Event series data : which contain tuples of : (name : str, occurencies :list of Dates), type :str)</li>
-<li>traget name</li>
+<li>Time series data: which contain tuples of with shape ( name: str, timestamps:list, values:list )</li>
+<li>Event series data: which contain tuples of : (name: str, occurrences :list of Dates), type:str)</li>
+<li>target name</li>
 </ol>
 
 </div>
@@ -16219,12 +16221,12 @@ class="
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Simulator-using-pandas-DataFrame-">Simulator using pandas DataFrame <a class="anchor" id="con-simulator-df" /><a class="anchor-link" href="#Simulator-using-pandas-DataFrame-">&#182;</a></h3><p>In case of existing dataframe with all data.</p>
+<h3 id="Simulator-using-pandas-DataFrame-">Simulator using pandas DataFrame <a class="anchor" id="con-simulator-df" /><a class="anchor-link" href="#Simulator-using-pandas-DataFrame-">&#182;</a></h3><p>In the case of an existing dataframe with all data.</p>
 <p>Example (PdmContext.utils.simulate_stream.simulate_from_df):</p>
-<p>This simulator need to pass two list</p>
+<p>This simulator needs to pass two list</p>
 <ol>
 <li>A dataframe</li>
-<li>Which columns are representing events and of what type example [(&quot;column1&quot;,&quot;isolated&quot;),(&quot;column3&quot;,&quot;configuration&quot;)]</li>
+<li>Which columns represent events and of what type example [(&quot;column1&quot;,&quot;isolated&quot;),(&quot;column3&quot;,&quot;configuration&quot;)]</li>
 <li>Target name (existing in dataframes column)</li>
 </ol>
 
@@ -16310,8 +16312,8 @@ class="
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h1 id="Limitations-">Limitations <a class="anchor" id="limitation" /><a class="anchor-link" href="#Limitations-">&#182;</a></h1><ol>
 <li>distances not scalable</li>
-<li>causality discovery is genreraly slow</li>
-<li>Context extraction it may be not optimize (for time complexity)</li>
+<li>causality discovery is generally slow</li>
+<li>Context extraction may be not optimized (for time complexity)</li>
 </ol>
 
 </div>
