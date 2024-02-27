@@ -2,10 +2,11 @@
 
 A python package for ectracting context in streaming application (related to Predictive Maintenance and Anomaly Detection)
 
-# Documentation can be found in Documentation folder
+### Documentation can be found in Documentation folder
 
+### See Example.ipynb for usage
 
-## Context and Data types 
+# Context and Data types 
 
 **Context** is used here to provide a better understanding of the difference cases the data are each time.
 
