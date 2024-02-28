@@ -60,8 +60,8 @@ class Context():
         CD={}
 
         CR = {"edges":contextdict["edges"],"characterization":contextdict["characterization"]}
-        if "interperations" in contextdict.keys():
-            CR["interperations"]=contextdict["interperations"]
+        if "interpertation" in contextdict.keys():
+            CR["interpertation"]=contextdict["interpertation"]
 
         for key in contextdict:
             if key not in CR.keys() and key!="timestamp":
