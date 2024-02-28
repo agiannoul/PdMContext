@@ -41,7 +41,93 @@ def np_pearson_cor(x, y):
     # bound the values to -1 to 1 in the event of precision issues
     return np.maximum(np.minimum(result, 1.0), -1.0)
 
+def distance_eu_z(context1 : Context, context2 : Context,a,verbose=False):
+    """
+    Calculation of similarity between two Context objects based on two quantities:
+        1) The first quantity is based on the Euclidean  distance after z_normalization
+            We calculate a similarity based on the Euclidean distance between common values in the context CD,
+            equal to Euclidean(c1,c2)/(norm(c1)+norm(c2) to be in [0,1]
+            where each time we use the last n values (where n is the size of the shorter series)
+        2) Jaccard similarity of the edges in the CR (if we ignore the direction)
 
+    **context1**: A context object
+    **context2**: A context object
+    **a**: the weight of Euclidean similarity
+    **verbose**:
+    **return**: a similarity between 0 and 1
+    """
+    b=1-a
+    common_values = []
+    uncommon_values = []
+    for key in context1.CD.keys():
+        if key != "timestamp" and key != "edges" and key != "characterization" and key != "interpertation":
+            if key in context2.CD.keys():
+                if context1.CD[key] is not None and context2.CD[key] is not None:
+                    common_values.append(key)
+                else:
+                    uncommon_values.append(key)
+            else:
+                uncommon_values.append(key)
+    for key in context2.CD.keys():
+        if key != "timestamp" and key != "edges" and key != "characterization" and key != "interpertation":
+            if key not in context1.CD.keys():
+                uncommon_values.append(key)
+    if len(common_values)>0 and a>0.0000000001:
+        All_common_eu=[]
+        for key in common_values:
+            sizee = min(len(context1.CD[key]), len(context2.CD[key]))
+            if sizee < 2:
+                continue
+            firtsseries = context1.CD[key][-sizee:]
+            secondseries = context2.CD[key][-sizee:]
+
+            firtsseries=_z_norm(firtsseries)
+            secondseries=_z_norm(secondseries)
+            den=np.linalg.norm(firtsseries)+np.linalg.norm(secondseries)
+            if den>0:
+                dist = np.linalg.norm(np.array(firtsseries)-np.array(secondseries))/den
+            else:
+                dist=0
+            All_common_eu.append(dist)
+        in_cc_m=1-sum(All_common_eu)/len(All_common_eu)
+
+        cc_m=in_cc_m * len(All_common_eu) / (len(All_common_eu) + len(uncommon_values))
+
+
+        if verbose:
+            print(f"uncommon_values: {len(uncommon_values)}")
+            print(f"Final cc_m = {cc_m}")
+    else:
+        cc_m=0
+    # cc_m ε [-1,1] -> [0,1]
+
+    # check common causes-characterizations:
+    common = 0
+
+    edges1=ignoreOrder(context1)
+    edges2=ignoreOrder(context2)
+
+    for edge in edges1:
+        for edge2  in edges2:
+            if edge[0] == edge2[0] and edge[1] == edge2[1]:
+                common += 1
+
+    if (len(edges1) + len(edges2) - common) >0:
+        if common == 0:
+            jaccard = 0
+        else:
+            jaccard = common / (len(edges1) + len(edges2) - common)
+        similarity = jaccard
+    # there are no samples Jaccard(empty,empty) = ? , in that case we use only first part
+    else:
+        if a<0.0000001:
+            similarity = 1
+        else:
+            similarity=None
+    if similarity is None:
+        return cc_m, (cc_m, similarity)
+    else:
+        return a * cc_m + b * similarity
 
 def _z_norm(series):
     if min(series) != max(series):
@@ -52,7 +138,23 @@ def _z_norm(series):
         series = [0 for i in range(len(series))]
     return series
 
-def distance_cc(context1 : Context, context2 : Context,a,b,verbose=False):
+def distance_cc(context1 : Context, context2 : Context,a,verbose=False):
+    """
+    Calculation of similarity between two Context objects based on two quantities:
+        1) The first quantity is based on the sbd distance
+            We calculate the minimum (average) sbd between all common series in the CD of contexts, from all possible shifts.
+            The shifts apply to all series each time.
+            Each time we use the last n values (where n is the size of the shorter series)
+            Which is also weighted from the ratio of common values.
+        2) Jaccard similarity of the edges in the CR (if we ignore the direction)
+
+    **context1**: A context object
+    **context2**: A context object
+    **a**: the weight of SBD similarity
+    **verbose**:
+    **return**: a similarity between 0 and 1
+    """
+    b=1-a
     common_values = []
     uncommon_values = []
     for key in context1.CD.keys():
