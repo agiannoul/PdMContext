@@ -51,9 +51,13 @@ def distance_eu_z(context1 : Context, context2 : Context,a,verbose=False):
         2) Jaccard similarity of the edges in the CR (if we ignore the direction)
 
     **context1**: A context object
+
     **context2**: A context object
+
     **a**: the weight of Euclidean similarity
+
     **verbose**:
+
     **return**: a similarity between 0 and 1
     """
     b=1-a
@@ -100,30 +104,32 @@ def distance_eu_z(context1 : Context, context2 : Context,a,verbose=False):
     else:
         cc_m=0
     # cc_m ε [-1,1] -> [0,1]
+    if b>0.000000001:
+        # check common causes-characterizations:
+        common = 0
 
-    # check common causes-characterizations:
-    common = 0
+        edges1=ignoreOrder(context1)
+        edges2=ignoreOrder(context2)
 
-    edges1=ignoreOrder(context1)
-    edges2=ignoreOrder(context2)
+        for edge in edges1:
+            for edge2  in edges2:
+                if edge[0] == edge2[0] and edge[1] == edge2[1]:
+                    common += 1
 
-    for edge in edges1:
-        for edge2  in edges2:
-            if edge[0] == edge2[0] and edge[1] == edge2[1]:
-                common += 1
-
-    if (len(edges1) + len(edges2) - common) >0:
-        if common == 0:
-            jaccard = 0
+        if (len(edges1) + len(edges2) - common) >0:
+            if common == 0:
+                jaccard = 0
+            else:
+                jaccard = common / (len(edges1) + len(edges2) - common)
+            similarity = jaccard
+        # there are no samples Jaccard(empty,empty) = ? , in that case we use only first part
         else:
-            jaccard = common / (len(edges1) + len(edges2) - common)
-        similarity = jaccard
-    # there are no samples Jaccard(empty,empty) = ? , in that case we use only first part
+            if a<0.0000001:
+                similarity = 1
+            else:
+                similarity=None
     else:
-        if a<0.0000001:
-            similarity = 1
-        else:
-            similarity=None
+        similarity=0
     if similarity is None:
         return cc_m, (cc_m, similarity)
     else:
@@ -149,9 +155,13 @@ def distance_cc(context1 : Context, context2 : Context,a,verbose=False):
         2) Jaccard similarity of the edges in the CR (if we ignore the direction)
 
     **context1**: A context object
+
     **context2**: A context object
+
     **a**: the weight of SBD similarity
+
     **verbose**:
+
     **return**: a similarity between 0 and 1
     """
     b=1-a
@@ -207,28 +217,32 @@ def distance_cc(context1 : Context, context2 : Context,a,verbose=False):
     # cc_m ε [-1,1] -> [0,1]
 
     # check common causes-characterizations:
-    common = 0
+    if b > 0.000000001:
+        # check common causes-characterizations:
+        common = 0
 
-    edges1=ignoreOrder(context1)
-    edges2=ignoreOrder(context2)
+        edges1 = ignoreOrder(context1)
+        edges2 = ignoreOrder(context2)
 
-    for edge in edges1:
-        for edge2  in edges2:
-            if edge[0] == edge2[0] and edge[1] == edge2[1]:
-                common += 1
+        for edge in edges1:
+            for edge2 in edges2:
+                if edge[0] == edge2[0] and edge[1] == edge2[1]:
+                    common += 1
 
-    if (len(edges1) + len(edges2) - common) >0:
-        if common == 0:
-            jaccard = 0
+        if (len(edges1) + len(edges2) - common) > 0:
+            if common == 0:
+                jaccard = 0
+            else:
+                jaccard = common / (len(edges1) + len(edges2) - common)
+            similarity = jaccard
+        # there are no samples Jaccard(empty,empty) = ? , in that case we use only first part
         else:
-            jaccard = common / (len(edges1) + len(edges2) - common)
-        similarity = jaccard
-    # there are no samples Jaccard(empty,empty) = ? , in that case we use only first part
+            if a < 0.0000001:
+                similarity = 1
+            else:
+                similarity = None
     else:
-        if a<0.0000001:
-            similarity = 1
-        else:
-            similarity=None
+        similarity = 0
     if similarity is None:
         return cc_m, (cc_m, similarity)
     else:
