@@ -166,7 +166,6 @@ def distance_cc(context1 : Context, context2 : Context,a,verbose=False):
                     uncommon_values.append(key)
             else:
                 uncommon_values.append(key)
-    tempkey=
     for key in context2.CD.keys():
         if key != "timestamp" and key != "edges" and key != "characterization" and key != "interpertation":
             if key not in context1.CD.keys():
