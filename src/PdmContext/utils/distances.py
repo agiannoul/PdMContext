@@ -166,39 +166,43 @@ def distance_cc(context1 : Context, context2 : Context,a,verbose=False):
                     uncommon_values.append(key)
             else:
                 uncommon_values.append(key)
+    tempkey=
     for key in context2.CD.keys():
         if key != "timestamp" and key != "edges" and key != "characterization" and key != "interpertation":
             if key not in context1.CD.keys():
                 uncommon_values.append(key)
     if len(common_values)>0 and a>0.0000000001:
-        All_common_cc=[]
-        for key in common_values:
-            sizee = min(len(context1.CD[key]), len(context2.CD[key]))
-            if sizee < 2:
-                continue
-            firtsseries = context1.CD[key][-sizee:]
-            secondseries = context2.CD[key][-sizee:]
+        if len(context2.CD[common_values[0]])>5 and len(context1.CD[common_values[0]])>5:
+            All_common_cc=[]
+            for key in common_values:
+                sizee = min(len(context1.CD[key]), len(context2.CD[key]))
+                if sizee < 2:
+                    continue
+                firtsseries = context1.CD[key][-sizee:]
+                secondseries = context2.CD[key][-sizee:]
 
-            firtsseries=_z_norm(firtsseries)
-            secondseries=_z_norm(secondseries)
+                firtsseries=_z_norm(firtsseries)
+                secondseries=_z_norm(secondseries)
 
-            cc_array=_ncc_c(firtsseries,secondseries)
-            All_common_cc.append(cc_array)
-        all_cc_means=[]
-        for i in range(len(All_common_cc[0])):
-            summ=0
-            for j in range(len(All_common_cc)):
-                summ+=All_common_cc[j][i]
-            all_cc_means.append(summ/len(All_common_cc))
-        in_cc_m=max(all_cc_means)
-        position_max=all_cc_means.index(in_cc_m)
-        in_cc_m = (in_cc_m + 1) / 2
-        cc_m=in_cc_m*len(All_common_cc)/(len(All_common_cc)+len(uncommon_values))
-        if verbose:
-            print(f"Max position: {position_max-len(firtsseries)}")
-            print(f"Common cc_m = {in_cc_m}")
-            print(f"uncommon_values: {len(uncommon_values)}")
-            print(f"Final cc_m = {cc_m}")
+                cc_array=_ncc_c(firtsseries,secondseries)
+                All_common_cc.append(cc_array)
+            all_cc_means=[]
+            for i in range(len(All_common_cc[0])):
+                summ=0
+                for j in range(len(All_common_cc)):
+                    summ+=All_common_cc[j][i]
+                all_cc_means.append(summ/len(All_common_cc))
+            in_cc_m=max(all_cc_means)
+            position_max=all_cc_means.index(in_cc_m)
+            in_cc_m = (in_cc_m + 1) / 2
+            cc_m=in_cc_m*len(All_common_cc)/(len(All_common_cc)+len(uncommon_values))
+            if verbose:
+                print(f"Max position: {position_max-len(firtsseries)}")
+                print(f"Common cc_m = {in_cc_m}")
+                print(f"uncommon_values: {len(uncommon_values)}")
+                print(f"Final cc_m = {cc_m}")
+        else:
+            cc_m = 0
     else:
         cc_m=0
     # cc_m ε [-1,1] -> [0,1]
