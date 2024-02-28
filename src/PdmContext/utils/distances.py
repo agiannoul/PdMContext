@@ -77,30 +77,33 @@ def distance_eu_z(context1 : Context, context2 : Context,a,verbose=False):
             if key not in context1.CD.keys():
                 uncommon_values.append(key)
     if len(common_values)>0 and a>0.0000000001:
-        All_common_eu=[]
-        for key in common_values:
-            sizee = min(len(context1.CD[key]), len(context2.CD[key]))
-            if sizee < 2:
-                continue
-            firtsseries = context1.CD[key][-sizee:]
-            secondseries = context2.CD[key][-sizee:]
+        if len(context2.CD[common_values[0]]) > 3 and len(context1.CD[common_values[0]]) > 3:
+            All_common_eu=[]
+            for key in common_values:
+                sizee = min(len(context1.CD[key]), len(context2.CD[key]))
+                if sizee < 2:
+                    continue
+                firtsseries = context1.CD[key][-sizee:]
+                secondseries = context2.CD[key][-sizee:]
 
-            firtsseries=_z_norm(firtsseries)
-            secondseries=_z_norm(secondseries)
-            den=np.linalg.norm(firtsseries)+np.linalg.norm(secondseries)
-            if den>0:
-                dist = np.linalg.norm(np.array(firtsseries)-np.array(secondseries))/den
-            else:
-                dist=0
-            All_common_eu.append(dist)
-        in_cc_m=1-sum(All_common_eu)/len(All_common_eu)
+                firtsseries=_z_norm(firtsseries)
+                secondseries=_z_norm(secondseries)
+                den=np.linalg.norm(firtsseries)+np.linalg.norm(secondseries)
+                if den>0:
+                    dist = np.linalg.norm(np.array(firtsseries)-np.array(secondseries))/den
+                else:
+                    dist=0
+                All_common_eu.append(dist)
+            in_cc_m=1-sum(All_common_eu)/len(All_common_eu)
 
-        cc_m=in_cc_m * len(All_common_eu) / (len(All_common_eu) + len(uncommon_values))
+            cc_m=in_cc_m * len(All_common_eu) / (len(All_common_eu) + len(uncommon_values))
 
 
-        if verbose:
-            print(f"uncommon_values: {len(uncommon_values)}")
-            print(f"Final cc_m = {cc_m}")
+            if verbose:
+                print(f"uncommon_values: {len(uncommon_values)}")
+                print(f"Final cc_m = {cc_m}")
+        else:
+            cc_m=0
     else:
         cc_m=0
     # cc_m ε [-1,1] -> [0,1]
