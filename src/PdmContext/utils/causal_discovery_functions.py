@@ -19,6 +19,12 @@ def calculatewithPc(names, data):
     MAPPING = {k: n for k, n in zip(range(len(names)), names)}
     learned_graph = nx.relabel_nodes(learned_graph, MAPPING, copy=True)
     edges=learned_graph.edges
-    return edges
+    fedges=[]
+    for tup in edges:
+        if tup not in fedges:
+            fedges.append(tup)
+        if (tup[1],tup[0]) not in fedges:
+            fedges.append((tup[1],tup[0]))
+    return fedges
 
 

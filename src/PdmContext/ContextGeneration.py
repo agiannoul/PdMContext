@@ -4,7 +4,7 @@ import statistics
 import pandas as pd
 from PdmContext.utils.structure import Eventpoint,Context
 from PdmContext.utils.causal_discovery_functions import calculatewithPc
-from PdmContext.utils.showcontext import show_Context_list
+from PdmContext.utils.showcontext import show_Context_list, show_Context_Interperations
 
 
 
@@ -143,21 +143,38 @@ class ContextGenerator:
         self.contexts[-1].CR["interpertation"]=interpr
 
     def interpret(self,context : Context, causeswindow, target, type_of_series):
+        # TO DO hops 2
+
         pairs = [(pair[0], pair[1], car) for pair, car in zip(context.CR['edges'], context.CR['characterization']) if
                  target in pair[1]]
+
+        # pairshop2 = []
+        # intermediates=[pair[0] for pair in pairs]
+        # allothes=[pair for pair in context.CD.keys() if pair not in intermediates]
+        #
+        # for inter_pair in intermediates:
+        #     for name in allothes:
+        #         if (name,inter_pair) in context.CR["edges"]:
+        #             pairshop2.append((name,inter_pair))
+
+
         interpretation = []
+        typeconection =[]
         if len(pairs) == 0:
             return []
         for pair in pairs:
             if type_of_series[pair[0]] == "isolated":
                 values1 = context.CD[pair[0]]
                 if values1[-1] == 1:
-                    interpretation.append(pair)
+                    interpretation.append((pair[0],pair[1],pair[2],context.timestamp))
                 elif values1[-2] == 1:
-                    interpretation.append(pair)
+                    temptimestamp = context.timestamp
+                    lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
+                    for interpair in lastcontext.CR["interpertation"]:
+                        if interpair[0] == pair[0] and interpair[1] == pair[1]:
+                            temptimestamp = interpair[3]
+                    interpretation.append((pair[0],pair[1],pair[2],temptimestamp))
             elif type_of_series[pair[0]] == "configuration":
-                if pair[0] == "weld@press" and pair[2] == "increase":
-                    ok = "ok"
                 values1 = context.CD[pair[0]]
                 occurence = 0
                 for q in range(len(values1)):
@@ -165,7 +182,7 @@ class ContextGenerator:
                         occurence = q
                         break
                 if occurence == len(values1) - 1:
-                    interpretation.append(pair)
+                    interpretation.append((pair[0],pair[1],pair[2],context.timestamp))
                 else:
                     lead = len(values1) - occurence
                     counter = 0
@@ -179,20 +196,27 @@ class ContextGenerator:
                             if conte.CR["characterization"][pos] == pair[2]:
                                 counter += 1
                     if counter >= 0.8 * lead:
-                        interpretation.append(pair)
+                        temptimestamp=context.timestamp
+                        lastcontext=self.contexts[max(len(self.contexts)-2,0)]
+                        for interpair in lastcontext.CR["interpertation"]:
+                            if interpair[0]==pair[0] and interpair[1]==pair[1]:
+                                temptimestamp=interpair[3]
+                        interpretation.append((pair[0],pair[1],pair[2],temptimestamp))
             # for real value series
-            if len(set(context.CD[pair[0]])) > 2:
-                interpretation.append(pair)
+            elif len(set(context.CD[pair[0]])) > 2:
+                temptimestamp = context.timestamp
+                lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
+                for interpair in lastcontext.CR["interpertation"]:
+                    if interpair[0] == pair[0] and interpair[1] == pair[1]:
+                        temptimestamp = interpair[3]
+                interpretation.append((pair[0],pair[1],pair[2],temptimestamp))
                 continue
-        # check target -> isolated
-        pairs = [(pair[0], pair[1], car) for pair, car in zip(context.CR['edges'], context.CR['characterization']) if
-                 target in pair[0] and type_of_series[pair[1]] == "isolated"]
-        # for pair in pairs:
-        #     if type_of_series[pair[1]] == "isolated":
-        #         values1 = context.CD[pair[1]]
-        #         if values1[-1] == 1 or values1[-2] == 1:
-        #             interpretation.append((pair[1],pair[0],pair[2]))
-        return list(set(interpretation))
+        # sort with time
+        finterpret=[]
+        for pair in interpretation:
+            finterpret.append((pair[0],pair[1],pair[2],pair[3]))
+        finterpret.sort(key=lambda tup: tup[3])  # sorts in place
+        return finterpret
     def create_context(self,current :Eventpoint,buffer):
 
         #start = time.time()
@@ -257,49 +281,82 @@ class ContextGenerator:
         return contextpbject,target_series_name
 
     def getcaracterize(self,context):
+
         edges = context["edges"]
         characterizations = []
         for edge in edges:
-            name1 = edge[0]
-            name2 = edge[1]
-            values1 = context[name1]
-            values2 = [float(kati) for kati in context[name2]]
-
-            occurence=len(values1)-1
-            for i in range(len(values1)-2,0,-1):
-                if values1[i] != values1[-1]:
-                    occurence = i+1
-                    break
-            previusoccurence = 0
-            for i in range(occurence-2,0,-1):
-                if values1[i] !=  values1[occurence-1]:
-                    previusoccurence = i
-
-            if occurence - previusoccurence < 2:  # or len(values2)-occurence<2:
-                characterizations.append("uknown")
-                continue
-            values2before = values2[previusoccurence:occurence]
-            # stdv = statistics.stdev(values2before)
-            # mean = statistics.stdev(values2before)
-            # values2before=[v if v<mean+5*stdv else mean for v in values2before]
-
-            # values2after=values2[occurence:]
-            values2after = [values2[-1]]
-            # stdv = statistics.stdev(values2after)
-            # mean = statistics.stdev(values2after)
-            # values2after = [v if v < mean + 3 * stdv else mean for v in values2after]
-
-            stdv = statistics.stdev(values2before)
-            if len(values2before) == 0:
-                char = "uknown"
-            elif statistics.median(values2before) - statistics.median(values2after) > 2 * stdv:
-                char = "decrease"
-            elif statistics.median(values2after) - statistics.median(values2before) > 2 * stdv:
-                char = "increase"
+            if self.target in  edge[0]:
+                char=self.characterize_event_continuous(context, edge)
+            elif self.type_of_series[edge[0]]=="isolation" or  self.type_of_series[edge[0]]=="configuration":
+                char=self.characterize_event_edge(context,edge)
             else:
-                char = "uknown"
+                char=self.characterize_event_continuous(context, edge)
             characterizations.append(char)
         return characterizations
+    def characterize_event_edge(self,context,edge):
+        name1 = edge[0]
+        name2 = edge[1]
+        values1 = context[name1]
+        values2 = [float(kati) for kati in context[name2]]
+
+        occurence = len(values1) - 1
+        for i in range(len(values1) - 2, 0, -1):
+            if values1[i] != values1[-1]:
+                occurence = i + 1
+                break
+        previusoccurence = 0
+        for i in range(occurence - 2, 0, -1):
+            if values1[i] != values1[occurence - 1]:
+                previusoccurence = i
+
+        if occurence - previusoccurence < 2:  # or len(values2)-occurence<2:
+            return "uknown"
+        values2before = values2[previusoccurence:occurence]
+        # stdv = statistics.stdev(values2before)
+        # mean = statistics.stdev(values2before)
+        # values2before=[v if v<mean+5*stdv else mean for v in values2before]
+
+        # values2after=values2[occurence:]
+        values2after = [values2[-1]]
+        # stdv = statistics.stdev(values2after)
+        # mean = statistics.stdev(values2after)
+        # values2after = [v if v < mean + 3 * stdv else mean for v in values2after]
+
+        stdv = statistics.stdev(values2before)
+        if len(values2before) == 0:
+            char = "uknown"
+        elif statistics.median(values2before) - statistics.median(values2after) > 2 * stdv:
+            char = "decrease"
+        elif statistics.median(values2after) - statistics.median(values2before) > 2 * stdv:
+            char = "increase"
+        else:
+            char = "uknown"
+        return char
+
+    def characterize_event_continuous(self,context,edge):
+        name1 = edge[0]
+        name2 = edge[1]
+        values1 = [float(kati) for kati in context[name1]]
+        values2 = [float(kati) for kati in context[name2]]
+
+        prev=values2[0]
+        diff=0
+        for v in values2[1:]:
+            diff+=(v-prev)
+
+        if len(values2) == 0:
+            char = "uknown"
+        stdv = statistics.stdev(values2)
+        if diff > 2 * stdv:
+            char = "increase"
+        elif diff < -2 * stdv:
+            char = "decrease"
+        else:
+            char = "uknown"
+        return char
+
+
+
 
     def calculate_edges(self,alldata, timestamp):
         #start = time.time()
@@ -461,6 +518,8 @@ class ContextGenerator:
 
     def plot(self,filteredges=[["", "", ""]]):
         show_Context_list(self.contexts,self.target,filteredges=filteredges)
+    def plot_interpertation(self,filteredges=[["", "", ""]]):
+        show_Context_Interperations(self.contexts,self.target,filteredges=filteredges)
 
 
 

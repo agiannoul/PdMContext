@@ -1,4 +1,6 @@
 from random import random
+
+import matplotlib.pyplot as plt
 import pandas as pd
 from PdmContext.ContextGeneration import ContextGenerator
 from PdmContext.ContextClustering import DBscanContextStream
@@ -172,8 +174,98 @@ def get_df():
     df = df.drop(meta_data_cols, axis=1)
     return df
 
+
+#interpertation test
+
+def interpert_Challenges():
+    size=100
+    isoEvent=[0 for i in range(size)]
+    confevent=[0 for i in range(size)]
+    noise=random()/10
+    start = pd.to_datetime("2023-01-01 00:00:00")
+    timestamps = [start + pd.Timedelta(hours=i) for i in range(size)]
+    isoEvent[31]=1
+    confevent[33]=1
+    score=[1+random()/10 for i in range(30)]+ [1+(i/5)+random()/10 for i in range(5)] +[2+random()/10 for i in range(65)]
+
+    contextgenerator=ContextGenerator("score",context_horizon="100",Causalityfunct=calculatewithPc)
+
+
+    dfdata={
+        "score":score,
+        "isoEv":isoEvent,
+        "confEv":confevent,
+    }
+    df=pd.DataFrame(dfdata,index=timestamps)
+    # there should be sorting of interpretation based on the time.
+    # and then hops (EMESA Interpertations)
+
+
+    df.plot()
+    plt.show()
+
+    stream = simulate_from_df(df,eventTypes=[("isoEv","isolated"),("confEv","configuration")],target_name="score")
+
+    source="press"
+    for record in stream:
+        contextgenerator.collect_data(timestamp=record["timestamp"], source=source, name=record["name"], type=record["type"],value=record["value"])
+    contextgenerator.plot_interpertation()
+
+    listcontexts=contextgenerator.contexts
+
+    for i in [30,31,32,33,34,35,36,37]:
+        listcontexts[i].plot()
+
+
+def interpert_Challenges():
+    size=100
+    isoEv1=[0 for i in range(size)]
+    confevent1=[0 for i in range(size)]
+    confevent2=[0 for i in range(size)]
+    noise=random()/10
+    start = pd.to_datetime("2023-01-01 00:00:00")
+    timestamps = [start + pd.Timedelta(hours=i) for i in range(size)]
+    confevent1[31]=1
+    confevent2[33]=1
+    isoEv1[69]=1
+    score=[1+random()/10 for i in range(30)]+ [1+(i/5)+random()/10 for i in range(5)] +[2+random()/10 for i in range(65)]
+
+    score[70]+=1
+    contextgenerator=ContextGenerator("score",context_horizon="100",Causalityfunct=calculatewithPc)
+
+
+    dfdata={
+        "score":score,
+        "confEv1":confevent1,
+        "confEv2":confevent2,
+        "isoEv1":isoEv1,
+    }
+    df=pd.DataFrame(dfdata,index=timestamps)
+    # there should be sorting of interpretation based on the time.
+    # and then hops (EMESA Interpertations)
+
+
+    df.plot()
+    plt.show()
+
+    stream = simulate_from_df(df,eventTypes=[("isoEv1","isolated"),("confEv1","configuration"),("confEv2","configuration")],target_name="score")
+
+    source="press"
+    for record in stream:
+        contextgenerator.collect_data(timestamp=record["timestamp"], source=source, name=record["name"], type=record["type"],value=record["value"])
+    contextgenerator.plot_interpertation()
+
+    listcontexts=contextgenerator.contexts
+
+    for i in [30,31,32,33,34,35,36,37]:
+        listcontexts[i].plot()
+
+    for i in [69,70,71]:
+        listcontexts[i].plot()
+
+
 if __name__ == '__main__':
-    test_context_Generation_dummy()
+    interpert_Challenges()
 
 
 

@@ -62,7 +62,8 @@ class Context():
         CR = {"edges":contextdict["edges"],"characterization":contextdict["characterization"]}
         if "interpertation" in contextdict.keys():
             CR["interpertation"]=contextdict["interpertation"]
-
+        else:
+            CR["interpertation"]=[]
         for key in contextdict:
             if key not in CR.keys() and key!="timestamp":
                 CD[key]=contextdict[key]
@@ -74,24 +75,37 @@ class Context():
         alldata_data = [self.CD[key] for key in alldata_names]
         alldata_names = [nam for dat, nam in zip(alldata_data, alldata_names) if dat is not None]
         alldata_data = [dat for dat in alldata_data if dat is not None]
-        fig, ax = plt.subplots(len(alldata_data), 1)
-        #print(alldata_data)
-        for i in range(len(alldata_data)):
-            ax[i].plot(alldata_data[i], ".")
-            ax[i].set_title(alldata_names[i])
+
+        if len(alldata_data)==1:
+            fig, ax = plt.subplots(len(alldata_data), 1)
+            ax.plot(alldata_data[0], ".")
+            ax.title(alldata_names[0])
+        else:
+            fig, ax = plt.subplots(len(alldata_data), 1)
+            #print(alldata_data)
+            for i in range(len(alldata_data)):
+                ax[i].plot(alldata_data[i], ".")
+                ax[i].set_title(alldata_names[i])
 
     def plotRD(self):
+        fig, ax = plt.subplots(1, 2)
+        #plt.subplots(211)
         G = nx.DiGraph()
-        print(self.CR["edges"])
+        #print(self.CR["interpertation"])
         # Add edges to the graph
         G.add_edges_from(self.CR["edges"])
         pos = nx.spring_layout(G)  # Positions for all nodes
-        nx.draw(G, pos, with_labels=True, font_weight='bold', node_size=1500, node_color='skyblue', font_size=10,
+        nx.draw(G, pos, ax=ax[0],with_labels=True, font_weight='bold', node_size=1500, node_color='skyblue', font_size=10,
                 edge_color='black', linewidths=3, arrowsize=20)
-
+        #plt.subplots(212)
+        for i,pair in enumerate(self.CR["interpertation"]):
+            print(f"{i+1}) {pair[0]} : {pair[3]}")
+            ax[1].scatter(x=[10],y=[(i+1)*10])
+            ax[1].scatter(x=[30],y=[(i+1)*10])
+            ax[1].text(x=10,y=(i+1)*10,s=f"{i+1}) {pair[0]} : {pair[3]}")
 
     def plot(self):
         self.plotCD()
-        plt.show()
         self.plotRD()
+        plt.tight_layout()
         plt.show()
