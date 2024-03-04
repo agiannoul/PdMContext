@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>PdmContext.utils.distances API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>PdmContext.utils.distances</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import statistics
+import numpy as np
+from numpy.linalg import norm
+from numpy.fft import fft, ifft
+
+from PdmContext.utils.structure import Context
+
+
+def nearest(TargetSet :list[Context], query : Context, threshold: float,distance):
+    &#39;&#39;&#39;
+    This method searches if there is a similar context object as query in the TargetSet.
+    Where the similar means with similarity at least as threshold
+
+    **Parameters**:
+
+    **TargetSet**: A list from context objects to search for similar ones
+
+    **query** : The query context object
+
+    **threshold** : The similarity threshold (real value in [0,1]
+    &#39;&#39;&#39;
+    maxdist = 0
+    # starting=time.time()
+    for fp in TargetSet:
+
+        if query[&#34;timestamp&#34;] &gt; fp[&#34;timestamp&#34;]:  # + dt.timedelta(hours=24):
+            dist, parts = distance(query, fp)
+            if dist &gt; maxdist:
+                maxdist = dist
+                if maxdist &gt; threshold:
+                    break
+    return maxdist
+
+
+def np_pearson_cor(x, y):
+    xv = x - x.mean(axis=0)
+    yv = y - y.mean(axis=0)
+    xvss = (xv * xv).sum(axis=0)
+    yvss = (yv * yv).sum(axis=0)
+    result = np.matmul(xv.transpose(), yv) / np.sqrt(np.outer(xvss, yvss))
+    # bound the values to -1 to 1 in the event of precision issues
+    return np.maximum(np.minimum(result, 1.0), -1.0)
+
+def distance_eu_z(context1 : Context, context2 : Context,a,verbose=False):
+    &#34;&#34;&#34;
+    Calculation of similarity between two Context objects based on two quantities:
+        1) The first quantity is based on the Euclidean  distance after z_normalization
+            We calculate a similarity based on the Euclidean distance between common values in the context CD,
+            equal to Euclidean(c1,c2)/(norm(c1)+norm(c2) to be in [0,1]
+            where each time we use the last n values (where n is the size of the shorter series)
+        2) Jaccard similarity of the edges in the CR (if we ignore the direction)
+
+    **context1**: A context object
+
+    **context2**: A context object
+
+    **a**: the weight of Euclidean similarity
+
+    **verbose**:
+
+    **return**: a similarity between 0 and 1
+    &#34;&#34;&#34;
+    b=1-a
+    common_values = []
+    uncommon_values = []
+    for key in context1.CD.keys():
+        if key != &#34;timestamp&#34; and key != &#34;edges&#34; and key != &#34;characterization&#34; and key != &#34;interpertation&#34;:
+            if key in context2.CD.keys():
+                if context1.CD[key] is not None and context2.CD[key] is not None:
+                    common_values.append(key)
+                else:
+                    uncommon_values.append(key)
+            else:
+                uncommon_values.append(key)
+    for key in context2.CD.keys():
+        if key != &#34;timestamp&#34; and key != &#34;edges&#34; and key != &#34;characterization&#34; and key != &#34;interpertation&#34;:
+            if key not in context1.CD.keys():
+                uncommon_values.append(key)
+    if len(common_values)&gt;0 and a&gt;0.0000000001:
+        if len(context2.CD[common_values[0]]) &gt; 3 and len(context1.CD[common_values[0]]) &gt; 3:
+            All_common_eu=[]
+            for key in common_values:
+                sizee = min(len(context1.CD[key]), len(context2.CD[key]))
+                if sizee &lt; 2:
+                    continue
+                firtsseries = context1.CD[key][-sizee:]
+                secondseries = context2.CD[key][-sizee:]
+
+                firtsseries=_z_norm(firtsseries)
+                secondseries=_z_norm(secondseries)
+                den=np.linalg.norm(firtsseries)+np.linalg.norm(secondseries)
+                if den&gt;0:
+                    dist = np.linalg.norm(np.array(firtsseries)-np.array(secondseries))/den
+                else:
+                    dist=0
+                All_common_eu.append(dist)
+            in_cc_m=1-sum(All_common_eu)/len(All_common_eu)
+
+            cc_m=in_cc_m * len(All_common_eu) / (len(All_common_eu) + len(uncommon_values))
+
+
+            if verbose:
+                print(f&#34;uncommon_values: {len(uncommon_values)}&#34;)
+                print(f&#34;Final cc_m = {cc_m}&#34;)
+        else:
+            cc_m=0
+    else:
+        cc_m=0
+    # cc_m ε [-1,1] -&gt; [0,1]
+    if b&gt;0.000000001:
+        # check common causes-characterizations:
+        common = 0
+
+        edges1=ignoreOrder(context1)
+        edges2=ignoreOrder(context2)
+
+        for edge in edges1:
+            for edge2  in edges2:
+                if edge[0] == edge2[0] and edge[1] == edge2[1]:
+                    common += 1
+
+        if (len(edges1) + len(edges2) - common) &gt;0:
+            if common == 0:
+                jaccard = 0
+            else:
+                jaccard = common / (len(edges1) + len(edges2) - common)
+            similarity = jaccard
+        # there are no samples Jaccard(empty,empty) = ? , in that case we use only first part
+        else:
+            if a&lt;0.0000001:
+                similarity = 1
+            else:
+                similarity=None
+    else:
+        similarity=0
+    if similarity is None:
+        return cc_m, (cc_m, similarity)
+    else:
+        return a * cc_m + b * similarity
+
+def _z_norm(series):
+    if min(series) != max(series):
+        ms1 = statistics.mean(series)
+        ss1 = statistics.stdev(series)
+        series = [(s1 - ms1) / ss1 for s1 in series]
+    else:
+        series = [0 for i in range(len(series))]
+    return series
+
+def distance_cc(context1 : Context, context2 : Context,a,verbose=False):
+    &#34;&#34;&#34;
+    Calculation of similarity between two Context objects based on two quantities:
+        1) The first quantity is based on the sbd distance
+            We calculate the minimum (average) sbd between all common series in the CD of contexts, from all possible shifts.
+            The shifts apply to all series each time.
+            Each time we use the last n values (where n is the size of the shorter series)
+            Which is also weighted from the ratio of common values.
+        2) Jaccard similarity of the edges in the CR (if we ignore the direction)
+
+    **context1**: A context object
+
+    **context2**: A context object
+
+    **a**: the weight of SBD similarity
+
+    **verbose**:
+
+    **return**: a similarity between 0 and 1
+    &#34;&#34;&#34;
+    b=1-a
+    common_values = []
+    uncommon_values = []
+    for key in context1.CD.keys():
+        if key != &#34;timestamp&#34; and key != &#34;edges&#34; and key != &#34;characterization&#34; and key != &#34;interpertation&#34;:
+            if key in context2.CD.keys():
+                if context1.CD[key] is not None and context2.CD[key] is not None:
+                    common_values.append(key)
+                else:
+                    uncommon_values.append(key)
+            else:
+                uncommon_values.append(key)
+    for key in context2.CD.keys():
+        if key != &#34;timestamp&#34; and key != &#34;edges&#34; and key != &#34;characterization&#34; and key != &#34;interpertation&#34;:
+            if key not in context1.CD.keys():
+                uncommon_values.append(key)
+    if len(common_values)&gt;0 and a&gt;0.0000000001:
+        if len(context2.CD[common_values[0]])&gt;5 and len(context1.CD[common_values[0]])&gt;5:
+            All_common_cc=[]
+            for key in common_values:
+                sizee = min(len(context1.CD[key]), len(context2.CD[key]))
+                if sizee &lt; 2:
+                    continue
+                firtsseries = context1.CD[key][-sizee:]
+                secondseries = context2.CD[key][-sizee:]
+
+                firtsseries=_z_norm(firtsseries)
+                secondseries=_z_norm(secondseries)
+
+                cc_array=_ncc_c(firtsseries,secondseries)
+                All_common_cc.append(cc_array)
+            all_cc_means=[]
+            for i in range(len(All_common_cc[0])):
+                summ=0
+                for j in range(len(All_common_cc)):
+                    summ+=All_common_cc[j][i]
+                all_cc_means.append(summ/len(All_common_cc))
+            in_cc_m=max(all_cc_means)
+            position_max=all_cc_means.index(in_cc_m)
+            in_cc_m = (in_cc_m + 1) / 2
+            cc_m=in_cc_m*len(All_common_cc)/(len(All_common_cc)+len(uncommon_values))
+            if verbose:
+                print(f&#34;Max position: {position_max-len(firtsseries)}&#34;)
+                print(f&#34;Common cc_m = {in_cc_m}&#34;)
+                print(f&#34;uncommon_values: {len(uncommon_values)}&#34;)
+                print(f&#34;Final cc_m = {cc_m}&#34;)
+        else:
+            cc_m = 0
+    else:
+        cc_m=0
+    # cc_m ε [-1,1] -&gt; [0,1]
+
+    # check common causes-characterizations:
+    if b &gt; 0.000000001:
+        # check common causes-characterizations:
+        common = 0
+
+        edges1 = ignoreOrder(context1)
+        edges2 = ignoreOrder(context2)
+
+        for edge in edges1:
+            for edge2 in edges2:
+                if edge[0] == edge2[0] and edge[1] == edge2[1]:
+                    common += 1
+
+        if (len(edges1) + len(edges2) - common) &gt; 0:
+            if common == 0:
+                jaccard = 0
+            else:
+                jaccard = common / (len(edges1) + len(edges2) - common)
+            similarity = jaccard
+        # there are no samples Jaccard(empty,empty) = ? , in that case we use only first part
+        else:
+            if a &lt; 0.0000001:
+                similarity = 1
+            else:
+                similarity = None
+    else:
+        similarity = 0
+    if similarity is None:
+        return cc_m, (cc_m, similarity)
+    else:
+        return a * cc_m + b * similarity
+
+def ignoreOrder(context1: Context):
+    edges1 = []
+
+    for edge in context1.CR[&#39;edges&#39;]:
+        if edge[0] &gt; edge[1]:
+            potential = (edge[0], edge[1])
+        else:
+            potential = (edge[1], edge[0])
+        if potential not in edges1:
+            edges1.append(potential)
+    return edges1
+
+def ignoreOrderList(edgeslist1):
+    edges1 = []
+
+    for edge in edgeslist1:
+        if edge[0] &gt; edge[1]:
+            potential = (edge[0], edge[1])
+        else:
+            potential = (edge[1], edge[0])
+        if potential not in edges1:
+            edges1.append(potential)
+    return edges1
+
+
+def _sbd( x, y):
+    ncc = _ncc_c(x, y)
+    idx = ncc.argmax()
+    dist = 1 - ncc[idx]
+    return dist, None
+
+
+def _ncc_c( x, y):
+    den = np.array(norm(x) * norm(y))
+    den[den == 0] = np.Inf
+
+    x_len = len(x)
+    fft_size = 1 &lt;&lt; (2 * x_len - 1).bit_length()
+    cc = ifft(fft(x, fft_size) * np.conj(fft(y, fft_size)))
+    cc = np.concatenate((cc[-(x_len - 1):], cc[:x_len]))
+    return np.real(cc) / den</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="PdmContext.utils.distances.distance_cc"><code class="name flex">
+<span>def <span class="ident">distance_cc</span></span>(<span>context1: <a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>, context2: <a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>, a, verbose=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculation of similarity between two Context objects based on two quantities:
+1) The first quantity is based on the sbd distance
+We calculate the minimum (average) sbd between all common series in the CD of contexts, from all possible shifts.
+The shifts apply to all series each time.
+Each time we use the last n values (where n is the size of the shorter series)
+Which is also weighted from the ratio of common values.
+2) Jaccard similarity of the edges in the CR (if we ignore the direction)</p>
+<p><strong>context1</strong>: A context object</p>
+<p><strong>context2</strong>: A context object</p>
+<p><strong>a</strong>: the weight of SBD similarity</p>
+<p><strong>verbose</strong>:</p>
+<p><strong>return</strong>: a similarity between 0 and 1</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def distance_cc(context1 : Context, context2 : Context,a,verbose=False):
+    &#34;&#34;&#34;
+    Calculation of similarity between two Context objects based on two quantities:
+        1) The first quantity is based on the sbd distance
+            We calculate the minimum (average) sbd between all common series in the CD of contexts, from all possible shifts.
+            The shifts apply to all series each time.
+            Each time we use the last n values (where n is the size of the shorter series)
+            Which is also weighted from the ratio of common values.
+        2) Jaccard similarity of the edges in the CR (if we ignore the direction)
+
+    **context1**: A context object
+
+    **context2**: A context object
+
+    **a**: the weight of SBD similarity
+
+    **verbose**:
+
+    **return**: a similarity between 0 and 1
+    &#34;&#34;&#34;
+    b=1-a
+    common_values = []
+    uncommon_values = []
+    for key in context1.CD.keys():
+        if key != &#34;timestamp&#34; and key != &#34;edges&#34; and key != &#34;characterization&#34; and key != &#34;interpertation&#34;:
+            if key in context2.CD.keys():
+                if context1.CD[key] is not None and context2.CD[key] is not None:
+                    common_values.append(key)
+                else:
+                    uncommon_values.append(key)
+            else:
+                uncommon_values.append(key)
+    for key in context2.CD.keys():
+        if key != &#34;timestamp&#34; and key != &#34;edges&#34; and key != &#34;characterization&#34; and key != &#34;interpertation&#34;:
+            if key not in context1.CD.keys():
+                uncommon_values.append(key)
+    if len(common_values)&gt;0 and a&gt;0.0000000001:
+        if len(context2.CD[common_values[0]])&gt;5 and len(context1.CD[common_values[0]])&gt;5:
+            All_common_cc=[]
+            for key in common_values:
+                sizee = min(len(context1.CD[key]), len(context2.CD[key]))
+                if sizee &lt; 2:
+                    continue
+                firtsseries = context1.CD[key][-sizee:]
+                secondseries = context2.CD[key][-sizee:]
+
+                firtsseries=_z_norm(firtsseries)
+                secondseries=_z_norm(secondseries)
+
+                cc_array=_ncc_c(firtsseries,secondseries)
+                All_common_cc.append(cc_array)
+            all_cc_means=[]
+            for i in range(len(All_common_cc[0])):
+                summ=0
+                for j in range(len(All_common_cc)):
+                    summ+=All_common_cc[j][i]
+                all_cc_means.append(summ/len(All_common_cc))
+            in_cc_m=max(all_cc_means)
+            position_max=all_cc_means.index(in_cc_m)
+            in_cc_m = (in_cc_m + 1) / 2
+            cc_m=in_cc_m*len(All_common_cc)/(len(All_common_cc)+len(uncommon_values))
+            if verbose:
+                print(f&#34;Max position: {position_max-len(firtsseries)}&#34;)
+                print(f&#34;Common cc_m = {in_cc_m}&#34;)
+                print(f&#34;uncommon_values: {len(uncommon_values)}&#34;)
+                print(f&#34;Final cc_m = {cc_m}&#34;)
+        else:
+            cc_m = 0
+    else:
+        cc_m=0
+    # cc_m ε [-1,1] -&gt; [0,1]
+
+    # check common causes-characterizations:
+    if b &gt; 0.000000001:
+        # check common causes-characterizations:
+        common = 0
+
+        edges1 = ignoreOrder(context1)
+        edges2 = ignoreOrder(context2)
+
+        for edge in edges1:
+            for edge2 in edges2:
+                if edge[0] == edge2[0] and edge[1] == edge2[1]:
+                    common += 1
+
+        if (len(edges1) + len(edges2) - common) &gt; 0:
+            if common == 0:
+                jaccard = 0
+            else:
+                jaccard = common / (len(edges1) + len(edges2) - common)
+            similarity = jaccard
+        # there are no samples Jaccard(empty,empty) = ? , in that case we use only first part
+        else:
+            if a &lt; 0.0000001:
+                similarity = 1
+            else:
+                similarity = None
+    else:
+        similarity = 0
+    if similarity is None:
+        return cc_m, (cc_m, similarity)
+    else:
+        return a * cc_m + b * similarity</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.distances.distance_eu_z"><code class="name flex">
+<span>def <span class="ident">distance_eu_z</span></span>(<span>context1: <a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>, context2: <a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>, a, verbose=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculation of similarity between two Context objects based on two quantities:
+1) The first quantity is based on the Euclidean
+distance after z_normalization
+We calculate a similarity based on the Euclidean distance between common values in the context CD,
+equal to Euclidean(c1,c2)/(norm(c1)+norm(c2) to be in [0,1]
+where each time we use the last n values (where n is the size of the shorter series)
+2) Jaccard similarity of the edges in the CR (if we ignore the direction)</p>
+<p><strong>context1</strong>: A context object</p>
+<p><strong>context2</strong>: A context object</p>
+<p><strong>a</strong>: the weight of Euclidean similarity</p>
+<p><strong>verbose</strong>:</p>
+<p><strong>return</strong>: a similarity between 0 and 1</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def distance_eu_z(context1 : Context, context2 : Context,a,verbose=False):
+    &#34;&#34;&#34;
+    Calculation of similarity between two Context objects based on two quantities:
+        1) The first quantity is based on the Euclidean  distance after z_normalization
+            We calculate a similarity based on the Euclidean distance between common values in the context CD,
+            equal to Euclidean(c1,c2)/(norm(c1)+norm(c2) to be in [0,1]
+            where each time we use the last n values (where n is the size of the shorter series)
+        2) Jaccard similarity of the edges in the CR (if we ignore the direction)
+
+    **context1**: A context object
+
+    **context2**: A context object
+
+    **a**: the weight of Euclidean similarity
+
+    **verbose**:
+
+    **return**: a similarity between 0 and 1
+    &#34;&#34;&#34;
+    b=1-a
+    common_values = []
+    uncommon_values = []
+    for key in context1.CD.keys():
+        if key != &#34;timestamp&#34; and key != &#34;edges&#34; and key != &#34;characterization&#34; and key != &#34;interpertation&#34;:
+            if key in context2.CD.keys():
+                if context1.CD[key] is not None and context2.CD[key] is not None:
+                    common_values.append(key)
+                else:
+                    uncommon_values.append(key)
+            else:
+                uncommon_values.append(key)
+    for key in context2.CD.keys():
+        if key != &#34;timestamp&#34; and key != &#34;edges&#34; and key != &#34;characterization&#34; and key != &#34;interpertation&#34;:
+            if key not in context1.CD.keys():
+                uncommon_values.append(key)
+    if len(common_values)&gt;0 and a&gt;0.0000000001:
+        if len(context2.CD[common_values[0]]) &gt; 3 and len(context1.CD[common_values[0]]) &gt; 3:
+            All_common_eu=[]
+            for key in common_values:
+                sizee = min(len(context1.CD[key]), len(context2.CD[key]))
+                if sizee &lt; 2:
+                    continue
+                firtsseries = context1.CD[key][-sizee:]
+                secondseries = context2.CD[key][-sizee:]
+
+                firtsseries=_z_norm(firtsseries)
+                secondseries=_z_norm(secondseries)
+                den=np.linalg.norm(firtsseries)+np.linalg.norm(secondseries)
+                if den&gt;0:
+                    dist = np.linalg.norm(np.array(firtsseries)-np.array(secondseries))/den
+                else:
+                    dist=0
+                All_common_eu.append(dist)
+            in_cc_m=1-sum(All_common_eu)/len(All_common_eu)
+
+            cc_m=in_cc_m * len(All_common_eu) / (len(All_common_eu) + len(uncommon_values))
+
+
+            if verbose:
+                print(f&#34;uncommon_values: {len(uncommon_values)}&#34;)
+                print(f&#34;Final cc_m = {cc_m}&#34;)
+        else:
+            cc_m=0
+    else:
+        cc_m=0
+    # cc_m ε [-1,1] -&gt; [0,1]
+    if b&gt;0.000000001:
+        # check common causes-characterizations:
+        common = 0
+
+        edges1=ignoreOrder(context1)
+        edges2=ignoreOrder(context2)
+
+        for edge in edges1:
+            for edge2  in edges2:
+                if edge[0] == edge2[0] and edge[1] == edge2[1]:
+                    common += 1
+
+        if (len(edges1) + len(edges2) - common) &gt;0:
+            if common == 0:
+                jaccard = 0
+            else:
+                jaccard = common / (len(edges1) + len(edges2) - common)
+            similarity = jaccard
+        # there are no samples Jaccard(empty,empty) = ? , in that case we use only first part
+        else:
+            if a&lt;0.0000001:
+                similarity = 1
+            else:
+                similarity=None
+    else:
+        similarity=0
+    if similarity is None:
+        return cc_m, (cc_m, similarity)
+    else:
+        return a * cc_m + b * similarity</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.distances.ignoreOrder"><code class="name flex">
+<span>def <span class="ident">ignoreOrder</span></span>(<span>context1: <a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ignoreOrder(context1: Context):
+    edges1 = []
+
+    for edge in context1.CR[&#39;edges&#39;]:
+        if edge[0] &gt; edge[1]:
+            potential = (edge[0], edge[1])
+        else:
+            potential = (edge[1], edge[0])
+        if potential not in edges1:
+            edges1.append(potential)
+    return edges1</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.distances.ignoreOrderList"><code class="name flex">
+<span>def <span class="ident">ignoreOrderList</span></span>(<span>edgeslist1)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ignoreOrderList(edgeslist1):
+    edges1 = []
+
+    for edge in edgeslist1:
+        if edge[0] &gt; edge[1]:
+            potential = (edge[0], edge[1])
+        else:
+            potential = (edge[1], edge[0])
+        if potential not in edges1:
+            edges1.append(potential)
+    return edges1</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.distances.nearest"><code class="name flex">
+<span>def <span class="ident">nearest</span></span>(<span>TargetSet: list[<a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>], query: <a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>, threshold: float, distance)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method searches if there is a similar context object as query in the TargetSet.
+Where the similar means with similarity at least as threshold</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>TargetSet</strong>: A list from context objects to search for similar ones</p>
+<p><strong>query</strong> : The query context object</p>
+<p><strong>threshold</strong> : The similarity threshold (real value in [0,1]</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nearest(TargetSet :list[Context], query : Context, threshold: float,distance):
+    &#39;&#39;&#39;
+    This method searches if there is a similar context object as query in the TargetSet.
+    Where the similar means with similarity at least as threshold
+
+    **Parameters**:
+
+    **TargetSet**: A list from context objects to search for similar ones
+
+    **query** : The query context object
+
+    **threshold** : The similarity threshold (real value in [0,1]
+    &#39;&#39;&#39;
+    maxdist = 0
+    # starting=time.time()
+    for fp in TargetSet:
+
+        if query[&#34;timestamp&#34;] &gt; fp[&#34;timestamp&#34;]:  # + dt.timedelta(hours=24):
+            dist, parts = distance(query, fp)
+            if dist &gt; maxdist:
+                maxdist = dist
+                if maxdist &gt; threshold:
+                    break
+    return maxdist</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.distances.np_pearson_cor"><code class="name flex">
+<span>def <span class="ident">np_pearson_cor</span></span>(<span>x, y)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def np_pearson_cor(x, y):
+    xv = x - x.mean(axis=0)
+    yv = y - y.mean(axis=0)
+    xvss = (xv * xv).sum(axis=0)
+    yvss = (yv * yv).sum(axis=0)
+    result = np.matmul(xv.transpose(), yv) / np.sqrt(np.outer(xvss, yvss))
+    # bound the values to -1 to 1 in the event of precision issues
+    return np.maximum(np.minimum(result, 1.0), -1.0)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="PdmContext.utils" href="index.html">PdmContext.utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="PdmContext.utils.distances.distance_cc" href="#PdmContext.utils.distances.distance_cc">distance_cc</a></code></li>
+<li><code><a title="PdmContext.utils.distances.distance_eu_z" href="#PdmContext.utils.distances.distance_eu_z">distance_eu_z</a></code></li>
+<li><code><a title="PdmContext.utils.distances.ignoreOrder" href="#PdmContext.utils.distances.ignoreOrder">ignoreOrder</a></code></li>
+<li><code><a title="PdmContext.utils.distances.ignoreOrderList" href="#PdmContext.utils.distances.ignoreOrderList">ignoreOrderList</a></code></li>
+<li><code><a title="PdmContext.utils.distances.nearest" href="#PdmContext.utils.distances.nearest">nearest</a></code></li>
+<li><code><a title="PdmContext.utils.distances.np_pearson_cor" href="#PdmContext.utils.distances.np_pearson_cor">np_pearson_cor</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

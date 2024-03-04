@@ -97,6 +97,9 @@ class ContextGenerator:
         else:
             return None
     def add_to_buffer(self,e: Eventpoint):
+        """
+        Adds an Event point to the buffer (keeping the buffer time ordered)
+        """
         index = len(self.buffer)
         for i in range(len(self.buffer) - 1, 0, -1):
             if self.buffer[i].timestamp <= e.timestamp:
@@ -116,6 +119,16 @@ class ContextGenerator:
         self.buffer=self.buffer[pos:]
 
     def generate_context(self,e:Eventpoint,buffer):
+        """
+        Generate context and interpretation.
+
+        **Parameters**:
+
+        **e**: Eventpoint related to the last target's data.
+
+        **buffer**: A list with all Eventpoints in the time horizon
+        """
+
         contextcurrent, target_series_name = self.create_context(e,buffer)
 
         self.contexts.append(contextcurrent)
@@ -130,6 +143,16 @@ class ContextGenerator:
         return self.contexts[-1]
 
     def create_interpertation(self,contextcurrent :Context,target_series_name):
+        """
+        This method collect all the contexts in the horizon and calls the interpretation method.
+
+        **Parameters**:
+
+        **contextcurrent**: The Context for which the interpretation is calculated
+
+        **target_series_name**: Then name of the target variable
+        """
+
         rikicontext=self.contexts
         pos=self.interpret_history_pos
         temppos=pos
@@ -143,7 +166,36 @@ class ContextGenerator:
         self.contexts[-1].CR["interpertation"]=interpr
 
     def interpret(self,context : Context, causeswindow, target, type_of_series):
-        # TO DO hops 2
+        """
+        This method enhance the CR part of the Context with interpretation relating to the target variable.
+        The interpretation are based on the edges extracted from the Casualty discovery.
+        For each edge of type (seriesA -> target) in the edges we test if the seriesA interprets
+        the target using the following rules:
+
+        **if seriesA is isolated**: We check if its last occurrence is the current timestamp or the previous one.
+
+        **if seriesA is configuration**: We check if the edges (seriesA -> target) appears
+        in at least 80% contexts in the horizon (i.e. in causeswindow list).
+
+        **if seriesA is continuous**: Then that means the target is related with seriesA
+        and we add it to the interpretation.
+
+        All the interpretations are tagged with a timestamp which refers to the first time
+        of appearense of consecutive interpretations. Then the interpretation are sorted using
+        this timestamp. This is done to provide a hierarchy to the interpretation since it may be the case,
+        that when seriesA cause target , and SeriesB cause target, the oldest one is stronger since the SeriesB may be
+        effect of seriesA.
+
+        **Parameters**:
+
+        **context**: Context Object to be interpreted
+
+        **causeswindow**: list with the last horizon contexts
+
+        **target**: the name of the target variable to interpret
+
+        **type_of_series**: dictionary which define the type of each series (isolated,configuration or continuous)
+        """
 
         pairs = [(pair[0], pair[1], car) for pair, car in zip(context.CR['edges'], context.CR['characterization']) if
                  target in pair[1]]
@@ -218,7 +270,30 @@ class ContextGenerator:
         finterpret.sort(key=lambda tup: tup[3])  # sorts in place
         return finterpret
     def create_context(self,current :Eventpoint,buffer):
+        """
+        Transform the data collected to the buffer in to suitable form and generates the CD part of the context along with
+        the edges and characterizations:
 
+        **Steps:**
+
+        **Create CD**: Parallel continuous representations of all different sources in the buffer.
+        This step involves, matching the different sample rates of different sources to that of the target.
+        Transform the Event sources to continuous representation.
+        
+        **Calculate Causality edges**: Perform Causal Discovery using the causality function, to create edges 
+        (part of CR of the Context)
+        
+        **Tag each edge with characterization**: for each (a,b) in the edges, a characterization of (unknown, decrease,
+         increase), based on the type of the a.
+
+         **Parameters**:
+
+         **current**: The current Event of target's data which triger the context creation
+
+         **buffer**: ordered list with Eventpoint of all sources.
+
+         **return**: Context object.
+        """
         #start = time.time()
         # df with ,dt,code,source,value
         pos=self.context_pos
@@ -281,7 +356,15 @@ class ContextGenerator:
         return contextpbject,target_series_name
 
     def getcaracterize(self,context):
+        """
+        This method calculate the characterizations of (a,b) edges to characterize the influence of a in b by one of the
+        three characterizations: unknown, decrease, increase.
 
+        The characterization is calculated differently for event and continuous data.
+        **Parameters**:
+
+        **context**: dictionary with a kye 'edges' for which a parallel list of characterizations will be created.
+        """
         edges = context["edges"]
         characterizations = []
         for edge in edges:
@@ -294,6 +377,23 @@ class ContextGenerator:
             characterizations.append(char)
         return characterizations
     def characterize_event_edge(self,context,edge):
+        """
+        This method characterizes the edge (a,b) when a is isolated or configuration event.
+        To do this, it detects the last occurrence of a and split the data of series a and series b based on that.
+        Then checks if the median of b after the occurrence is at larger than the median b before
+        plus two times the standard deviation of b series before the occurrence.
+        If that is true then is characterized as increase. Else it is checked for the opposite, (if it is smaller
+        for at least 2 times the standard deviation of b) and characterized as decrease. Otherwise, is characterized as
+         unknown.
+
+        **Parameters**:
+
+        **context**: that the edge to be characterized belongs.
+
+        **edge**: A tuple (a,b) where a is isolated or configuration event.
+
+        **return**: A characterization for the edge (unknown, decrease or increase)
+        """
         name1 = edge[0]
         name2 = edge[1]
         values1 = context[name1]
@@ -310,7 +410,7 @@ class ContextGenerator:
                 previusoccurence = i
 
         if occurence - previusoccurence < 2:  # or len(values2)-occurence<2:
-            return "uknown"
+            return "unknown"
         values2before = values2[previusoccurence:occurence]
         # stdv = statistics.stdev(values2before)
         # mean = statistics.stdev(values2before)
@@ -324,16 +424,32 @@ class ContextGenerator:
 
         stdv = statistics.stdev(values2before)
         if len(values2before) == 0:
-            char = "uknown"
+            char = "unknown"
         elif statistics.median(values2before) - statistics.median(values2after) > 2 * stdv:
             char = "decrease"
         elif statistics.median(values2after) - statistics.median(values2before) > 2 * stdv:
             char = "increase"
         else:
-            char = "uknown"
+            char = "unknown"
         return char
 
     def characterize_event_continuous(self,context,edge):
+        """
+            This method characterizes the edge (a,b) when a is continuous.
+            To do this, the delta between the timestamps of the series b is calculated
+            (i.e the difference between current and next timestamps). If the summ of the deltas between b series data, is
+            greater than 2 times the standard deviation of the b, then the increase characterization is returned. If the sum
+            is lower than 2 times the standard deviation the decreased characterization is returned. Otherwise, the unknown
+            characterization is returned.
+
+            **Parameters**:
+
+            **context**: that the edge to be characterized belongs.
+
+            **edge**: A tuple (a,b) where a is isolated or configuration event.
+
+            **return**: A characterization for the edge (unknown, decrease or increase)
+        """
         name1 = edge[0]
         name2 = edge[1]
         values1 = [float(kati) for kati in context[name1]]
@@ -345,20 +461,32 @@ class ContextGenerator:
             diff+=(v-prev)
 
         if len(values2) == 0:
-            char = "uknown"
+            char = "unknown"
         stdv = statistics.stdev(values2)
         if diff > 2 * stdv:
             char = "increase"
         elif diff < -2 * stdv:
             char = "decrease"
         else:
-            char = "uknown"
+            char = "unknown"
         return char
 
 
 
 
     def calculate_edges(self,alldata, timestamp):
+        """
+        Formulate the data in appropriate form to call self.calculate_causality
+        which return the edges for the context.
+
+        **Parameters**:
+
+        **alldata**: a 2D numpy array with all series data (equivalent to the CD of the Context)
+
+        **timestamp**: timestamp of the context from which the edges are calculated.
+
+        **return**: a dictionary with 'edges' key (containing the calculated edges after Causality discovery).
+        """
         #start = time.time()
         storing = {}
         storing["timestamp"] = timestamp

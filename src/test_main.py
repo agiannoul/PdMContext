@@ -241,28 +241,18 @@ def interpert_Challenges():
         "isoEv1":isoEv1,
     }
     df=pd.DataFrame(dfdata,index=timestamps)
-    # there should be sorting of interpretation based on the time.
-    # and then hops (EMESA Interpertations)
-
-
     df.plot()
     plt.show()
 
     stream = simulate_from_df(df,eventTypes=[("isoEv1","isolated"),("confEv1","configuration"),("confEv2","configuration")],target_name="score")
-
     source="press"
     for record in stream:
         contextgenerator.collect_data(timestamp=record["timestamp"], source=source, name=record["name"], type=record["type"],value=record["value"])
     contextgenerator.plot_interpertation()
 
     listcontexts=contextgenerator.contexts
-
-    for i in [30,31,32,33,34,35,36,37]:
-        listcontexts[i].plot()
-
-    for i in [69,70,71]:
-        listcontexts[i].plot()
-
+    listcontexts[35].plot()
+    listcontexts[70].plot()
 
 if __name__ == '__main__':
     interpert_Challenges()
