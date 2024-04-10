@@ -3,13 +3,15 @@ from PdmContext.utils.structure import Context
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def filter_edges(edge,char,filteredges):
+
+def filter_edges(edge, char, filteredges):
     for filter in filteredges:
         if filter[0] in edge[0] and filter[1] in edge[1] and filter[2] in char:
             return True
     return False
 
-def show_Context_list(contextlist: list[Context], target_text, filteredges=[["", "", ""]]):
+
+def show_context_list(contextlist: list[Context], target_text, filteredges=[["", "", ""]]):
     """
     Visualization of Contexts in the contextlist
 
@@ -26,7 +28,7 @@ def show_Context_list(contextlist: list[Context], target_text, filteredges=[["",
     fig, ax = plt.subplots()
     ax.set_title("Complete Timespan")
     ax.set_xlabel("Date")
-    #ax.set_ylabel("Data Present")
+    # ax.set_ylabel("Data Present")
 
     local_timezone = None
 
@@ -38,13 +40,13 @@ def show_Context_list(contextlist: list[Context], target_text, filteredges=[["",
     queryvalues = []
 
     for context_obj in contextlist:
-        timestamptemp2=context_obj.timestamp
+        timestamptemp2 = context_obj.timestamp
         date_list2.append(timestamptemp2)
 
         target_values.append(context_obj.CD[target_text][-1])
 
         for edge, char in zip(context_obj.CR["edges"], context_obj.CR["characterization"]):
-            if filter_edges(edge, char,filteredges):
+            if filter_edges(edge, char, filteredges):
                 querytimes.append(timestamptemp2)
                 queryvalues.append(target_values[-1])
                 querycolors.append(f"{edge[0].split('@')[0]}->{edge[1].split('@')[0]}")
@@ -53,7 +55,7 @@ def show_Context_list(contextlist: list[Context], target_text, filteredges=[["",
     # Plot the complete timespan
     ax.clear()
     ax.plot(date_list2, target_values, 'o', color="black", markersize=7,
-                 label=target_text)  # The 'ro' format will display red dots for each data point
+            label=target_text)  # The 'ro' format will display red dots for each data point
 
     ############ PLOT EDGES #######################################################
     color_mapping = {}
@@ -67,16 +69,18 @@ def show_Context_list(contextlist: list[Context], target_text, filteredges=[["",
         description = querycolors[i]
         color_toplot.append(color_mapping[description])
         ax.plot(querytimes[i], queryvalues[i], 'o', markersize=7,
-                     color=color_mapping[description], alpha=0.7, label=description)
+                color=color_mapping[description], alpha=0.7, label=description)
 
     handles, labels = ax.get_legend_handles_labels()
     unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
     ax.legend(*zip(*unique), loc="upper left")
     ax.grid()
     plt.show()
-def show_Context_Interperations(contextlist: list[Context], target_text, filteredges=[["", "", ""]]):
+
+
+def show_context_interpretations(contextlist: list[Context], target_text, filteredges=[["", "", ""]]):
     """
-    Visualization of Interperations from Contexts in the contextlist
+    Visualization of Interpretations from Contexts in the contextlist
 
     **Parameters**:
 
@@ -91,7 +95,7 @@ def show_Context_Interperations(contextlist: list[Context], target_text, filtere
     fig, ax = plt.subplots()
     ax.set_title("Complete Timespan")
     ax.set_xlabel("Date")
-    #ax.set_ylabel("Data Present")
+    # ax.set_ylabel("Data Present")
 
     local_timezone = None
 
@@ -103,15 +107,15 @@ def show_Context_Interperations(contextlist: list[Context], target_text, filtere
     queryvalues = []
 
     for context_obj in contextlist:
-        timestamptemp2=context_obj.timestamp
+        timestamptemp2 = context_obj.timestamp
         date_list2.append(timestamptemp2)
 
         target_values.append(context_obj.CD[target_text][-1])
 
-        for triplet in context_obj.CR["interpertation"]:
-            edge=(triplet[0],triplet[1])
-            char=triplet[2]
-            if filter_edges(edge, char,filteredges):
+        for triplet in context_obj.CR["interpretation"]:
+            edge = (triplet[0], triplet[1])
+            char = triplet[2]
+            if filter_edges(edge, char, filteredges):
                 querytimes.append(timestamptemp2)
                 queryvalues.append(target_values[-1])
                 querycolors.append(f"{edge[0].split('@')[0]}->{edge[1].split('@')[0]}")
@@ -120,7 +124,7 @@ def show_Context_Interperations(contextlist: list[Context], target_text, filtere
     # Plot the complete timespan
     ax.clear()
     ax.plot(date_list2, target_values, 'o', color="black", markersize=7,
-                 label=target_text)  # The 'ro' format will display red dots for each data point
+            label=target_text)  # The 'ro' format will display red dots for each data point
 
     ############ PLOT EDGES #######################################################
     color_mapping = {}
@@ -134,7 +138,7 @@ def show_Context_Interperations(contextlist: list[Context], target_text, filtere
         description = querycolors[i]
         color_toplot.append(color_mapping[description])
         ax.plot(querytimes[i], queryvalues[i], 'o', markersize=7,
-                     color=color_mapping[description], alpha=0.7, label=description)
+                color=color_mapping[description], alpha=0.7, label=description)
 
     handles, labels = ax.get_legend_handles_labels()
     unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]

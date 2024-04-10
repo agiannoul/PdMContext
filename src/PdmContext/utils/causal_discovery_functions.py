@@ -1,12 +1,10 @@
-
 import networkx as nx
-from castle.algorithms import PC
-
-def emptyCause(names, data):
+def empty_cause(names, data):
     return []
 
 
-def calculatewithPc(names, data):
+def calculate_with_pc(names, data):
+    from castle.algorithms import PC
     try:
         pc = PC(variant='parallel')
         pc.learn(data)
@@ -18,13 +16,11 @@ def calculatewithPc(names, data):
     # Relabel the nodes
     MAPPING = {k: n for k, n in zip(range(len(names)), names)}
     learned_graph = nx.relabel_nodes(learned_graph, MAPPING, copy=True)
-    edges=learned_graph.edges
-    fedges=[]
+    edges =learned_graph.edges
+    fedges =[]
     for tup in edges:
         if tup not in fedges:
             fedges.append(tup)
-        if (tup[1],tup[0]) not in fedges:
-            fedges.append((tup[1],tup[0]))
+        if (tup[1] ,tup[0]) not in fedges:
+            fedges.append((tup[1] ,tup[0]))
     return fedges
-
-

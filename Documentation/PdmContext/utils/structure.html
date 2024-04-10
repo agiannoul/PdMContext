@@ -32,8 +32,7 @@ from matplotlib import pyplot as plt
 
 class Eventpoint():
 
-    def __init__(self,code,source,timestamp,details=None,type=None):
-
+    def __init__(self, code, source, timestamp, details=None, type=None):
         &#34;&#34;&#34;
         This class is used as structure to help in the flow of data for Context generation, essentially each
         instance of such class represent a single data sample from specific source
@@ -50,7 +49,7 @@ class Eventpoint():
 
 class Context():
 
-    def __init__(self,timestamp,CD: dict,CR :dict,details=None):
+    def __init__(self, timestamp, CD: dict, CR: dict, details=None):
         &#39;&#39;&#39;
         Representation of the Context
         
@@ -59,7 +58,7 @@ class Context():
         **CD**: a dictionary with names the different data sources (names)
         and values equal size of data (time series) that correspond to that source.
 
-        **CR**: dictionary with keys &#34;edges&#34;,&#34;characterization&#34;,&#34;interpertation&#34;
+        **CR**: dictionary with keys &#34;edges&#34;,&#34;characterization&#34;,&#34;interpretation&#34;
             Where edges contain causal relationships of CD data
             characterization is a parallel list with edges which provide an characterization over the relationship (increase,decrease,uknown)
 
@@ -73,7 +72,7 @@ class Context():
         self.details = details
 
     @classmethod
-    def ContextFromDict(cls,contextdict: dict,details=None):
+    def context_from_dict(cls, contextdict: dict, details=None):
         &#39;&#39;&#39;
 
         contextdict: Which contain timestamp,
@@ -85,18 +84,18 @@ class Context():
 
         timestamp = contextdict[&#34;timestamp&#34;]
 
-        CD={}
+        CD = {}
 
-        CR = {&#34;edges&#34;:contextdict[&#34;edges&#34;],&#34;characterization&#34;:contextdict[&#34;characterization&#34;]}
-        if &#34;interpertation&#34; in contextdict.keys():
-            CR[&#34;interpertation&#34;]=contextdict[&#34;interpertation&#34;]
+        CR = {&#34;edges&#34;: contextdict[&#34;edges&#34;], &#34;characterization&#34;: contextdict[&#34;characterization&#34;]}
+        if &#34;interpretation&#34; in contextdict.keys():
+            CR[&#34;interpretation&#34;] = contextdict[&#34;interpretation&#34;]
         else:
-            CR[&#34;interpertation&#34;]=[]
+            CR[&#34;interpretation&#34;] = []
         for key in contextdict:
-            if key not in CR.keys() and key!=&#34;timestamp&#34;:
-                CD[key]=contextdict[key]
+            if key not in CR.keys() and key != &#34;timestamp&#34;:
+                CD[key] = contextdict[key]
 
-        return cls(timestamp,CD,CR,details)
+        return cls(timestamp, CD, CR, details)
 
     def plotCD(self):
         alldata_names = [name for name in self.CD.keys()]
@@ -104,33 +103,34 @@ class Context():
         alldata_names = [nam for dat, nam in zip(alldata_data, alldata_names) if dat is not None]
         alldata_data = [dat for dat in alldata_data if dat is not None]
 
-        if len(alldata_data)==1:
+        if len(alldata_data) == 1:
             fig, ax = plt.subplots(len(alldata_data), 1)
             ax.plot(alldata_data[0], &#34;.&#34;)
             ax.title(alldata_names[0])
         else:
             fig, ax = plt.subplots(len(alldata_data), 1)
-            #print(alldata_data)
+            # print(alldata_data)
             for i in range(len(alldata_data)):
                 ax[i].plot(alldata_data[i], &#34;.&#34;)
                 ax[i].set_title(alldata_names[i])
 
     def plotRD(self):
         fig, ax = plt.subplots(1, 2)
-        #plt.subplots(211)
+        # plt.subplots(211)
         G = nx.DiGraph()
-        #print(self.CR[&#34;interpertation&#34;])
+        # print(self.CR[&#34;interpretation&#34;])
         # Add edges to the graph
         G.add_edges_from(self.CR[&#34;edges&#34;])
         pos = nx.spring_layout(G)  # Positions for all nodes
-        nx.draw(G, pos, ax=ax[0],with_labels=True, font_weight=&#39;bold&#39;, node_size=1500, node_color=&#39;skyblue&#39;, font_size=10,
+        nx.draw(G, pos, ax=ax[0], with_labels=True, font_weight=&#39;bold&#39;, node_size=1500, node_color=&#39;skyblue&#39;,
+                font_size=10,
                 edge_color=&#39;black&#39;, linewidths=3, arrowsize=20)
-        #plt.subplots(212)
-        for i,pair in enumerate(self.CR[&#34;interpertation&#34;]):
-            print(f&#34;{i+1}) {pair[0]} : {pair[3]}&#34;)
-            ax[1].scatter(x=[10],y=[(i+1)*10])
-            ax[1].scatter(x=[30],y=[(i+1)*10])
-            ax[1].text(x=10,y=(i+1)*10,s=f&#34;{i+1}) {pair[0]} : {pair[3]}&#34;)
+        # plt.subplots(212)
+        for i, pair in enumerate(self.CR[&#34;interpretation&#34;]):
+            print(f&#34;{i + 1}) {pair[0]} : {pair[3]}&#34;)
+            ax[1].scatter(x=[10], y=[(i + 1) * 10])
+            ax[1].scatter(x=[30], y=[(i + 1) * 10])
+            ax[1].text(x=10, y=(i + 1) * 10, s=f&#34;{i + 1}) {pair[0]} : {pair[3]}&#34;)
 
     def plot(self):
         self.plotCD()
@@ -157,7 +157,7 @@ class Context():
 <p><strong>timestamp</strong>: A timestamp of the context</p>
 <p><strong>CD</strong>: a dictionary with names the different data sources (names)
 and values equal size of data (time series) that correspond to that source.</p>
-<p><strong>CR</strong>: dictionary with keys "edges","characterization","interpertation"
+<p><strong>CR</strong>: dictionary with keys "edges","characterization","interpretation"
 Where edges contain causal relationships of CD data
 characterization is a parallel list with edges which provide an characterization over the relationship (increase,decrease,uknown)</p>
 <p><strong>details</strong>:
@@ -168,7 +168,7 @@ String with details from user</p></div>
 </summary>
 <pre><code class="python">class Context():
 
-    def __init__(self,timestamp,CD: dict,CR :dict,details=None):
+    def __init__(self, timestamp, CD: dict, CR: dict, details=None):
         &#39;&#39;&#39;
         Representation of the Context
         
@@ -177,7 +177,7 @@ String with details from user</p></div>
         **CD**: a dictionary with names the different data sources (names)
         and values equal size of data (time series) that correspond to that source.
 
-        **CR**: dictionary with keys &#34;edges&#34;,&#34;characterization&#34;,&#34;interpertation&#34;
+        **CR**: dictionary with keys &#34;edges&#34;,&#34;characterization&#34;,&#34;interpretation&#34;
             Where edges contain causal relationships of CD data
             characterization is a parallel list with edges which provide an characterization over the relationship (increase,decrease,uknown)
 
@@ -191,7 +191,7 @@ String with details from user</p></div>
         self.details = details
 
     @classmethod
-    def ContextFromDict(cls,contextdict: dict,details=None):
+    def context_from_dict(cls, contextdict: dict, details=None):
         &#39;&#39;&#39;
 
         contextdict: Which contain timestamp,
@@ -203,18 +203,18 @@ String with details from user</p></div>
 
         timestamp = contextdict[&#34;timestamp&#34;]
 
-        CD={}
+        CD = {}
 
-        CR = {&#34;edges&#34;:contextdict[&#34;edges&#34;],&#34;characterization&#34;:contextdict[&#34;characterization&#34;]}
-        if &#34;interpertation&#34; in contextdict.keys():
-            CR[&#34;interpertation&#34;]=contextdict[&#34;interpertation&#34;]
+        CR = {&#34;edges&#34;: contextdict[&#34;edges&#34;], &#34;characterization&#34;: contextdict[&#34;characterization&#34;]}
+        if &#34;interpretation&#34; in contextdict.keys():
+            CR[&#34;interpretation&#34;] = contextdict[&#34;interpretation&#34;]
         else:
-            CR[&#34;interpertation&#34;]=[]
+            CR[&#34;interpretation&#34;] = []
         for key in contextdict:
-            if key not in CR.keys() and key!=&#34;timestamp&#34;:
-                CD[key]=contextdict[key]
+            if key not in CR.keys() and key != &#34;timestamp&#34;:
+                CD[key] = contextdict[key]
 
-        return cls(timestamp,CD,CR,details)
+        return cls(timestamp, CD, CR, details)
 
     def plotCD(self):
         alldata_names = [name for name in self.CD.keys()]
@@ -222,33 +222,34 @@ String with details from user</p></div>
         alldata_names = [nam for dat, nam in zip(alldata_data, alldata_names) if dat is not None]
         alldata_data = [dat for dat in alldata_data if dat is not None]
 
-        if len(alldata_data)==1:
+        if len(alldata_data) == 1:
             fig, ax = plt.subplots(len(alldata_data), 1)
             ax.plot(alldata_data[0], &#34;.&#34;)
             ax.title(alldata_names[0])
         else:
             fig, ax = plt.subplots(len(alldata_data), 1)
-            #print(alldata_data)
+            # print(alldata_data)
             for i in range(len(alldata_data)):
                 ax[i].plot(alldata_data[i], &#34;.&#34;)
                 ax[i].set_title(alldata_names[i])
 
     def plotRD(self):
         fig, ax = plt.subplots(1, 2)
-        #plt.subplots(211)
+        # plt.subplots(211)
         G = nx.DiGraph()
-        #print(self.CR[&#34;interpertation&#34;])
+        # print(self.CR[&#34;interpretation&#34;])
         # Add edges to the graph
         G.add_edges_from(self.CR[&#34;edges&#34;])
         pos = nx.spring_layout(G)  # Positions for all nodes
-        nx.draw(G, pos, ax=ax[0],with_labels=True, font_weight=&#39;bold&#39;, node_size=1500, node_color=&#39;skyblue&#39;, font_size=10,
+        nx.draw(G, pos, ax=ax[0], with_labels=True, font_weight=&#39;bold&#39;, node_size=1500, node_color=&#39;skyblue&#39;,
+                font_size=10,
                 edge_color=&#39;black&#39;, linewidths=3, arrowsize=20)
-        #plt.subplots(212)
-        for i,pair in enumerate(self.CR[&#34;interpertation&#34;]):
-            print(f&#34;{i+1}) {pair[0]} : {pair[3]}&#34;)
-            ax[1].scatter(x=[10],y=[(i+1)*10])
-            ax[1].scatter(x=[30],y=[(i+1)*10])
-            ax[1].text(x=10,y=(i+1)*10,s=f&#34;{i+1}) {pair[0]} : {pair[3]}&#34;)
+        # plt.subplots(212)
+        for i, pair in enumerate(self.CR[&#34;interpretation&#34;]):
+            print(f&#34;{i + 1}) {pair[0]} : {pair[3]}&#34;)
+            ax[1].scatter(x=[10], y=[(i + 1) * 10])
+            ax[1].scatter(x=[30], y=[(i + 1) * 10])
+            ax[1].text(x=10, y=(i + 1) * 10, s=f&#34;{i + 1}) {pair[0]} : {pair[3]}&#34;)
 
     def plot(self):
         self.plotCD()
@@ -258,8 +259,8 @@ String with details from user</p></div>
 </details>
 <h3>Static methods</h3>
 <dl>
-<dt id="PdmContext.utils.structure.Context.ContextFromDict"><code class="name flex">
-<span>def <span class="ident">ContextFromDict</span></span>(<span>contextdict: dict, details=None)</span>
+<dt id="PdmContext.utils.structure.Context.context_from_dict"><code class="name flex">
+<span>def <span class="ident">context_from_dict</span></span>(<span>contextdict: dict, details=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>contextdict: Which contain timestamp,
@@ -272,7 +273,7 @@ String with details from user</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def ContextFromDict(cls,contextdict: dict,details=None):
+def context_from_dict(cls, contextdict: dict, details=None):
     &#39;&#39;&#39;
 
     contextdict: Which contain timestamp,
@@ -284,18 +285,18 @@ def ContextFromDict(cls,contextdict: dict,details=None):
 
     timestamp = contextdict[&#34;timestamp&#34;]
 
-    CD={}
+    CD = {}
 
-    CR = {&#34;edges&#34;:contextdict[&#34;edges&#34;],&#34;characterization&#34;:contextdict[&#34;characterization&#34;]}
-    if &#34;interpertation&#34; in contextdict.keys():
-        CR[&#34;interpertation&#34;]=contextdict[&#34;interpertation&#34;]
+    CR = {&#34;edges&#34;: contextdict[&#34;edges&#34;], &#34;characterization&#34;: contextdict[&#34;characterization&#34;]}
+    if &#34;interpretation&#34; in contextdict.keys():
+        CR[&#34;interpretation&#34;] = contextdict[&#34;interpretation&#34;]
     else:
-        CR[&#34;interpertation&#34;]=[]
+        CR[&#34;interpretation&#34;] = []
     for key in contextdict:
-        if key not in CR.keys() and key!=&#34;timestamp&#34;:
-            CD[key]=contextdict[key]
+        if key not in CR.keys() and key != &#34;timestamp&#34;:
+            CD[key] = contextdict[key]
 
-    return cls(timestamp,CD,CR,details)</code></pre>
+    return cls(timestamp, CD, CR, details)</code></pre>
 </details>
 </dd>
 </dl>
@@ -332,13 +333,13 @@ def ContextFromDict(cls,contextdict: dict,details=None):
     alldata_names = [nam for dat, nam in zip(alldata_data, alldata_names) if dat is not None]
     alldata_data = [dat for dat in alldata_data if dat is not None]
 
-    if len(alldata_data)==1:
+    if len(alldata_data) == 1:
         fig, ax = plt.subplots(len(alldata_data), 1)
         ax.plot(alldata_data[0], &#34;.&#34;)
         ax.title(alldata_names[0])
     else:
         fig, ax = plt.subplots(len(alldata_data), 1)
-        #print(alldata_data)
+        # print(alldata_data)
         for i in range(len(alldata_data)):
             ax[i].plot(alldata_data[i], &#34;.&#34;)
             ax[i].set_title(alldata_names[i])</code></pre>
@@ -355,20 +356,21 @@ def ContextFromDict(cls,contextdict: dict,details=None):
 </summary>
 <pre><code class="python">def plotRD(self):
     fig, ax = plt.subplots(1, 2)
-    #plt.subplots(211)
+    # plt.subplots(211)
     G = nx.DiGraph()
-    #print(self.CR[&#34;interpertation&#34;])
+    # print(self.CR[&#34;interpretation&#34;])
     # Add edges to the graph
     G.add_edges_from(self.CR[&#34;edges&#34;])
     pos = nx.spring_layout(G)  # Positions for all nodes
-    nx.draw(G, pos, ax=ax[0],with_labels=True, font_weight=&#39;bold&#39;, node_size=1500, node_color=&#39;skyblue&#39;, font_size=10,
+    nx.draw(G, pos, ax=ax[0], with_labels=True, font_weight=&#39;bold&#39;, node_size=1500, node_color=&#39;skyblue&#39;,
+            font_size=10,
             edge_color=&#39;black&#39;, linewidths=3, arrowsize=20)
-    #plt.subplots(212)
-    for i,pair in enumerate(self.CR[&#34;interpertation&#34;]):
-        print(f&#34;{i+1}) {pair[0]} : {pair[3]}&#34;)
-        ax[1].scatter(x=[10],y=[(i+1)*10])
-        ax[1].scatter(x=[30],y=[(i+1)*10])
-        ax[1].text(x=10,y=(i+1)*10,s=f&#34;{i+1}) {pair[0]} : {pair[3]}&#34;)</code></pre>
+    # plt.subplots(212)
+    for i, pair in enumerate(self.CR[&#34;interpretation&#34;]):
+        print(f&#34;{i + 1}) {pair[0]} : {pair[3]}&#34;)
+        ax[1].scatter(x=[10], y=[(i + 1) * 10])
+        ax[1].scatter(x=[30], y=[(i + 1) * 10])
+        ax[1].text(x=10, y=(i + 1) * 10, s=f&#34;{i + 1}) {pair[0]} : {pair[3]}&#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -388,8 +390,7 @@ refer to the type of data (crucial for event data which must be on of isolated o
 </summary>
 <pre><code class="python">class Eventpoint():
 
-    def __init__(self,code,source,timestamp,details=None,type=None):
-
+    def __init__(self, code, source, timestamp, details=None, type=None):
         &#34;&#34;&#34;
         This class is used as structure to help in the flow of data for Context generation, essentially each
         instance of such class represent a single data sample from specific source
@@ -423,7 +424,7 @@ refer to the type of data (crucial for event data which must be on of isolated o
 <li>
 <h4><code><a title="PdmContext.utils.structure.Context" href="#PdmContext.utils.structure.Context">Context</a></code></h4>
 <ul class="">
-<li><code><a title="PdmContext.utils.structure.Context.ContextFromDict" href="#PdmContext.utils.structure.Context.ContextFromDict">ContextFromDict</a></code></li>
+<li><code><a title="PdmContext.utils.structure.Context.context_from_dict" href="#PdmContext.utils.structure.Context.context_from_dict">context_from_dict</a></code></li>
 <li><code><a title="PdmContext.utils.structure.Context.plot" href="#PdmContext.utils.structure.Context.plot">plot</a></code></li>
 <li><code><a title="PdmContext.utils.structure.Context.plotCD" href="#PdmContext.utils.structure.Context.plotCD">plotCD</a></code></li>
 <li><code><a title="PdmContext.utils.structure.Context.plotRD" href="#PdmContext.utils.structure.Context.plotRD">plotRD</a></code></li>

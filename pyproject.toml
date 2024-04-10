@@ -1,22 +1,33 @@
 [project]
 name = "PdmContext"
-version = "0.0.8"
+version = "0.1.0"
 authors = [
   { name="Apostolos Giannoulidis", email="agiannous@csd.auth.gr" },
 ]
-description = "Context is used here to provide a better understanding of the difference cases the data are each time. Essentially, Context represent the data (CD), existing in a time window, and their relationships (CR), where the relationships are extracted using causal discovery between the data (the causal discovery method can be user defiend)."
+description = "Context is used here to provide a better understanding of how changes in data affect anomaly detection task. Essentially, Context represent the data (CD), existing in a time window, and their relationships (CR), where the relationships are extracted using causal discovery between the data (the causal discovery method can be user defiend)."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
+
+dependencies = [
+    'cryptography==41.0.1',
+    'matplotlib==3.8.2',
+    'networkx==3.2.1',
+    'numpy==1.24.3',
+    'pandas==2.0.2',
+    'tqdm==4.66.1',
+]
+
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 
+
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
 
 
 [project.urls]

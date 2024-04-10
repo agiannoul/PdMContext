@@ -28,8 +28,10 @@
 </summary>
 <pre><code class="python">import pandas as pd
 
+
 class simulate_stream():
-    def __init__(self,TimeSeries:[(str,list[float],list[pd.Timestamp])],Events:[(str,list[pd.Timestamp],str)],targetname):
+    def __init__(self, TimeSeries: [(str, list[float], list[pd.Timestamp])], Events: [(str, list[pd.Timestamp], str)],
+                 targetname):
         &#34;&#34;&#34;
         This method simulate the traffic of the data
 
@@ -40,17 +42,17 @@ class simulate_stream():
         **Events**: A list of events in form of (name, list of timestamp when the event occured,type of the Event (isolated or configuration)) as expected in ContextGenerator.
         &#34;&#34;&#34;
         # build dataframe with columns dt, name, value, type
-        dict_df={
-            &#34;dt&#34;:[],
-            &#34;name&#34;:[],
-            &#34;value&#34;:[],
-            &#34;type&#34;:[]
+        dict_df = {
+            &#34;dt&#34;: [],
+            &#34;name&#34;: [],
+            &#34;value&#34;: [],
+            &#34;type&#34;: []
         }
         for series in TimeSeries:
             name = series[0]
             data = series[1]
             times = series[2]
-            for dd,dtt in zip(data,times):
+            for dd, dtt in zip(data, times):
                 dict_df[&#34;dt&#34;].append(dtt)
                 dict_df[&#34;name&#34;].append(name)
                 dict_df[&#34;value&#34;].append(dd)
@@ -67,12 +69,12 @@ class simulate_stream():
                 dict_df[&#34;type&#34;].append(type)
 
         self.df = pd.DataFrame(dict_df)
-        self.df.sort_values(by=&#34;dt&#34;,inplace=True)
-        self.uniquedates=self.df[&#34;dt&#34;].unique()
+        self.df.sort_values(by=&#34;dt&#34;, inplace=True)
+        self.uniquedates = self.df[&#34;dt&#34;].unique()
         list(self.uniquedates).sort()
-        self.targetname=targetname
-        self.liststream=[]
-        self.current=0
+        self.targetname = targetname
+        self.liststream = []
+        self.current = 0
         for date in self.uniquedates:
             rows = self.df[self.df[&#34;dt&#34;] == date]
             keep = {}
@@ -87,12 +89,15 @@ class simulate_stream():
                         tempvalue = None
                     else:
                         tempvalue = row[&#34;value&#34;]
-                    self.liststream.append({&#34;name&#34;: row[&#34;name&#34;], &#34;type&#34;: row[&#34;type&#34;], &#34;timestamp&#34;: row[&#34;dt&#34;], &#34;value&#34;: tempvalue})
+                    self.liststream.append(
+                        {&#34;name&#34;: row[&#34;name&#34;], &#34;type&#34;: row[&#34;type&#34;], &#34;timestamp&#34;: row[&#34;dt&#34;], &#34;value&#34;: tempvalue})
             if len(keep.keys()):
-                self.liststream.append({&#34;name&#34;: keep[&#34;name&#34;], &#34;type&#34;: keep[&#34;type&#34;], &#34;timestamp&#34;: keep[&#34;dt&#34;], &#34;value&#34;: keep[&#34;value&#34;]})
+                self.liststream.append(
+                    {&#34;name&#34;: keep[&#34;name&#34;], &#34;type&#34;: keep[&#34;type&#34;], &#34;timestamp&#34;: keep[&#34;dt&#34;], &#34;value&#34;: keep[&#34;value&#34;]})
 
     def __iter__(self):
         return self
+
     def __next__(self):
         self.current += 1
         if self.current &lt; len(self.liststream):
@@ -100,7 +105,7 @@ class simulate_stream():
         raise StopIteration
 
 
-def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
+def simulate_from_df(df: pd.DataFrame, eventTypes: [(str, str)], target_name: str):
     &#39;&#39;&#39;
     **Parameters**:
 
@@ -112,21 +117,21 @@ def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
 
     **return**: an itterator
     &#39;&#39;&#39;
-    #TimeSeries:[(str,list[float],list[pd.Timestamp])]
-    Events=[]
-    dropcols=[]
-    for col,type in eventTypes:
-        timestamps=[dt for dt in df[df[col]==1].index]
-        Events.append((col,timestamps,type))
+    # TimeSeries:[(str,list[float],list[pd.Timestamp])]
+    Events = []
+    dropcols = []
+    for col, type in eventTypes:
+        timestamps = [dt for dt in df[df[col] == 1].index]
+        Events.append((col, timestamps, type))
         dropcols.append(col)
-    if len(dropcols)&gt;0:
-        dfn=df.drop(dropcols,axis=1)
+    if len(dropcols) &gt; 0:
+        dfn = df.drop(dropcols, axis=1)
     else:
-        dfn=df
-    timeseries=[]
+        dfn = df
+    timeseries = []
     for col in dfn.columns:
         timeseries.append((col, dfn[col].values, [dt for dt in dfn.index]))
-    return simulate_stream(TimeSeries=timeseries,Events=Events,targetname=target_name)</code></pre>
+    return simulate_stream(TimeSeries=timeseries, Events=Events, targetname=target_name)</code></pre>
 </details>
 </section>
 <section>
@@ -149,7 +154,7 @@ def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
+<pre><code class="python">def simulate_from_df(df: pd.DataFrame, eventTypes: [(str, str)], target_name: str):
     &#39;&#39;&#39;
     **Parameters**:
 
@@ -161,21 +166,21 @@ def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
 
     **return**: an itterator
     &#39;&#39;&#39;
-    #TimeSeries:[(str,list[float],list[pd.Timestamp])]
-    Events=[]
-    dropcols=[]
-    for col,type in eventTypes:
-        timestamps=[dt for dt in df[df[col]==1].index]
-        Events.append((col,timestamps,type))
+    # TimeSeries:[(str,list[float],list[pd.Timestamp])]
+    Events = []
+    dropcols = []
+    for col, type in eventTypes:
+        timestamps = [dt for dt in df[df[col] == 1].index]
+        Events.append((col, timestamps, type))
         dropcols.append(col)
-    if len(dropcols)&gt;0:
-        dfn=df.drop(dropcols,axis=1)
+    if len(dropcols) &gt; 0:
+        dfn = df.drop(dropcols, axis=1)
     else:
-        dfn=df
-    timeseries=[]
+        dfn = df
+    timeseries = []
     for col in dfn.columns:
         timeseries.append((col, dfn[col].values, [dt for dt in dfn.index]))
-    return simulate_stream(TimeSeries=timeseries,Events=Events,targetname=target_name)</code></pre>
+    return simulate_stream(TimeSeries=timeseries, Events=Events, targetname=target_name)</code></pre>
 </details>
 </dd>
 </dl>
@@ -197,7 +202,8 @@ def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class simulate_stream():
-    def __init__(self,TimeSeries:[(str,list[float],list[pd.Timestamp])],Events:[(str,list[pd.Timestamp],str)],targetname):
+    def __init__(self, TimeSeries: [(str, list[float], list[pd.Timestamp])], Events: [(str, list[pd.Timestamp], str)],
+                 targetname):
         &#34;&#34;&#34;
         This method simulate the traffic of the data
 
@@ -208,17 +214,17 @@ def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
         **Events**: A list of events in form of (name, list of timestamp when the event occured,type of the Event (isolated or configuration)) as expected in ContextGenerator.
         &#34;&#34;&#34;
         # build dataframe with columns dt, name, value, type
-        dict_df={
-            &#34;dt&#34;:[],
-            &#34;name&#34;:[],
-            &#34;value&#34;:[],
-            &#34;type&#34;:[]
+        dict_df = {
+            &#34;dt&#34;: [],
+            &#34;name&#34;: [],
+            &#34;value&#34;: [],
+            &#34;type&#34;: []
         }
         for series in TimeSeries:
             name = series[0]
             data = series[1]
             times = series[2]
-            for dd,dtt in zip(data,times):
+            for dd, dtt in zip(data, times):
                 dict_df[&#34;dt&#34;].append(dtt)
                 dict_df[&#34;name&#34;].append(name)
                 dict_df[&#34;value&#34;].append(dd)
@@ -235,12 +241,12 @@ def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
                 dict_df[&#34;type&#34;].append(type)
 
         self.df = pd.DataFrame(dict_df)
-        self.df.sort_values(by=&#34;dt&#34;,inplace=True)
-        self.uniquedates=self.df[&#34;dt&#34;].unique()
+        self.df.sort_values(by=&#34;dt&#34;, inplace=True)
+        self.uniquedates = self.df[&#34;dt&#34;].unique()
         list(self.uniquedates).sort()
-        self.targetname=targetname
-        self.liststream=[]
-        self.current=0
+        self.targetname = targetname
+        self.liststream = []
+        self.current = 0
         for date in self.uniquedates:
             rows = self.df[self.df[&#34;dt&#34;] == date]
             keep = {}
@@ -255,12 +261,15 @@ def simulate_from_df(df: pd.DataFrame,eventTypes :[(str,str)],target_name: str):
                         tempvalue = None
                     else:
                         tempvalue = row[&#34;value&#34;]
-                    self.liststream.append({&#34;name&#34;: row[&#34;name&#34;], &#34;type&#34;: row[&#34;type&#34;], &#34;timestamp&#34;: row[&#34;dt&#34;], &#34;value&#34;: tempvalue})
+                    self.liststream.append(
+                        {&#34;name&#34;: row[&#34;name&#34;], &#34;type&#34;: row[&#34;type&#34;], &#34;timestamp&#34;: row[&#34;dt&#34;], &#34;value&#34;: tempvalue})
             if len(keep.keys()):
-                self.liststream.append({&#34;name&#34;: keep[&#34;name&#34;], &#34;type&#34;: keep[&#34;type&#34;], &#34;timestamp&#34;: keep[&#34;dt&#34;], &#34;value&#34;: keep[&#34;value&#34;]})
+                self.liststream.append(
+                    {&#34;name&#34;: keep[&#34;name&#34;], &#34;type&#34;: keep[&#34;type&#34;], &#34;timestamp&#34;: keep[&#34;dt&#34;], &#34;value&#34;: keep[&#34;value&#34;]})
 
     def __iter__(self):
         return self
+
     def __next__(self):
         self.current += 1
         if self.current &lt; len(self.liststream):

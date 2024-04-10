@@ -27,13 +27,12 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import networkx as nx
-from castle.algorithms import PC
-
-def emptyCause(names, data):
+def empty_cause(names, data):
     return []
 
 
-def calculatewithPc(names, data):
+def calculate_with_pc(names, data):
+    from castle.algorithms import PC
     try:
         pc = PC(variant=&#39;parallel&#39;)
         pc.learn(data)
@@ -45,13 +44,13 @@ def calculatewithPc(names, data):
     # Relabel the nodes
     MAPPING = {k: n for k, n in zip(range(len(names)), names)}
     learned_graph = nx.relabel_nodes(learned_graph, MAPPING, copy=True)
-    edges=learned_graph.edges
-    fedges=[]
+    edges =learned_graph.edges
+    fedges =[]
     for tup in edges:
         if tup not in fedges:
             fedges.append(tup)
-        if (tup[1],tup[0]) not in fedges:
-            fedges.append((tup[1],tup[0]))
+        if (tup[1] ,tup[0]) not in fedges:
+            fedges.append((tup[1] ,tup[0]))
     return fedges</code></pre>
 </details>
 </section>
@@ -62,8 +61,8 @@ def calculatewithPc(names, data):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="PdmContext.utils.causal_discovery_functions.calculatewithPc"><code class="name flex">
-<span>def <span class="ident">calculatewithPc</span></span>(<span>names, data)</span>
+<dt id="PdmContext.utils.causal_discovery_functions.calculate_with_pc"><code class="name flex">
+<span>def <span class="ident">calculate_with_pc</span></span>(<span>names, data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -71,7 +70,8 @@ def calculatewithPc(names, data):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def calculatewithPc(names, data):
+<pre><code class="python">def calculate_with_pc(names, data):
+    from castle.algorithms import PC
     try:
         pc = PC(variant=&#39;parallel&#39;)
         pc.learn(data)
@@ -83,18 +83,18 @@ def calculatewithPc(names, data):
     # Relabel the nodes
     MAPPING = {k: n for k, n in zip(range(len(names)), names)}
     learned_graph = nx.relabel_nodes(learned_graph, MAPPING, copy=True)
-    edges=learned_graph.edges
-    fedges=[]
+    edges =learned_graph.edges
+    fedges =[]
     for tup in edges:
         if tup not in fedges:
             fedges.append(tup)
-        if (tup[1],tup[0]) not in fedges:
-            fedges.append((tup[1],tup[0]))
+        if (tup[1] ,tup[0]) not in fedges:
+            fedges.append((tup[1] ,tup[0]))
     return fedges</code></pre>
 </details>
 </dd>
-<dt id="PdmContext.utils.causal_discovery_functions.emptyCause"><code class="name flex">
-<span>def <span class="ident">emptyCause</span></span>(<span>names, data)</span>
+<dt id="PdmContext.utils.causal_discovery_functions.empty_cause"><code class="name flex">
+<span>def <span class="ident">empty_cause</span></span>(<span>names, data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -102,7 +102,7 @@ def calculatewithPc(names, data):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def emptyCause(names, data):
+<pre><code class="python">def empty_cause(names, data):
     return []</code></pre>
 </details>
 </dd>
@@ -124,8 +124,8 @@ def calculatewithPc(names, data):
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="PdmContext.utils.causal_discovery_functions.calculatewithPc" href="#PdmContext.utils.causal_discovery_functions.calculatewithPc">calculatewithPc</a></code></li>
-<li><code><a title="PdmContext.utils.causal_discovery_functions.emptyCause" href="#PdmContext.utils.causal_discovery_functions.emptyCause">emptyCause</a></code></li>
+<li><code><a title="PdmContext.utils.causal_discovery_functions.calculate_with_pc" href="#PdmContext.utils.causal_discovery_functions.calculate_with_pc">calculate_with_pc</a></code></li>
+<li><code><a title="PdmContext.utils.causal_discovery_functions.empty_cause" href="#PdmContext.utils.causal_discovery_functions.empty_cause">empty_cause</a></code></li>
 </ul>
 </li>
 </ul>

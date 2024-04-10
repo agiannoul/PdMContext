@@ -2,7 +2,7 @@ from random import random
 import pandas as pd
 from PdmContext.ContextGeneration import ContextGenerator
 from PdmContext.ContextClustering import DBscanContextStream
-from src.PdmContext.utils.causal_discovery_functions import calculatewithPc,emptyCause
+from src.PdmContext.utils.causal_discovery_functions import calculatewithPc,empty_cause
 from src.PdmContext.utils.structure import Context
 from src.PdmContext.utils.distances import distance_cc
 from src.PdmContext.utils.simulate_stream import simulate_stream, simulate_from_df
@@ -128,7 +128,7 @@ def Test_simulator_given_DataFrame():
 
 def Test_simulator_dataframe_with_pipeline_and_Influx():
     traget_name="actual_pressure_container_PtP"
-    con_gen = ContextGenerator(target=traget_name, context_horizon="8", Causalityfunct=emptyCause, debug=False)
+    con_gen = ContextGenerator(target=traget_name, context_horizon="8", Causalityfunct=empty_cause, debug=False)
     database = SQLiteHandler(db_name="ContextDatabase.db")
     #database = InfluxDBHandler(host='localhost', port=8086, db_name='my_database',measurment_name="my_table")
     clustering = DBscanContextStream(cluster_similarity_limit=0.7, min_points=2, distancefunc=my_distance)

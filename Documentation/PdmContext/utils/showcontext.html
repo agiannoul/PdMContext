@@ -31,13 +31,15 @@ from PdmContext.utils.structure import Context
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def filter_edges(edge,char,filteredges):
+
+def filter_edges(edge, char, filteredges):
     for filter in filteredges:
         if filter[0] in edge[0] and filter[1] in edge[1] and filter[2] in char:
             return True
     return False
 
-def show_Context_list(contextlist: list[Context], target_text, filteredges=[[&#34;&#34;, &#34;&#34;, &#34;&#34;]]):
+
+def show_context_list(contextlist: list[Context], target_text, filteredges=[[&#34;&#34;, &#34;&#34;, &#34;&#34;]]):
     &#34;&#34;&#34;
     Visualization of Contexts in the contextlist
 
@@ -54,7 +56,7 @@ def show_Context_list(contextlist: list[Context], target_text, filteredges=[[&#3
     fig, ax = plt.subplots()
     ax.set_title(&#34;Complete Timespan&#34;)
     ax.set_xlabel(&#34;Date&#34;)
-    #ax.set_ylabel(&#34;Data Present&#34;)
+    # ax.set_ylabel(&#34;Data Present&#34;)
 
     local_timezone = None
 
@@ -66,13 +68,13 @@ def show_Context_list(contextlist: list[Context], target_text, filteredges=[[&#3
     queryvalues = []
 
     for context_obj in contextlist:
-        timestamptemp2=context_obj.timestamp
+        timestamptemp2 = context_obj.timestamp
         date_list2.append(timestamptemp2)
 
         target_values.append(context_obj.CD[target_text][-1])
 
         for edge, char in zip(context_obj.CR[&#34;edges&#34;], context_obj.CR[&#34;characterization&#34;]):
-            if filter_edges(edge, char,filteredges):
+            if filter_edges(edge, char, filteredges):
                 querytimes.append(timestamptemp2)
                 queryvalues.append(target_values[-1])
                 querycolors.append(f&#34;{edge[0].split(&#39;@&#39;)[0]}-&gt;{edge[1].split(&#39;@&#39;)[0]}&#34;)
@@ -81,7 +83,7 @@ def show_Context_list(contextlist: list[Context], target_text, filteredges=[[&#3
     # Plot the complete timespan
     ax.clear()
     ax.plot(date_list2, target_values, &#39;o&#39;, color=&#34;black&#34;, markersize=7,
-                 label=target_text)  # The &#39;ro&#39; format will display red dots for each data point
+            label=target_text)  # The &#39;ro&#39; format will display red dots for each data point
 
     ############ PLOT EDGES #######################################################
     color_mapping = {}
@@ -95,16 +97,18 @@ def show_Context_list(contextlist: list[Context], target_text, filteredges=[[&#3
         description = querycolors[i]
         color_toplot.append(color_mapping[description])
         ax.plot(querytimes[i], queryvalues[i], &#39;o&#39;, markersize=7,
-                     color=color_mapping[description], alpha=0.7, label=description)
+                color=color_mapping[description], alpha=0.7, label=description)
 
     handles, labels = ax.get_legend_handles_labels()
     unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
     ax.legend(*zip(*unique), loc=&#34;upper left&#34;)
     ax.grid()
     plt.show()
-def show_Context_Interperations(contextlist: list[Context], target_text, filteredges=[[&#34;&#34;, &#34;&#34;, &#34;&#34;]]):
+
+
+def show_context_interpretations(contextlist: list[Context], target_text, filteredges=[[&#34;&#34;, &#34;&#34;, &#34;&#34;]]):
     &#34;&#34;&#34;
-    Visualization of Interperations from Contexts in the contextlist
+    Visualization of Interpretations from Contexts in the contextlist
 
     **Parameters**:
 
@@ -119,7 +123,7 @@ def show_Context_Interperations(contextlist: list[Context], target_text, filtere
     fig, ax = plt.subplots()
     ax.set_title(&#34;Complete Timespan&#34;)
     ax.set_xlabel(&#34;Date&#34;)
-    #ax.set_ylabel(&#34;Data Present&#34;)
+    # ax.set_ylabel(&#34;Data Present&#34;)
 
     local_timezone = None
 
@@ -131,15 +135,15 @@ def show_Context_Interperations(contextlist: list[Context], target_text, filtere
     queryvalues = []
 
     for context_obj in contextlist:
-        timestamptemp2=context_obj.timestamp
+        timestamptemp2 = context_obj.timestamp
         date_list2.append(timestamptemp2)
 
         target_values.append(context_obj.CD[target_text][-1])
 
-        for triplet in context_obj.CR[&#34;interpertation&#34;]:
-            edge=(triplet[0],triplet[1])
-            char=triplet[2]
-            if filter_edges(edge, char,filteredges):
+        for triplet in context_obj.CR[&#34;interpretation&#34;]:
+            edge = (triplet[0], triplet[1])
+            char = triplet[2]
+            if filter_edges(edge, char, filteredges):
                 querytimes.append(timestamptemp2)
                 queryvalues.append(target_values[-1])
                 querycolors.append(f&#34;{edge[0].split(&#39;@&#39;)[0]}-&gt;{edge[1].split(&#39;@&#39;)[0]}&#34;)
@@ -148,7 +152,7 @@ def show_Context_Interperations(contextlist: list[Context], target_text, filtere
     # Plot the complete timespan
     ax.clear()
     ax.plot(date_list2, target_values, &#39;o&#39;, color=&#34;black&#34;, markersize=7,
-                 label=target_text)  # The &#39;ro&#39; format will display red dots for each data point
+            label=target_text)  # The &#39;ro&#39; format will display red dots for each data point
 
     ############ PLOT EDGES #######################################################
     color_mapping = {}
@@ -162,7 +166,7 @@ def show_Context_Interperations(contextlist: list[Context], target_text, filtere
         description = querycolors[i]
         color_toplot.append(color_mapping[description])
         ax.plot(querytimes[i], queryvalues[i], &#39;o&#39;, markersize=7,
-                     color=color_mapping[description], alpha=0.7, label=description)
+                color=color_mapping[description], alpha=0.7, label=description)
 
     handles, labels = ax.get_legend_handles_labels()
     unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
@@ -187,18 +191,18 @@ def show_Context_Interperations(contextlist: list[Context], target_text, filtere
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def filter_edges(edge,char,filteredges):
+<pre><code class="python">def filter_edges(edge, char, filteredges):
     for filter in filteredges:
         if filter[0] in edge[0] and filter[1] in edge[1] and filter[2] in char:
             return True
     return False</code></pre>
 </details>
 </dd>
-<dt id="PdmContext.utils.showcontext.show_Context_Interperations"><code class="name flex">
-<span>def <span class="ident">show_Context_Interperations</span></span>(<span>contextlist: list[<a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>], target_text, filteredges=[['', '', '']])</span>
+<dt id="PdmContext.utils.showcontext.show_context_interpretations"><code class="name flex">
+<span>def <span class="ident">show_context_interpretations</span></span>(<span>contextlist: list[<a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>], target_text, filteredges=[['', '', '']])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Visualization of Interperations from Contexts in the contextlist</p>
+<div class="desc"><p>Visualization of Interpretations from Contexts in the contextlist</p>
 <p><strong>Parameters</strong>:</p>
 <p><strong>contextlist</strong>: List of Context objects</p>
 <p><strong>target_text</strong>: The target data that the context built with</p>
@@ -208,9 +212,9 @@ where each time we check if the fields of the list are part of the edges text an
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def show_Context_Interperations(contextlist: list[Context], target_text, filteredges=[[&#34;&#34;, &#34;&#34;, &#34;&#34;]]):
+<pre><code class="python">def show_context_interpretations(contextlist: list[Context], target_text, filteredges=[[&#34;&#34;, &#34;&#34;, &#34;&#34;]]):
     &#34;&#34;&#34;
-    Visualization of Interperations from Contexts in the contextlist
+    Visualization of Interpretations from Contexts in the contextlist
 
     **Parameters**:
 
@@ -225,7 +229,7 @@ where each time we check if the fields of the list are part of the edges text an
     fig, ax = plt.subplots()
     ax.set_title(&#34;Complete Timespan&#34;)
     ax.set_xlabel(&#34;Date&#34;)
-    #ax.set_ylabel(&#34;Data Present&#34;)
+    # ax.set_ylabel(&#34;Data Present&#34;)
 
     local_timezone = None
 
@@ -237,15 +241,15 @@ where each time we check if the fields of the list are part of the edges text an
     queryvalues = []
 
     for context_obj in contextlist:
-        timestamptemp2=context_obj.timestamp
+        timestamptemp2 = context_obj.timestamp
         date_list2.append(timestamptemp2)
 
         target_values.append(context_obj.CD[target_text][-1])
 
-        for triplet in context_obj.CR[&#34;interpertation&#34;]:
-            edge=(triplet[0],triplet[1])
-            char=triplet[2]
-            if filter_edges(edge, char,filteredges):
+        for triplet in context_obj.CR[&#34;interpretation&#34;]:
+            edge = (triplet[0], triplet[1])
+            char = triplet[2]
+            if filter_edges(edge, char, filteredges):
                 querytimes.append(timestamptemp2)
                 queryvalues.append(target_values[-1])
                 querycolors.append(f&#34;{edge[0].split(&#39;@&#39;)[0]}-&gt;{edge[1].split(&#39;@&#39;)[0]}&#34;)
@@ -254,7 +258,7 @@ where each time we check if the fields of the list are part of the edges text an
     # Plot the complete timespan
     ax.clear()
     ax.plot(date_list2, target_values, &#39;o&#39;, color=&#34;black&#34;, markersize=7,
-                 label=target_text)  # The &#39;ro&#39; format will display red dots for each data point
+            label=target_text)  # The &#39;ro&#39; format will display red dots for each data point
 
     ############ PLOT EDGES #######################################################
     color_mapping = {}
@@ -268,7 +272,7 @@ where each time we check if the fields of the list are part of the edges text an
         description = querycolors[i]
         color_toplot.append(color_mapping[description])
         ax.plot(querytimes[i], queryvalues[i], &#39;o&#39;, markersize=7,
-                     color=color_mapping[description], alpha=0.7, label=description)
+                color=color_mapping[description], alpha=0.7, label=description)
 
     handles, labels = ax.get_legend_handles_labels()
     unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
@@ -277,8 +281,8 @@ where each time we check if the fields of the list are part of the edges text an
     plt.show()</code></pre>
 </details>
 </dd>
-<dt id="PdmContext.utils.showcontext.show_Context_list"><code class="name flex">
-<span>def <span class="ident">show_Context_list</span></span>(<span>contextlist: list[<a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>], target_text, filteredges=[['', '', '']])</span>
+<dt id="PdmContext.utils.showcontext.show_context_list"><code class="name flex">
+<span>def <span class="ident">show_context_list</span></span>(<span>contextlist: list[<a title="PdmContext.utils.structure.Context" href="structure.html#PdmContext.utils.structure.Context">Context</a>], target_text, filteredges=[['', '', '']])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Visualization of Contexts in the contextlist</p>
@@ -291,7 +295,7 @@ where each time we check if the fields of the list are part of the edges text an
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def show_Context_list(contextlist: list[Context], target_text, filteredges=[[&#34;&#34;, &#34;&#34;, &#34;&#34;]]):
+<pre><code class="python">def show_context_list(contextlist: list[Context], target_text, filteredges=[[&#34;&#34;, &#34;&#34;, &#34;&#34;]]):
     &#34;&#34;&#34;
     Visualization of Contexts in the contextlist
 
@@ -308,7 +312,7 @@ where each time we check if the fields of the list are part of the edges text an
     fig, ax = plt.subplots()
     ax.set_title(&#34;Complete Timespan&#34;)
     ax.set_xlabel(&#34;Date&#34;)
-    #ax.set_ylabel(&#34;Data Present&#34;)
+    # ax.set_ylabel(&#34;Data Present&#34;)
 
     local_timezone = None
 
@@ -320,13 +324,13 @@ where each time we check if the fields of the list are part of the edges text an
     queryvalues = []
 
     for context_obj in contextlist:
-        timestamptemp2=context_obj.timestamp
+        timestamptemp2 = context_obj.timestamp
         date_list2.append(timestamptemp2)
 
         target_values.append(context_obj.CD[target_text][-1])
 
         for edge, char in zip(context_obj.CR[&#34;edges&#34;], context_obj.CR[&#34;characterization&#34;]):
-            if filter_edges(edge, char,filteredges):
+            if filter_edges(edge, char, filteredges):
                 querytimes.append(timestamptemp2)
                 queryvalues.append(target_values[-1])
                 querycolors.append(f&#34;{edge[0].split(&#39;@&#39;)[0]}-&gt;{edge[1].split(&#39;@&#39;)[0]}&#34;)
@@ -335,7 +339,7 @@ where each time we check if the fields of the list are part of the edges text an
     # Plot the complete timespan
     ax.clear()
     ax.plot(date_list2, target_values, &#39;o&#39;, color=&#34;black&#34;, markersize=7,
-                 label=target_text)  # The &#39;ro&#39; format will display red dots for each data point
+            label=target_text)  # The &#39;ro&#39; format will display red dots for each data point
 
     ############ PLOT EDGES #######################################################
     color_mapping = {}
@@ -349,7 +353,7 @@ where each time we check if the fields of the list are part of the edges text an
         description = querycolors[i]
         color_toplot.append(color_mapping[description])
         ax.plot(querytimes[i], queryvalues[i], &#39;o&#39;, markersize=7,
-                     color=color_mapping[description], alpha=0.7, label=description)
+                color=color_mapping[description], alpha=0.7, label=description)
 
     handles, labels = ax.get_legend_handles_labels()
     unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
@@ -377,8 +381,8 @@ where each time we check if the fields of the list are part of the edges text an
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="PdmContext.utils.showcontext.filter_edges" href="#PdmContext.utils.showcontext.filter_edges">filter_edges</a></code></li>
-<li><code><a title="PdmContext.utils.showcontext.show_Context_Interperations" href="#PdmContext.utils.showcontext.show_Context_Interperations">show_Context_Interperations</a></code></li>
-<li><code><a title="PdmContext.utils.showcontext.show_Context_list" href="#PdmContext.utils.showcontext.show_Context_list">show_Context_list</a></code></li>
+<li><code><a title="PdmContext.utils.showcontext.show_context_interpretations" href="#PdmContext.utils.showcontext.show_context_interpretations">show_context_interpretations</a></code></li>
+<li><code><a title="PdmContext.utils.showcontext.show_context_list" href="#PdmContext.utils.showcontext.show_context_list">show_context_list</a></code></li>
 </ul>
 </li>
 </ul>

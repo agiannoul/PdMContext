@@ -3,7 +3,7 @@ from PdmContext.ContextGeneration import ContextGenerator
 
 class ContextAndClustering():
 
-    def __init__(self,Clustring_object,context_generator_object: ContextGenerator):
+    def __init__(self, Clustring_object, context_generator_object: ContextGenerator):
         """
                 This class build a pipeline of Cntext generator and Clustering technique running immediately in the results of Context Generator
 
@@ -16,12 +16,10 @@ class ContextAndClustering():
                  **context_generator_object**: A PdmContext.ContextGeneration import ContextGenerator object
                 """
 
+        self.clustering = Clustring_object
+        self.Contexter = context_generator_object
 
-        self.clustering=Clustring_object
-        self.Contexter=context_generator_object
-
-
-    def collect_data(self,timestamp,source,name,value=None,type="Univariate"):
+    def collect_data(self, timestamp, source, name, value=None, type="Univariate"):
         """
         Call the PdmContext.ContextGeneration.ContextGenerator and pass the result to clustering technique
 
@@ -40,7 +38,7 @@ class ContextAndClustering():
         **return**: PdmContext.utils.structure.Context object when the data name match to the target name or None.
         """
 
-        contextTemp=self.Contexter.collect_data(timestamp,source,name,value=value,type=type)
+        contextTemp = self.Contexter.collect_data(timestamp, source, name, value=value, type=type)
         if contextTemp is not None:
             self.clustering.add_sample_to_cluster(contextTemp)
 
@@ -49,7 +47,7 @@ class ContextAndClustering():
 
 class ContextAndClusteringAndDatabase():
 
-    def __init__(self,context_generator_object: ContextGenerator,Clustring_object,databaseStore_object):
+    def __init__(self, context_generator_object: ContextGenerator, Clustring_object, databaseStore_object):
         """
                 This class build a pipeline of Cntext generator and Clustering technique running immediately in the
                 results of Context Generator, and storing context results to database
@@ -66,13 +64,11 @@ class ContextAndClusteringAndDatabase():
                 **databaseStore_object**: An object of database connection from PdmContext.utils.dbconnector
                 """
 
+        self.clustering = Clustring_object
+        self.Contexter = context_generator_object
+        self.database = databaseStore_object
 
-        self.clustering=Clustring_object
-        self.Contexter=context_generator_object
-        self.database=databaseStore_object
-
-
-    def collect_data(self,timestamp,source,name,value=None,type="Univariate"):
+    def collect_data(self, timestamp, source, name, value=None, type="Univariate"):
         """
         Call the PdmContext.ContextGeneration.ContextGenerator and pass the result to clustering technique
 
@@ -91,15 +87,16 @@ class ContextAndClusteringAndDatabase():
         **return**: PdmContext.utils.structure.Context object when the data name match to the target name or None.
         """
 
-        contextTemp=self.Contexter.collect_data(timestamp,source,name,value=value,type=type)
+        contextTemp = self.Contexter.collect_data(timestamp, source, name, value=value, type=type)
         if contextTemp is not None:
             self.clustering.add_sample_to_cluster(contextTemp)
-            self.database.insert_record(timestamp,name,contextTemp)
+            self.database.insert_record(timestamp, name, contextTemp)
         return contextTemp
+
 
 class ContextAndDatabase():
 
-    def __init__(self,context_generator_object: ContextGenerator,databaseStore_object):
+    def __init__(self, context_generator_object: ContextGenerator, databaseStore_object):
         """
                 This class build a pipeline of Cntext generator and storing results to database
 
@@ -111,12 +108,10 @@ class ContextAndDatabase():
 
                 """
 
+        self.Contexter = context_generator_object
+        self.database = databaseStore_object
 
-        self.Contexter=context_generator_object
-        self.database=databaseStore_object
-
-
-    def collect_data(self,timestamp,source,name,value=None,type="Univariate"):
+    def collect_data(self, timestamp, source, name, value=None, type="Univariate"):
         """
         Call the PdmContext.ContextGeneration.ContextGenerator and pass the result to clustering technique
 
@@ -135,7 +130,7 @@ class ContextAndDatabase():
         **return**: PdmContext.utils.structure.Context object when the data name match to the target name or None.
         """
 
-        contextTemp=self.Contexter.collect_data(timestamp,source,name,value=value,type=type)
+        contextTemp = self.Contexter.collect_data(timestamp, source, name, value=value, type=type)
         if contextTemp is not None:
-            self.database.insert_record(timestamp,name,contextTemp)
+            self.database.insert_record(timestamp, name, contextTemp)
         return contextTemp

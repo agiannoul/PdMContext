@@ -2,15 +2,14 @@ import numpy as np
 import statistics
 
 import pandas as pd
-from PdmContext.utils.structure import Eventpoint,Context
-from PdmContext.utils.causal_discovery_functions import calculatewithPc
-from PdmContext.utils.showcontext import show_Context_list, show_Context_Interperations
-
+from PdmContext.utils.structure import Eventpoint, Context
+from PdmContext.utils.causal_discovery_functions import calculate_with_pc
+from PdmContext.utils.showcontext import show_context_list, show_context_interpretations
 
 
 class ContextGenerator:
 
-    def __init__(self,target,context_horizon="8",Causalityfunct=calculatewithPc,debug=False):
+    def __init__(self, target, context_horizon="8", Causalityfunct=calculate_with_pc, debug=False):
         """
         This Class handle the Context Generation. It keeps an internal buffer to build the context for a target series based
         on the provided context_horizon. All data are passed though the collect_data method, which return a correspoding
@@ -31,18 +30,15 @@ class ContextGenerator:
         **debug**: If it runs on debug mode
         """
 
+        self.debug = debug
+        self.target = target
 
-        self.debug=debug
-        self.target=target
+        self.contexts = []
 
+        self.causality_discovery = Causalityfunct
+        self.buffer = []
 
-        self.contexts=[]
-
-        self.causality_discovery=Causalityfunct
-        self.buffer=[]
-
-
-        #helpers
+        # helpers
         self.type_of_series = {}
         self.horizon = context_horizon.split(" ")[0]
         if len(context_horizon.split(" ")) == 1:
@@ -56,7 +52,8 @@ class ContextGenerator:
         self.horizon = int(self.horizon)
         self.interpret_history_pos = 0
         self.context_pos = 0
-    def collect_data(self,timestamp,source,name,value=None,type="Univariate"):
+
+    def collect_data(self, timestamp, source, name, value=None, type="Univariate"):
         '''
         This method is used when data are passed iteratively, and stored in buffer
         When data of target source arrive, a corresponding context is produced.
@@ -87,16 +84,17 @@ class ContextGenerator:
         '''
 
         if value is None:
-            if type not in ["isolated","configuration"]:
-                assert False,"The type must be defined as one of \"isolated\" and \"configuration\" when no value is passed"
-        eventpoint=Eventpoint(code=name,source=source,timestamp=timestamp,details=value,type=type)
+            if type not in ["isolated", "configuration"]:
+                assert False, "The type must be defined as one of \"isolated\" and \"configuration\" when no value is passed"
+        eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
         self.add_to_buffer(eventpoint)
         if self.target == name or self.target == f"{name}@{source}":
-            contextobject=self.generate_context(e=eventpoint,buffer=self.buffer)
+            contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
             return contextobject
         else:
             return None
-    def add_to_buffer(self,e: Eventpoint):
+
+    def add_to_buffer(self, e: Eventpoint):
         """
         Adds an Event point to the buffer (keeping the buffer time ordered)
         """
@@ -110,15 +108,15 @@ class ContextGenerator:
         else:
             self.buffer = self.buffer[: index] + [e] + self.buffer[index:]
 
-        last=self.buffer[-1]
-        pos=len(self.buffer)-1
+        last = self.buffer[-1]
+        pos = len(self.buffer) - 1
         for i in range(len(self.buffer)):
-            if self.buffer[i].timestamp>=(last.timestamp-pd.Timedelta(self.horizon, self.horizon_time)):
-                pos=i
+            if self.buffer[i].timestamp >= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
+                pos = i
                 break
-        self.buffer=self.buffer[pos:]
+        self.buffer = self.buffer[pos:]
 
-    def generate_context(self,e:Eventpoint,buffer):
+    def generate_context(self, e: Eventpoint, buffer):
         """
         Generate context and interpretation.
 
@@ -129,20 +127,19 @@ class ContextGenerator:
         **buffer**: A list with all Eventpoints in the time horizon
         """
 
-        contextcurrent, target_series_name = self.create_context(e,buffer)
+        contextcurrent, target_series_name = self.create_context(e, buffer)
 
         self.contexts.append(contextcurrent)
-        self.create_interpertation(contextcurrent, target_series_name)
-
+        self.create_interpretation(contextcurrent, target_series_name)
 
         intertups = [tttup for tttup in
-                     self.contexts[-1].CR["interpertation"]]
+                     self.contexts[-1].CR["interpretation"]]
         # this is usefull for ploting
-        self.contexts[-1].CR["interpertation"] = intertups
+        self.contexts[-1].CR["interpretation"] = intertups
 
         return self.contexts[-1]
 
-    def create_interpertation(self,contextcurrent :Context,target_series_name):
+    def create_interpretation(self, contextcurrent: Context, target_series_name):
         """
         This method collect all the contexts in the horizon and calls the interpretation method.
 
@@ -153,19 +150,20 @@ class ContextGenerator:
         **target_series_name**: Then name of the target variable
         """
 
-        rikicontext=self.contexts
-        pos=self.interpret_history_pos
-        temppos=pos
-        for q in range(pos,len(rikicontext)):
-            temppos=q
-            if pd.to_datetime(rikicontext[q].timestamp) >= (pd.to_datetime(contextcurrent.timestamp) - pd.Timedelta(self.horizon, self.horizon_time)):
+        rikicontext = self.contexts
+        pos = self.interpret_history_pos
+        temppos = pos
+        for q in range(pos, len(rikicontext)):
+            temppos = q
+            if pd.to_datetime(rikicontext[q].timestamp) >= (
+                    pd.to_datetime(contextcurrent.timestamp) - pd.Timedelta(self.horizon, self.horizon_time)):
                 break
         causeswindow = rikicontext[temppos:]
-        self.interpret_history_pos=temppos
-        interpr=self.interpret(contextcurrent,causeswindow,target_series_name,self.type_of_series)
-        self.contexts[-1].CR["interpertation"]=interpr
+        self.interpret_history_pos = temppos
+        interpr = self.interpret(contextcurrent, causeswindow, target_series_name, self.type_of_series)
+        self.contexts[-1].CR["interpretation"] = interpr
 
-    def interpret(self,context : Context, causeswindow, target, type_of_series):
+    def interpret(self, context: Context, causeswindow, target, type_of_series):
         """
         This method enhance the CR part of the Context with interpretation relating to the target variable.
         The interpretation are based on the edges extracted from the Casualty discovery.
@@ -209,23 +207,22 @@ class ContextGenerator:
         #         if (name,inter_pair) in context.CR["edges"]:
         #             pairshop2.append((name,inter_pair))
 
-
         interpretation = []
-        typeconection =[]
+        typeconection = []
         if len(pairs) == 0:
             return []
         for pair in pairs:
             if type_of_series[pair[0]] == "isolated":
                 values1 = context.CD[pair[0]]
                 if values1[-1] == 1:
-                    interpretation.append((pair[0],pair[1],pair[2],context.timestamp))
+                    interpretation.append((pair[0], pair[1], pair[2], context.timestamp))
                 elif values1[-2] == 1:
                     temptimestamp = context.timestamp
                     lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
-                    for interpair in lastcontext.CR["interpertation"]:
+                    for interpair in lastcontext.CR["interpretation"]:
                         if interpair[0] == pair[0] and interpair[1] == pair[1]:
                             temptimestamp = interpair[3]
-                    interpretation.append((pair[0],pair[1],pair[2],temptimestamp))
+                    interpretation.append((pair[0], pair[1], pair[2], temptimestamp))
             elif type_of_series[pair[0]] == "configuration":
                 values1 = context.CD[pair[0]]
                 occurence = 0
@@ -234,7 +231,7 @@ class ContextGenerator:
                         occurence = q
                         break
                 if occurence == len(values1) - 1:
-                    interpretation.append((pair[0],pair[1],pair[2],context.timestamp))
+                    interpretation.append((pair[0], pair[1], pair[2], context.timestamp))
                 else:
                     lead = len(values1) - occurence
                     counter = 0
@@ -248,28 +245,29 @@ class ContextGenerator:
                             if conte.CR["characterization"][pos] == pair[2]:
                                 counter += 1
                     if counter >= 0.8 * lead:
-                        temptimestamp=context.timestamp
-                        lastcontext=self.contexts[max(len(self.contexts)-2,0)]
-                        for interpair in lastcontext.CR["interpertation"]:
-                            if interpair[0]==pair[0] and interpair[1]==pair[1]:
-                                temptimestamp=interpair[3]
-                        interpretation.append((pair[0],pair[1],pair[2],temptimestamp))
+                        temptimestamp = context.timestamp
+                        lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
+                        for interpair in lastcontext.CR["interpretation"]:
+                            if interpair[0] == pair[0] and interpair[1] == pair[1]:
+                                temptimestamp = interpair[3]
+                        interpretation.append((pair[0], pair[1], pair[2], temptimestamp))
             # for real value series
             elif len(set(context.CD[pair[0]])) > 2:
                 temptimestamp = context.timestamp
                 lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
-                for interpair in lastcontext.CR["interpertation"]:
+                for interpair in lastcontext.CR["interpretation"]:
                     if interpair[0] == pair[0] and interpair[1] == pair[1]:
                         temptimestamp = interpair[3]
-                interpretation.append((pair[0],pair[1],pair[2],temptimestamp))
+                interpretation.append((pair[0], pair[1], pair[2], temptimestamp))
                 continue
         # sort with time
-        finterpret=[]
+        finterpret = []
         for pair in interpretation:
-            finterpret.append((pair[0],pair[1],pair[2],pair[3]))
+            finterpret.append((pair[0], pair[1], pair[2], pair[3]))
         finterpret.sort(key=lambda tup: tup[3])  # sorts in place
         return finterpret
-    def create_context(self,current :Eventpoint,buffer):
+
+    def create_context(self, current: Eventpoint, buffer):
         """
         Transform the data collected to the buffer in to suitable form and generates the CD part of the context along with
         the edges and characterizations:
@@ -294,68 +292,67 @@ class ContextGenerator:
 
          **return**: Context object.
         """
-        #start = time.time()
+        # start = time.time()
         # df with ,dt,code,source,value
-        pos=self.context_pos
-        for i in range(pos,len(buffer)):
-            if buffer[i].timestamp<=(current.timestamp-pd.Timedelta(self.horizon, self.horizon_time)):
-                pos=i
+        pos = self.context_pos
+        for i in range(pos, len(buffer)):
+            if buffer[i].timestamp <= (current.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
+                pos = i
             else:
                 break
 
-        self.context_pos=pos
-        #end=time.time()
-        #print(f"find position on buffer: {end-start}")
+        self.context_pos = pos
+        # end=time.time()
+        # print(f"find position on buffer: {end-start}")
 
-        #start = time.time()
-        dataforcontext=buffer[pos:]
-        datatodf=[[pd.to_datetime(e.timestamp) for e in dataforcontext],
-                [str(e.code) for e in dataforcontext],
-                [str(e.source) for e in dataforcontext],
-                [e.details for e in dataforcontext],
-                [e.type for e in dataforcontext]]
+        # start = time.time()
+        dataforcontext = buffer[pos:]
+        datatodf = [[pd.to_datetime(e.timestamp) for e in dataforcontext],
+                    [str(e.code) for e in dataforcontext],
+                    [str(e.source) for e in dataforcontext],
+                    [e.details for e in dataforcontext],
+                    [e.type for e in dataforcontext]]
 
-        npcontext=np.array(datatodf)
-        npcontext=npcontext.T
+        npcontext = np.array(datatodf)
+        npcontext = npcontext.T
 
-        npcontext=self.Numpy_preproccess(npcontext)
+        npcontext = self.Numpy_preproccess(npcontext)
 
-        #end = time.time()
-        #print(f"preprocess df: {end - start}")
+        # end = time.time()
+        # print(f"preprocess df: {end - start}")
         ############# create context ############################
-        #start = time.time()
+        # start = time.time()
         ## collect uniqeu data series
-        #allcodes = df['code'].unique()
-        allcodes = np.unique(npcontext[:,1])
+        # allcodes = df['code'].unique()
+        allcodes = np.unique(npcontext[:, 1])
         allcodes = [code for code in allcodes]
         allcodes = set(allcodes)
 
         for uncode in allcodes:
             for qq in range(len(npcontext)):
                 if uncode in npcontext[qq][1]:
-                    self.type_of_series[uncode]=npcontext[qq][4]
+                    self.type_of_series[uncode] = npcontext[qq][4]
                     break
 
-
         ## build target series
-        target_series_name,target_series=self.build_target_series_for_context(current,npcontext)
+        target_series_name, target_series = self.build_target_series_for_context(current, npcontext)
 
         ## create series for each source (alldata)
-        alldata=self.create_contius_representation(target_series_name,target_series,npcontext,self.type_of_series,allcodes)
-        #end = time.time()
-        #print(f"Create series: {end-start}")
+        alldata = self.create_continuous_representation(target_series_name, target_series, npcontext,
+                                                        self.type_of_series, allcodes)
+        # end = time.time()
+        # print(f"Create series: {end-start}")
 
         storing = self.calculate_edges(alldata, current.timestamp)
-        storing["characterization"]=self.getcaracterize(storing)
+        storing["characterization"] = self.get_characterization(storing)
 
-        #print(f"Calculate edges: {end - start}")
+        # print(f"Calculate edges: {end - start}")
         # print("========================")
 
+        contextpbject = Context.context_from_dict(storing)
+        return contextpbject, target_series_name
 
-        contextpbject=Context.ContextFromDict(storing)
-        return contextpbject,target_series_name
-
-    def getcaracterize(self,context):
+    def get_characterization(self, context):
         """
         This method calculate the characterizations of (a,b) edges to characterize the influence of a in b by one of the
         three characterizations: unknown, decrease, increase.
@@ -368,15 +365,16 @@ class ContextGenerator:
         edges = context["edges"]
         characterizations = []
         for edge in edges:
-            if self.target in  edge[0]:
-                char=self.characterize_event_continuous(context, edge)
-            elif self.type_of_series[edge[0]]=="isolation" or  self.type_of_series[edge[0]]=="configuration":
-                char=self.characterize_event_edge(context,edge)
+            if self.target in edge[0]:
+                char = self.characterize_event_continuous(context, edge)
+            elif self.type_of_series[edge[0]] == "isolation" or self.type_of_series[edge[0]] == "configuration":
+                char = self.characterize_event_edge(context, edge)
             else:
-                char=self.characterize_event_continuous(context, edge)
+                char = self.characterize_event_continuous(context, edge)
             characterizations.append(char)
         return characterizations
-    def characterize_event_edge(self,context,edge):
+
+    def characterize_event_edge(self, context, edge):
         """
         This method characterizes the edge (a,b) when a is isolated or configuration event.
         To do this, it detects the last occurrence of a and split the data of series a and series b based on that.
@@ -433,11 +431,11 @@ class ContextGenerator:
             char = "unknown"
         return char
 
-    def characterize_event_continuous(self,context,edge):
+    def characterize_event_continuous(self, context, edge):
         """
             This method characterizes the edge (a,b) when a is continuous.
             To do this, the delta between the timestamps of the series b is calculated
-            (i.e the difference between current and next timestamps). If the summ of the deltas between b series data, is
+            (i.e. the difference between current and next timestamps). If the summ of the deltas between b series data, is
             greater than 2 times the standard deviation of the b, then the increase characterization is returned. If the sum
             is lower than 2 times the standard deviation the decreased characterization is returned. Otherwise, the unknown
             characterization is returned.
@@ -455,10 +453,10 @@ class ContextGenerator:
         values1 = [float(kati) for kati in context[name1]]
         values2 = [float(kati) for kati in context[name2]]
 
-        prev=values2[0]
-        diff=0
+        prev = values2[0]
+        diff = 0
         for v in values2[1:]:
-            diff+=(v-prev)
+            diff += (v - prev)
 
         if len(values2) == 0:
             char = "unknown"
@@ -471,10 +469,7 @@ class ContextGenerator:
             char = "unknown"
         return char
 
-
-
-
-    def calculate_edges(self,alldata, timestamp):
+    def calculate_edges(self, alldata, timestamp):
         """
         Formulate the data in appropriate form to call self.calculate_causality
         which return the edges for the context.
@@ -487,7 +482,7 @@ class ContextGenerator:
 
         **return**: a dictionary with 'edges' key (containing the calculated edges after Causality discovery).
         """
-        #start = time.time()
+        # start = time.time()
         storing = {}
         storing["timestamp"] = timestamp
 
@@ -500,16 +495,16 @@ class ContextGenerator:
         # For context with more than two series calculate PC casualities
         count = len([1 for lista in alldata_data if lista is not None])
         if count > 1 and len(alldata[0][1]) > 5:
-            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))>1]
-            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))>1]
+            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) > 1]
+            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) > 1]
 
-            #end = time.time()
-            #print(f"before {end - start}")
-            #start=time.time()
+            # end = time.time()
+            # print(f"before {end - start}")
+            # start=time.time()
 
             edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
-            #end=time.time()
-            #print(f"actual edge calculation {end-start}")
+            # end=time.time()
+            # print(f"actual edge calculation {end-start}")
             if edges is None:
                 singleedges = []
             else:
@@ -520,14 +515,14 @@ class ContextGenerator:
         storing["edges"] = []
         return storing
 
-    def create_contius_representation(self,target_series_name,target_series,df,type_of_series,allcodes):
+    def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes):
         # if len(target_series) < 5:
         #     alldata = []
         #     padding=[0 for q in range(5-len(target_series))]
         #     padding.extend([tags[0] for tags in target_series])
         #     alldata.append((target_series_name, padding))
         #     return alldata
-        windowvalues = df#.values
+        windowvalues = df  # .values
         alldata = []
         alldata.append((target_series_name, [tag[0] for tag in target_series]))
         for name in allcodes:
@@ -543,11 +538,11 @@ class ContextGenerator:
             if len(occurencies) == 0:
                 vector = [0 for i in range(len(target_series))]
             elif occurencies[0][0] is not None:
-                vector = self.buildcontextforUnivariate(target_series, occurencies)
+                vector = self.build_context_for_univariate(target_series, occurencies)
             elif type_of_series[name] == "isolated":
-                vector = self.buildcontextforisolated(target_series, occurencies)
+                vector = self.build_context_for_isolated(target_series, occurencies)
             elif type_of_series[name] == "configuration":
-                vector = self.buildcontextforCOnfiuguration(target_series, occurencies)
+                vector = self.build_context_for_confiuguration(target_series, occurencies)
 
             ok = "ok"
             # if vector is stationary then no context.
@@ -556,31 +551,31 @@ class ContextGenerator:
             alldata.append((name, vector))
         return alldata
 
-    def build_target_series_for_context(self,current : Eventpoint,df : pd.DataFrame):
+    def build_target_series_for_context(self, current: Eventpoint, df: np.ndarray):
         target_series_name = current.code
-        windowvalues = df#.values
+        windowvalues = df  # .values
         target_series = [(value, time) for code, value, time in
                          zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if target_series_name in code]
 
-        return target_series_name,target_series
+        return target_series_name, target_series
 
-    def Numpy_preproccess(self,npcontext):
+    def Numpy_preproccess(self, npcontext):
         npcontext = np.where(npcontext == "nan", None, npcontext)
 
-        mask = [('0_' in code and value is None)for code,value in zip(npcontext[:,1],npcontext[:,3])]
+        mask = [('0_' in code and value is None) for code, value in zip(npcontext[:, 1], npcontext[:, 3])]
 
         # if isinstance(mask,collections.abc.Sequence)==False:
         #     mask=[mask]
         npcontext[mask, 3] = 0
-        mask = [('1_' in code and value is None)for code,value in zip(npcontext[:,1],npcontext[:,3])]
+        mask = [('1_' in code and value is None) for code, value in zip(npcontext[:, 1], npcontext[:, 3])]
         npcontext[mask, 3] = 1
-        code_with_source = [f"{code}{source}" if source[0]=="@" else  f"{code}@{source}" for code, source in zip(npcontext[:,1], npcontext[:,2])]
-        npcontext[:,1] = code_with_source
-
+        code_with_source = [f"{code}{source}" if source[0] == "@" else f"{code}@{source}" for code, source in
+                            zip(npcontext[:, 1], npcontext[:, 2])]
+        npcontext[:, 1] = code_with_source
 
         return npcontext
 
-    def buildcontextforCOnfiuguration(self,target_series, occurencies):
+    def build_context_for_confiuguration(self, target_series, occurencies):
         vector = [0 for i in range(len(target_series))]
         for occ in occurencies:
             for q in range(len(target_series)):
@@ -589,11 +584,11 @@ class ContextGenerator:
                         vector[k] += 1
                     break
         ## not stable
-        if len(set(vector))==1:
-            vector[0]=0
+        if len(set(vector)) == 1:
+            vector[0] = 0
         return vector
 
-    def buildcontextforisolated(self,target_series, occurencies):
+    def build_context_for_isolated(self, target_series, occurencies):
         vector = [0 for i in range(len(target_series))]
         for occ in occurencies:
             for q in range(len(target_series)):
@@ -602,8 +597,8 @@ class ContextGenerator:
                     break
         return vector
 
-    def buildcontextforUnivariate(self,target_series, occurencies):
-        allvalues=[]
+    def build_context_for_univariate(self, target_series, occurencies):
+        allvalues = []
         vector = [0 for i in range(len(target_series))]
         pos = 0
         for i in range(len(target_series)):
@@ -635,22 +630,21 @@ class ContextGenerator:
 
         return vector
 
-    def calculate_causality(self,dataor, names):
+    def calculate_causality(self, dataor, names):
         num_time_series = len(dataor)
         data = np.array(dataor)
-        edges=self.causality_discovery(names,data)
-        #edges=self.calculatewithPc(names,data)
-        #edges=self.calculatewith_fci(names,data)
-        #edges=self.salesforcePC(names,data)
+        edges = self.causality_discovery(names, data)
+        # edges=self.calculatewithPc(names,data)
+        # edges=self.calculatewith_fci(names,data)
+        # edges=self.salesforcePC(names,data)
         return edges
 
-    def plot(self,filteredges=[["", "", ""]]):
-        show_Context_list(self.contexts,self.target,filteredges=filteredges)
-    def plot_interpertation(self,filteredges=[["", "", ""]]):
-        show_Context_Interperations(self.contexts,self.target,filteredges=filteredges)
+    def plot(self, filteredges=None):
+        if filteredges is None:
+            filteredges = [["", "", ""]]
+        show_context_list(self.contexts, self.target, filteredges=filteredges)
 
-
-
-
-
-
+    def plot_interpretation(self, filteredges=None):
+        if filteredges is None:
+            filteredges = [["", "", ""]]
+        show_context_interpretations(self.contexts, self.target, filteredges=filteredges)

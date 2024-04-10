@@ -40,7 +40,7 @@ class DBscanContextStream():
         else:
             self.distanceTouse = distancefunc
 
-    def clusterIsSimilar(self,cluster,id):
+    def cluster_is_similar(self, cluster, id):
         for j in cluster:
             if self.distance(id, j) > self.cluster_similarity_limit:
                 return True
@@ -64,7 +64,7 @@ class DBscanContextStream():
         else:
             similarclusters=[]
             for i,clust in enumerate(self.clusters_sets):
-                belong=self.clusterIsSimilar(clust,self.count)
+                belong=self.cluster_is_similar(clust, self.count)
                 if belong:
                     similarclusters.append(i)
             if len(similarclusters)==0:
