@@ -33,7 +33,212 @@ import pandas as pd
 from PdmContext.utils.structure import Eventpoint, Context
 from PdmContext.utils.causal_discovery_functions import calculate_with_pc
 from PdmContext.utils.showcontext import show_context_list, show_context_interpretations
+from pathlib import Path
+import pickle
 
+class ContextGeneratorBatch():
+    def __init__(self,df_data,target,type_of_series,context_horizon=&#34;8 hours&#34;,Causalityfunct=calculate_with_pc,debug=False,file_path=None):
+        &#34;&#34;&#34;
+        This version doesn&#39;t support interpretation and is created for faster experiments using Context.
+
+        **df_data** The data to consider in context in form of Data Frame.
+
+        ** target** The name of the target source, which will be used as the baseline in order to map different samples
+
+        **type_of_series**: dictionary which define the type of each series (isolated,configuration or continuous)
+         rate to that of the target sample rate.
+
+        **context_horizon** The time period to look back for context data, the form of that parameter is &#34;8 hours&#34;
+
+        **Causalityfunct** the causality discovery method to use to produce causal relationships between context data,
+            This must be a function with parameters two equal size lists, one with names and the other
+            with data (a list of list or 2D numpy array).
+
+        **debug** If it runs on debug mode
+
+        **file_path** Store the results of context in pickle file, considered only when it is not None.
+        &#34;&#34;&#34;
+
+        self.file_path=file_path
+        self.debug=debug
+        self.target=target
+        self.df_data=df_data
+
+
+        self.contexts=self._load_contexts()
+
+        self.causality_discovery=Causalityfunct
+        self.buffer=[]
+
+
+        #helpers
+        self.type_of_series = type_of_series
+        self.horizon = context_horizon.split(&#34; &#34;)[0]
+        if len(context_horizon.split(&#34; &#34;)) == 1:
+            self.horizon_time = &#34;hours&#34;
+        else:
+            if context_horizon.split(&#34; &#34;)[1] in [&#34;days&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;]:
+                self.horizon_time = context_horizon.split(&#34; &#34;)[1]
+            else:
+                assert False, &#34;Time horizon must be either a single number or in form of \&#34;8 hours\&#34; where acceptable time frames are hours,days,minutes,seconds&#34;
+
+        self.horizon = int(self.horizon)
+        self.interpret_history_pos = 0
+        self.context_pos = 0
+
+
+    def generate_context(self,datetime_index):
+        contextpbject, target_series_name,time_index=self.create_context(datetime_index)
+
+        self.contexts[time_index]=contextpbject
+
+        return contextpbject
+
+    def _save_contexts(self):
+        if self.file_path is None:
+            return
+        with open(self.file_path, &#39;wb&#39;) as f:
+            pickle.dump(self.contexts, f)
+
+    def _load_contexts(self):
+        if self.file_path is None:
+            return {}
+
+        my_file = Path(self.file_path)
+        if my_file.is_file():
+            with open(self.file_path, &#39;rb&#39;) as f:
+                return pickle.load(f)
+        else:
+            return  {}
+    def create_context(self, datetime_index):
+
+        start_index = datetime_index - pd.Timedelta(self.horizon, self.horizon_time)
+
+        context=self.df_data.loc[start_index:datetime_index]
+
+        allcodes = np.unique(self.df_data.columns)
+        allcodes = [code for code in allcodes]
+        allcodes = set(allcodes)
+
+        ## build target series
+        target_series_name= self.target
+        target_series=context[self.target].values
+
+        ## create series for each source (alldata)
+        alldata = []
+        for col in context.columns:
+            alldata.append((col, context[col].values))
+        # end = time.time()
+        # print(f&#34;Create series: {end-start}&#34;)
+
+        storing = self.calculate_edges(alldata, context.index[-1])
+        storing[&#34;characterization&#34;] = self.getcaracterize(storing)
+
+        # print(f&#34;Calculate edges: {end - start}&#34;)
+        # print(&#34;========================&#34;)
+
+        contextpbject = Context.context_from_dict(storing)
+        return contextpbject, target_series_name,context.index[-1]
+
+    def calculate_edges(self,alldata, timestamp):
+        #start = time.time()
+        storing = {}
+        storing[&#34;timestamp&#34;] = timestamp
+
+        alldata_names = [nn[0] for nn in alldata]
+        alldata_data = [nn[1] for nn in alldata]
+
+        for namedd, datadd in zip(alldata_names, alldata_data):
+            storing[namedd] = datadd
+
+        # For context with more than two series calculate PC casualities
+        count = len([1 for lista in alldata_data if lista is not None])
+        if count &gt; 1 and len(alldata[0][1]) &gt; 5:
+            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+
+            #end = time.time()
+            #print(f&#34;before {end - start}&#34;)
+            #start=time.time()
+
+            if len(alldata) &lt;= 1:
+                edges = []
+            else:
+                edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+            #end=time.time()
+            #print(f&#34;actual edge calculation {end-start}&#34;)
+            if edges is None:
+                singleedges = []
+            else:
+                singleedges = edges
+            # print(edges)
+            storing[&#34;edges&#34;] = singleedges
+            return storing
+        storing[&#34;edges&#34;] = []
+        return storing
+
+    def calculate_causality(self, dataor, names):
+        num_time_series = len(dataor)
+        data = np.array(dataor)
+        edges = self.causality_discovery(names, data)
+        # edges=self.calculatewithPc(names,data)
+        # edges=self.calculatewith_fci(names,data)
+        # edges=self.salesforcePC(names,data)
+        return edges
+    def getcaracterize(self,context):
+        edges = context[&#34;edges&#34;]
+        characterizations = []
+        for edge in edges:
+            name1 = edge[0]
+            name2 = edge[1]
+            values1 = context[name1]
+            values2 = [float(kati) for kati in context[name2]]
+
+            occurence=len(values1)-1
+            for i in range(len(values1)-2,0,-1):
+                if values1[i] != values1[-1]:
+                    occurence = i+1
+                    break
+            previusoccurence = 0
+            for i in range(occurence-2,0,-1):
+                if values1[i] !=  values1[occurence-1]:
+                    previusoccurence = i
+
+            if occurence - previusoccurence &lt; 2:  # or len(values2)-occurence&lt;2:
+                characterizations.append(&#34;uknown&#34;)
+                continue
+            values2before = values2[previusoccurence:occurence]
+            # stdv = statistics.stdev(values2before)
+            # mean = statistics.stdev(values2before)
+            # values2before=[v if v&lt;mean+5*stdv else mean for v in values2before]
+
+            # values2after=values2[occurence:]
+            values2after = [values2[-1]]
+            # stdv = statistics.stdev(values2after)
+            # mean = statistics.stdev(values2after)
+            # values2after = [v if v &lt; mean + 3 * stdv else mean for v in values2after]
+
+            stdv = statistics.stdev(values2before)
+            if len(values2before) == 0:
+                char = &#34;uknown&#34;
+            elif statistics.median(values2before) - statistics.median(values2after) &gt; 2 * stdv:
+                char = &#34;decrease&#34;
+            elif statistics.median(values2after) - statistics.median(values2before) &gt; 2 * stdv:
+                char = &#34;increase&#34;
+            else:
+                char = &#34;uknown&#34;
+            characterizations.append(char)
+        return characterizations
+
+
+    def __del__(self):
+        if self.file_path is None:
+            return
+        my_file = Path(self.file_path)
+        if my_file.is_file():
+            return
+        else:
+            self._save_contexts()
 
 class ContextGenerator:
 
@@ -81,7 +286,7 @@ class ContextGenerator:
         self.interpret_history_pos = 0
         self.context_pos = 0
 
-    def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;):
+    def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;,replace=[]):
         &#39;&#39;&#39;
         This method is used when data are passed iteratively, and stored in buffer
         When data of target source arrive, a corresponding context is produced.
@@ -108,6 +313,9 @@ class ContextGenerator:
 
         **type**: the type of the data can be one of &#34;isolated&#34;,&#34;configuration&#34; when no value is passed
 
+        **replace**: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
+        when a b event is inserted, it will replace an e event with the same timestamp (if exists).
+
         **return**:  structure.Context object when the data name match to the target name or None.
         &#39;&#39;&#39;
 
@@ -115,20 +323,27 @@ class ContextGenerator:
             if type not in [&#34;isolated&#34;, &#34;configuration&#34;]:
                 assert False, &#34;The type must be defined as one of \&#34;isolated\&#34; and \&#34;configuration\&#34; when no value is passed&#34;
         eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
-        self.add_to_buffer(eventpoint)
+        self.add_to_buffer(eventpoint,replace)
         if self.target == name or self.target == f&#34;{name}@{source}&#34;:
             contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
             return contextobject
         else:
             return None
 
-    def add_to_buffer(self, e: Eventpoint):
+    def add_to_buffer(self, e: Eventpoint, replace: list):
         &#34;&#34;&#34;
         Adds an Event point to the buffer (keeping the buffer time ordered)
         &#34;&#34;&#34;
         index = len(self.buffer)
         for i in range(len(self.buffer) - 1, 0, -1):
-            if self.buffer[i].timestamp &lt;= e.timestamp:
+            # check for replacement
+            if self.buffer[i].timestamp == e.timestamp:
+                for rep in replace:
+                    if self.buffer[i].code==rep[0] and e.code==rep[1]:
+                        self.buffer[i]=e
+                        return
+                index = i + 1
+            if self.buffer[i].timestamp &lt; e.timestamp:
                 index = i + 1
                 break
         if index == len(self.buffer):
@@ -753,7 +968,7 @@ with data (a list of list or 2D numpy array).</p>
         self.interpret_history_pos = 0
         self.context_pos = 0
 
-    def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;):
+    def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;,replace=[]):
         &#39;&#39;&#39;
         This method is used when data are passed iteratively, and stored in buffer
         When data of target source arrive, a corresponding context is produced.
@@ -780,6 +995,9 @@ with data (a list of list or 2D numpy array).</p>
 
         **type**: the type of the data can be one of &#34;isolated&#34;,&#34;configuration&#34; when no value is passed
 
+        **replace**: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
+        when a b event is inserted, it will replace an e event with the same timestamp (if exists).
+
         **return**:  structure.Context object when the data name match to the target name or None.
         &#39;&#39;&#39;
 
@@ -787,20 +1005,27 @@ with data (a list of list or 2D numpy array).</p>
             if type not in [&#34;isolated&#34;, &#34;configuration&#34;]:
                 assert False, &#34;The type must be defined as one of \&#34;isolated\&#34; and \&#34;configuration\&#34; when no value is passed&#34;
         eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
-        self.add_to_buffer(eventpoint)
+        self.add_to_buffer(eventpoint,replace)
         if self.target == name or self.target == f&#34;{name}@{source}&#34;:
             contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
             return contextobject
         else:
             return None
 
-    def add_to_buffer(self, e: Eventpoint):
+    def add_to_buffer(self, e: Eventpoint, replace: list):
         &#34;&#34;&#34;
         Adds an Event point to the buffer (keeping the buffer time ordered)
         &#34;&#34;&#34;
         index = len(self.buffer)
         for i in range(len(self.buffer) - 1, 0, -1):
-            if self.buffer[i].timestamp &lt;= e.timestamp:
+            # check for replacement
+            if self.buffer[i].timestamp == e.timestamp:
+                for rep in replace:
+                    if self.buffer[i].code==rep[0] and e.code==rep[1]:
+                        self.buffer[i]=e
+                        return
+                index = i + 1
+            if self.buffer[i].timestamp &lt; e.timestamp:
                 index = i + 1
                 break
         if index == len(self.buffer):
@@ -1378,7 +1603,7 @@ with data (a list of list or 2D numpy array).</p>
 </details>
 </dd>
 <dt id="PdmContext.ContextGeneration.ContextGenerator.add_to_buffer"><code class="name flex">
-<span>def <span class="ident">add_to_buffer</span></span>(<span>self, e: <a title="PdmContext.utils.structure.Eventpoint" href="utils/structure.html#PdmContext.utils.structure.Eventpoint">Eventpoint</a>)</span>
+<span>def <span class="ident">add_to_buffer</span></span>(<span>self, e: <a title="PdmContext.utils.structure.Eventpoint" href="utils/structure.html#PdmContext.utils.structure.Eventpoint">Eventpoint</a>, replace: list)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds an Event point to the buffer (keeping the buffer time ordered)</p></div>
@@ -1386,13 +1611,20 @@ with data (a list of list or 2D numpy array).</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_to_buffer(self, e: Eventpoint):
+<pre><code class="python">def add_to_buffer(self, e: Eventpoint, replace: list):
     &#34;&#34;&#34;
     Adds an Event point to the buffer (keeping the buffer time ordered)
     &#34;&#34;&#34;
     index = len(self.buffer)
     for i in range(len(self.buffer) - 1, 0, -1):
-        if self.buffer[i].timestamp &lt;= e.timestamp:
+        # check for replacement
+        if self.buffer[i].timestamp == e.timestamp:
+            for rep in replace:
+                if self.buffer[i].code==rep[0] and e.code==rep[1]:
+                    self.buffer[i]=e
+                    return
+            index = i + 1
+        if self.buffer[i].timestamp &lt; e.timestamp:
             index = i + 1
             break
     if index == len(self.buffer):
@@ -1727,7 +1959,7 @@ unknown.</p>
 </details>
 </dd>
 <dt id="PdmContext.ContextGeneration.ContextGenerator.collect_data"><code class="name flex">
-<span>def <span class="ident">collect_data</span></span>(<span>self, timestamp, source, name, value=None, type='Univariate')</span>
+<span>def <span class="ident">collect_data</span></span>(<span>self, timestamp, source, name, value=None, type='Univariate', replace=[])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This method is used when data are passed iteratively, and stored in buffer
@@ -1746,13 +1978,15 @@ The timestamp of the arrived value</p>
 <p><strong>name</strong>: The name (or identifier) of the arrived value</p>
 <p><strong>value</strong>: The value (float), in case this is None the arrived data is considered as event</p>
 <p><strong>type</strong>: the type of the data can be one of "isolated","configuration" when no value is passed</p>
+<p><strong>replace</strong>: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
+when a b event is inserted, it will replace an e event with the same timestamp (if exists).</p>
 <p><strong>return</strong>:
 structure.Context object when the data name match to the target name or None.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;):
+<pre><code class="python">def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;,replace=[]):
     &#39;&#39;&#39;
     This method is used when data are passed iteratively, and stored in buffer
     When data of target source arrive, a corresponding context is produced.
@@ -1779,6 +2013,9 @@ structure.Context object when the data name match to the target name or None.</p
 
     **type**: the type of the data can be one of &#34;isolated&#34;,&#34;configuration&#34; when no value is passed
 
+    **replace**: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
+    when a b event is inserted, it will replace an e event with the same timestamp (if exists).
+
     **return**:  structure.Context object when the data name match to the target name or None.
     &#39;&#39;&#39;
 
@@ -1786,7 +2023,7 @@ structure.Context object when the data name match to the target name or None.</p
         if type not in [&#34;isolated&#34;, &#34;configuration&#34;]:
             assert False, &#34;The type must be defined as one of \&#34;isolated\&#34; and \&#34;configuration\&#34; when no value is passed&#34;
     eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
-    self.add_to_buffer(eventpoint)
+    self.add_to_buffer(eventpoint,replace)
     if self.target == name or self.target == f&#34;{name}@{source}&#34;:
         contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
         return contextobject
@@ -2221,6 +2458,412 @@ effect of seriesA.</p>
 </dd>
 </dl>
 </dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch"><code class="flex name class">
+<span>class <span class="ident">ContextGeneratorBatch</span></span>
+<span>(</span><span>df_data, target, type_of_series, context_horizon='8 hours', Causalityfunct=&lt;function calculate_with_pc&gt;, debug=False, file_path=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This version doesn't support interpretation and is created for faster experiments using Context.</p>
+<p><strong>df_data</strong> The data to consider in context in form of Data Frame.</p>
+<p>** target** The name of the target source, which will be used as the baseline in order to map different samples</p>
+<p><strong>type_of_series</strong>: dictionary which define the type of each series (isolated,configuration or continuous)
+rate to that of the target sample rate.</p>
+<p><strong>context_horizon</strong> The time period to look back for context data, the form of that parameter is "8 hours"</p>
+<p><strong>Causalityfunct</strong> the causality discovery method to use to produce causal relationships between context data,
+This must be a function with parameters two equal size lists, one with names and the other
+with data (a list of list or 2D numpy array).</p>
+<p><strong>debug</strong> If it runs on debug mode</p>
+<p><strong>file_path</strong> Store the results of context in pickle file, considered only when it is not None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ContextGeneratorBatch():
+    def __init__(self,df_data,target,type_of_series,context_horizon=&#34;8 hours&#34;,Causalityfunct=calculate_with_pc,debug=False,file_path=None):
+        &#34;&#34;&#34;
+        This version doesn&#39;t support interpretation and is created for faster experiments using Context.
+
+        **df_data** The data to consider in context in form of Data Frame.
+
+        ** target** The name of the target source, which will be used as the baseline in order to map different samples
+
+        **type_of_series**: dictionary which define the type of each series (isolated,configuration or continuous)
+         rate to that of the target sample rate.
+
+        **context_horizon** The time period to look back for context data, the form of that parameter is &#34;8 hours&#34;
+
+        **Causalityfunct** the causality discovery method to use to produce causal relationships between context data,
+            This must be a function with parameters two equal size lists, one with names and the other
+            with data (a list of list or 2D numpy array).
+
+        **debug** If it runs on debug mode
+
+        **file_path** Store the results of context in pickle file, considered only when it is not None.
+        &#34;&#34;&#34;
+
+        self.file_path=file_path
+        self.debug=debug
+        self.target=target
+        self.df_data=df_data
+
+
+        self.contexts=self._load_contexts()
+
+        self.causality_discovery=Causalityfunct
+        self.buffer=[]
+
+
+        #helpers
+        self.type_of_series = type_of_series
+        self.horizon = context_horizon.split(&#34; &#34;)[0]
+        if len(context_horizon.split(&#34; &#34;)) == 1:
+            self.horizon_time = &#34;hours&#34;
+        else:
+            if context_horizon.split(&#34; &#34;)[1] in [&#34;days&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;]:
+                self.horizon_time = context_horizon.split(&#34; &#34;)[1]
+            else:
+                assert False, &#34;Time horizon must be either a single number or in form of \&#34;8 hours\&#34; where acceptable time frames are hours,days,minutes,seconds&#34;
+
+        self.horizon = int(self.horizon)
+        self.interpret_history_pos = 0
+        self.context_pos = 0
+
+
+    def generate_context(self,datetime_index):
+        contextpbject, target_series_name,time_index=self.create_context(datetime_index)
+
+        self.contexts[time_index]=contextpbject
+
+        return contextpbject
+
+    def _save_contexts(self):
+        if self.file_path is None:
+            return
+        with open(self.file_path, &#39;wb&#39;) as f:
+            pickle.dump(self.contexts, f)
+
+    def _load_contexts(self):
+        if self.file_path is None:
+            return {}
+
+        my_file = Path(self.file_path)
+        if my_file.is_file():
+            with open(self.file_path, &#39;rb&#39;) as f:
+                return pickle.load(f)
+        else:
+            return  {}
+    def create_context(self, datetime_index):
+
+        start_index = datetime_index - pd.Timedelta(self.horizon, self.horizon_time)
+
+        context=self.df_data.loc[start_index:datetime_index]
+
+        allcodes = np.unique(self.df_data.columns)
+        allcodes = [code for code in allcodes]
+        allcodes = set(allcodes)
+
+        ## build target series
+        target_series_name= self.target
+        target_series=context[self.target].values
+
+        ## create series for each source (alldata)
+        alldata = []
+        for col in context.columns:
+            alldata.append((col, context[col].values))
+        # end = time.time()
+        # print(f&#34;Create series: {end-start}&#34;)
+
+        storing = self.calculate_edges(alldata, context.index[-1])
+        storing[&#34;characterization&#34;] = self.getcaracterize(storing)
+
+        # print(f&#34;Calculate edges: {end - start}&#34;)
+        # print(&#34;========================&#34;)
+
+        contextpbject = Context.context_from_dict(storing)
+        return contextpbject, target_series_name,context.index[-1]
+
+    def calculate_edges(self,alldata, timestamp):
+        #start = time.time()
+        storing = {}
+        storing[&#34;timestamp&#34;] = timestamp
+
+        alldata_names = [nn[0] for nn in alldata]
+        alldata_data = [nn[1] for nn in alldata]
+
+        for namedd, datadd in zip(alldata_names, alldata_data):
+            storing[namedd] = datadd
+
+        # For context with more than two series calculate PC casualities
+        count = len([1 for lista in alldata_data if lista is not None])
+        if count &gt; 1 and len(alldata[0][1]) &gt; 5:
+            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+
+            #end = time.time()
+            #print(f&#34;before {end - start}&#34;)
+            #start=time.time()
+
+            if len(alldata) &lt;= 1:
+                edges = []
+            else:
+                edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+            #end=time.time()
+            #print(f&#34;actual edge calculation {end-start}&#34;)
+            if edges is None:
+                singleedges = []
+            else:
+                singleedges = edges
+            # print(edges)
+            storing[&#34;edges&#34;] = singleedges
+            return storing
+        storing[&#34;edges&#34;] = []
+        return storing
+
+    def calculate_causality(self, dataor, names):
+        num_time_series = len(dataor)
+        data = np.array(dataor)
+        edges = self.causality_discovery(names, data)
+        # edges=self.calculatewithPc(names,data)
+        # edges=self.calculatewith_fci(names,data)
+        # edges=self.salesforcePC(names,data)
+        return edges
+    def getcaracterize(self,context):
+        edges = context[&#34;edges&#34;]
+        characterizations = []
+        for edge in edges:
+            name1 = edge[0]
+            name2 = edge[1]
+            values1 = context[name1]
+            values2 = [float(kati) for kati in context[name2]]
+
+            occurence=len(values1)-1
+            for i in range(len(values1)-2,0,-1):
+                if values1[i] != values1[-1]:
+                    occurence = i+1
+                    break
+            previusoccurence = 0
+            for i in range(occurence-2,0,-1):
+                if values1[i] !=  values1[occurence-1]:
+                    previusoccurence = i
+
+            if occurence - previusoccurence &lt; 2:  # or len(values2)-occurence&lt;2:
+                characterizations.append(&#34;uknown&#34;)
+                continue
+            values2before = values2[previusoccurence:occurence]
+            # stdv = statistics.stdev(values2before)
+            # mean = statistics.stdev(values2before)
+            # values2before=[v if v&lt;mean+5*stdv else mean for v in values2before]
+
+            # values2after=values2[occurence:]
+            values2after = [values2[-1]]
+            # stdv = statistics.stdev(values2after)
+            # mean = statistics.stdev(values2after)
+            # values2after = [v if v &lt; mean + 3 * stdv else mean for v in values2after]
+
+            stdv = statistics.stdev(values2before)
+            if len(values2before) == 0:
+                char = &#34;uknown&#34;
+            elif statistics.median(values2before) - statistics.median(values2after) &gt; 2 * stdv:
+                char = &#34;decrease&#34;
+            elif statistics.median(values2after) - statistics.median(values2before) &gt; 2 * stdv:
+                char = &#34;increase&#34;
+            else:
+                char = &#34;uknown&#34;
+            characterizations.append(char)
+        return characterizations
+
+
+    def __del__(self):
+        if self.file_path is None:
+            return
+        my_file = Path(self.file_path)
+        if my_file.is_file():
+            return
+        else:
+            self._save_contexts()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_causality"><code class="name flex">
+<span>def <span class="ident">calculate_causality</span></span>(<span>self, dataor, names)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_causality(self, dataor, names):
+    num_time_series = len(dataor)
+    data = np.array(dataor)
+    edges = self.causality_discovery(names, data)
+    # edges=self.calculatewithPc(names,data)
+    # edges=self.calculatewith_fci(names,data)
+    # edges=self.salesforcePC(names,data)
+    return edges</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_edges"><code class="name flex">
+<span>def <span class="ident">calculate_edges</span></span>(<span>self, alldata, timestamp)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_edges(self,alldata, timestamp):
+    #start = time.time()
+    storing = {}
+    storing[&#34;timestamp&#34;] = timestamp
+
+    alldata_names = [nn[0] for nn in alldata]
+    alldata_data = [nn[1] for nn in alldata]
+
+    for namedd, datadd in zip(alldata_names, alldata_data):
+        storing[namedd] = datadd
+
+    # For context with more than two series calculate PC casualities
+    count = len([1 for lista in alldata_data if lista is not None])
+    if count &gt; 1 and len(alldata[0][1]) &gt; 5:
+        alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+        alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+
+        #end = time.time()
+        #print(f&#34;before {end - start}&#34;)
+        #start=time.time()
+
+        if len(alldata) &lt;= 1:
+            edges = []
+        else:
+            edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+        #end=time.time()
+        #print(f&#34;actual edge calculation {end-start}&#34;)
+        if edges is None:
+            singleedges = []
+        else:
+            singleedges = edges
+        # print(edges)
+        storing[&#34;edges&#34;] = singleedges
+        return storing
+    storing[&#34;edges&#34;] = []
+    return storing</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.create_context"><code class="name flex">
+<span>def <span class="ident">create_context</span></span>(<span>self, datetime_index)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_context(self, datetime_index):
+
+    start_index = datetime_index - pd.Timedelta(self.horizon, self.horizon_time)
+
+    context=self.df_data.loc[start_index:datetime_index]
+
+    allcodes = np.unique(self.df_data.columns)
+    allcodes = [code for code in allcodes]
+    allcodes = set(allcodes)
+
+    ## build target series
+    target_series_name= self.target
+    target_series=context[self.target].values
+
+    ## create series for each source (alldata)
+    alldata = []
+    for col in context.columns:
+        alldata.append((col, context[col].values))
+    # end = time.time()
+    # print(f&#34;Create series: {end-start}&#34;)
+
+    storing = self.calculate_edges(alldata, context.index[-1])
+    storing[&#34;characterization&#34;] = self.getcaracterize(storing)
+
+    # print(f&#34;Calculate edges: {end - start}&#34;)
+    # print(&#34;========================&#34;)
+
+    contextpbject = Context.context_from_dict(storing)
+    return contextpbject, target_series_name,context.index[-1]</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.generate_context"><code class="name flex">
+<span>def <span class="ident">generate_context</span></span>(<span>self, datetime_index)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_context(self,datetime_index):
+    contextpbject, target_series_name,time_index=self.create_context(datetime_index)
+
+    self.contexts[time_index]=contextpbject
+
+    return contextpbject</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.getcaracterize"><code class="name flex">
+<span>def <span class="ident">getcaracterize</span></span>(<span>self, context)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getcaracterize(self,context):
+    edges = context[&#34;edges&#34;]
+    characterizations = []
+    for edge in edges:
+        name1 = edge[0]
+        name2 = edge[1]
+        values1 = context[name1]
+        values2 = [float(kati) for kati in context[name2]]
+
+        occurence=len(values1)-1
+        for i in range(len(values1)-2,0,-1):
+            if values1[i] != values1[-1]:
+                occurence = i+1
+                break
+        previusoccurence = 0
+        for i in range(occurence-2,0,-1):
+            if values1[i] !=  values1[occurence-1]:
+                previusoccurence = i
+
+        if occurence - previusoccurence &lt; 2:  # or len(values2)-occurence&lt;2:
+            characterizations.append(&#34;uknown&#34;)
+            continue
+        values2before = values2[previusoccurence:occurence]
+        # stdv = statistics.stdev(values2before)
+        # mean = statistics.stdev(values2before)
+        # values2before=[v if v&lt;mean+5*stdv else mean for v in values2before]
+
+        # values2after=values2[occurence:]
+        values2after = [values2[-1]]
+        # stdv = statistics.stdev(values2after)
+        # mean = statistics.stdev(values2after)
+        # values2after = [v if v &lt; mean + 3 * stdv else mean for v in values2after]
+
+        stdv = statistics.stdev(values2before)
+        if len(values2before) == 0:
+            char = &#34;uknown&#34;
+        elif statistics.median(values2before) - statistics.median(values2after) &gt; 2 * stdv:
+            char = &#34;decrease&#34;
+        elif statistics.median(values2after) - statistics.median(values2before) &gt; 2 * stdv:
+            char = &#34;increase&#34;
+        else:
+            char = &#34;uknown&#34;
+        characterizations.append(char)
+    return characterizations</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -2259,6 +2902,16 @@ effect of seriesA.</p>
 <li><code><a title="PdmContext.ContextGeneration.ContextGenerator.interpret" href="#PdmContext.ContextGeneration.ContextGenerator.interpret">interpret</a></code></li>
 <li><code><a title="PdmContext.ContextGeneration.ContextGenerator.plot" href="#PdmContext.ContextGeneration.ContextGenerator.plot">plot</a></code></li>
 <li><code><a title="PdmContext.ContextGeneration.ContextGenerator.plot_interpretation" href="#PdmContext.ContextGeneration.ContextGenerator.plot_interpretation">plot_interpretation</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch" href="#PdmContext.ContextGeneration.ContextGeneratorBatch">ContextGeneratorBatch</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_causality" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_causality">calculate_causality</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_edges" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_edges">calculate_edges</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.create_context" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.create_context">create_context</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.generate_context" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.generate_context">generate_context</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.getcaracterize" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.getcaracterize">getcaracterize</a></code></li>
 </ul>
 </li>
 </ul>

@@ -134,7 +134,7 @@ def distance_eu_z(context1: Context, context2: Context, a, verbose=False):
     else:
         similarity = 0
     if similarity is None:
-        return cc_m, (cc_m, similarity)
+        return cc_m#, (cc_m, similarity)
     else:
         return a * cc_m + b * similarity
 
@@ -221,7 +221,89 @@ def distance_cc(context1: Context, context2: Context, a, verbose=False):
         cc_m = 0
     # cc_m ε [-1,1] -> [0,1]
 
+    similarity=calculate_jaccard(a, context1, context2)
+    if similarity is None:
+        return cc_m, (cc_m, similarity)
+    else:
+        return a * cc_m + b * similarity
+
+
+def distance_3D_sbd_jaccard(context1: Context, context2: Context, a, verbose=False):
+    """
+    Calculation of similarity between two Context objects based on two quantities:
+        1) The first quantity is based on the 3d sbd distance upon all context data.
+        2) Jaccard similarity of the edges in the CR (if we ignore the direction)
+
+    **context1**: A context object
+
+    **context2**: A context object
+
+    **a**: the weight of SBD similarity
+
+    **verbose**:
+
+    **return**: a similarity between 0 and 1
+    """
+    import kshape.core as kcore
+
+    #print("========================================")
+    #step1=time.time()
+    b = 1 - a
+    common_values = []
+    uncommon_values = []
+    for key in context1.CD.keys():
+        if key in context2.CD.keys() and context1.CD[key] is not None and context2.CD[key] is not None:
+            common_values.append(key)
+        else:
+            uncommon_values.append(key)
+    for key in context2.CD.keys():
+        if key not in context1.CD.keys():
+            uncommon_values.append(key)
+    #step2 = time.time()
+    #print(f"{step2-step1} : common_names")
+    context1series=[]
+    context2series=[]
+    if len(common_values) > 0 and a > 0.0000000001 and len(context2.CD[common_values[0]]) > 5 and len(context1.CD[common_values[0]]) > 5:
+        All_common_cc = []
+        sizee = min(len(context1.CD[common_values[0]]), len(context2.CD[common_values[0]]))
+        for key in common_values:
+            #step11 = time.time()
+            All_common_cc.append(key)
+            firtsseries = context1.CD[key][-sizee:]
+            secondseries = context2.CD[key][-sizee:]
+            # step21 = time.time()
+            # print(f"{step21 - step11} : cut")
+            #firtsseries = _z_norm_np(firtsseries)
+            #secondseries = _z_norm_np(secondseries)
+            # step31 = time.time()
+            # print(f"{step31 - step21} : normalize")
+            context1series.append(firtsseries)
+            context2series.append(secondseries)
+        #step3 = time.time()
+        #print(f"{step3 - step2} : normalize and gather")
+        in_cc_m = np.max(kcore._ncc_c_3dim([np.array(context1series), np.array(context2series)]))
+        #step4 = time.time()
+        #print(f"{step4 - step3} : SBD")
+        cc_m = in_cc_m * len(All_common_cc) / (len(All_common_cc) + len(uncommon_values))
+        if verbose:
+            print(f"Common cc_m = {in_cc_m}")
+            print(f"uncommon_values: {len(uncommon_values)}")
+            print(f"Final cc_m = {cc_m}")
+    else:
+        cc_m = 0
+    # cc_m ε [-1,1] -> [0,1]
+
     # check common causes-characterizations:
+    similarity=calculate_jaccard(a, context1, context2)
+
+    if similarity is None:
+        return cc_m, (cc_m, similarity)
+    else:
+        return a * cc_m + b * similarity,(cc_m, similarity)
+
+
+def calculate_jaccard(a,context1,context2):
+    b=1-a
     if b > 0.000000001:
         # check common causes-characterizations:
         common = 0
@@ -248,10 +330,7 @@ def distance_cc(context1: Context, context2: Context, a, verbose=False):
                 similarity = None
     else:
         similarity = 0
-    if similarity is None:
-        return cc_m, (cc_m, similarity)
-    else:
-        return a * cc_m + b * similarity
+    return similarity
 
 
 def ignore_order(context1: Context):

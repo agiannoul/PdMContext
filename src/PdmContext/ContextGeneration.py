@@ -5,7 +5,212 @@ import pandas as pd
 from PdmContext.utils.structure import Eventpoint, Context
 from PdmContext.utils.causal_discovery_functions import calculate_with_pc
 from PdmContext.utils.showcontext import show_context_list, show_context_interpretations
+from pathlib import Path
+import pickle
 
+class ContextGeneratorBatch():
+    def __init__(self,df_data,target,type_of_series,context_horizon="8 hours",Causalityfunct=calculate_with_pc,debug=False,file_path=None):
+        """
+        This version doesn't support interpretation and is created for faster experiments using Context.
+
+        **df_data** The data to consider in context in form of Data Frame.
+
+        ** target** The name of the target source, which will be used as the baseline in order to map different samples
+
+        **type_of_series**: dictionary which define the type of each series (isolated,configuration or continuous)
+         rate to that of the target sample rate.
+
+        **context_horizon** The time period to look back for context data, the form of that parameter is "8 hours"
+
+        **Causalityfunct** the causality discovery method to use to produce causal relationships between context data,
+            This must be a function with parameters two equal size lists, one with names and the other
+            with data (a list of list or 2D numpy array).
+
+        **debug** If it runs on debug mode
+
+        **file_path** Store the results of context in pickle file, considered only when it is not None.
+        """
+
+        self.file_path=file_path
+        self.debug=debug
+        self.target=target
+        self.df_data=df_data
+
+
+        self.contexts=self._load_contexts()
+
+        self.causality_discovery=Causalityfunct
+        self.buffer=[]
+
+
+        #helpers
+        self.type_of_series = type_of_series
+        self.horizon = context_horizon.split(" ")[0]
+        if len(context_horizon.split(" ")) == 1:
+            self.horizon_time = "hours"
+        else:
+            if context_horizon.split(" ")[1] in ["days", "hours", "minutes", "seconds"]:
+                self.horizon_time = context_horizon.split(" ")[1]
+            else:
+                assert False, "Time horizon must be either a single number or in form of \"8 hours\" where acceptable time frames are hours,days,minutes,seconds"
+
+        self.horizon = int(self.horizon)
+        self.interpret_history_pos = 0
+        self.context_pos = 0
+
+
+    def generate_context(self,datetime_index):
+        contextpbject, target_series_name,time_index=self.create_context(datetime_index)
+
+        self.contexts[time_index]=contextpbject
+
+        return contextpbject
+
+    def _save_contexts(self):
+        if self.file_path is None:
+            return
+        with open(self.file_path, 'wb') as f:
+            pickle.dump(self.contexts, f)
+
+    def _load_contexts(self):
+        if self.file_path is None:
+            return {}
+
+        my_file = Path(self.file_path)
+        if my_file.is_file():
+            with open(self.file_path, 'rb') as f:
+                return pickle.load(f)
+        else:
+            return  {}
+    def create_context(self, datetime_index):
+
+        start_index = datetime_index - pd.Timedelta(self.horizon, self.horizon_time)
+
+        context=self.df_data.loc[start_index:datetime_index]
+
+        allcodes = np.unique(self.df_data.columns)
+        allcodes = [code for code in allcodes]
+        allcodes = set(allcodes)
+
+        ## build target series
+        target_series_name= self.target
+        target_series=context[self.target].values
+
+        ## create series for each source (alldata)
+        alldata = []
+        for col in context.columns:
+            alldata.append((col, context[col].values))
+        # end = time.time()
+        # print(f"Create series: {end-start}")
+
+        storing = self.calculate_edges(alldata, context.index[-1])
+        storing["characterization"] = self.getcaracterize(storing)
+
+        # print(f"Calculate edges: {end - start}")
+        # print("========================")
+
+        contextpbject = Context.context_from_dict(storing)
+        return contextpbject, target_series_name,context.index[-1]
+
+    def calculate_edges(self,alldata, timestamp):
+        #start = time.time()
+        storing = {}
+        storing["timestamp"] = timestamp
+
+        alldata_names = [nn[0] for nn in alldata]
+        alldata_data = [nn[1] for nn in alldata]
+
+        for namedd, datadd in zip(alldata_names, alldata_data):
+            storing[namedd] = datadd
+
+        # For context with more than two series calculate PC casualities
+        count = len([1 for lista in alldata_data if lista is not None])
+        if count > 1 and len(alldata[0][1]) > 5:
+            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))>1]
+            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))>1]
+
+            #end = time.time()
+            #print(f"before {end - start}")
+            #start=time.time()
+
+            if len(alldata) <= 1:
+                edges = []
+            else:
+                edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+            #end=time.time()
+            #print(f"actual edge calculation {end-start}")
+            if edges is None:
+                singleedges = []
+            else:
+                singleedges = edges
+            # print(edges)
+            storing["edges"] = singleedges
+            return storing
+        storing["edges"] = []
+        return storing
+
+    def calculate_causality(self, dataor, names):
+        num_time_series = len(dataor)
+        data = np.array(dataor)
+        edges = self.causality_discovery(names, data)
+        # edges=self.calculatewithPc(names,data)
+        # edges=self.calculatewith_fci(names,data)
+        # edges=self.salesforcePC(names,data)
+        return edges
+    def getcaracterize(self,context):
+        edges = context["edges"]
+        characterizations = []
+        for edge in edges:
+            name1 = edge[0]
+            name2 = edge[1]
+            values1 = context[name1]
+            values2 = [float(kati) for kati in context[name2]]
+
+            occurence=len(values1)-1
+            for i in range(len(values1)-2,0,-1):
+                if values1[i] != values1[-1]:
+                    occurence = i+1
+                    break
+            previusoccurence = 0
+            for i in range(occurence-2,0,-1):
+                if values1[i] !=  values1[occurence-1]:
+                    previusoccurence = i
+
+            if occurence - previusoccurence < 2:  # or len(values2)-occurence<2:
+                characterizations.append("uknown")
+                continue
+            values2before = values2[previusoccurence:occurence]
+            # stdv = statistics.stdev(values2before)
+            # mean = statistics.stdev(values2before)
+            # values2before=[v if v<mean+5*stdv else mean for v in values2before]
+
+            # values2after=values2[occurence:]
+            values2after = [values2[-1]]
+            # stdv = statistics.stdev(values2after)
+            # mean = statistics.stdev(values2after)
+            # values2after = [v if v < mean + 3 * stdv else mean for v in values2after]
+
+            stdv = statistics.stdev(values2before)
+            if len(values2before) == 0:
+                char = "uknown"
+            elif statistics.median(values2before) - statistics.median(values2after) > 2 * stdv:
+                char = "decrease"
+            elif statistics.median(values2after) - statistics.median(values2before) > 2 * stdv:
+                char = "increase"
+            else:
+                char = "uknown"
+            characterizations.append(char)
+        return characterizations
+
+
+    def __del__(self):
+        if self.file_path is None:
+            return
+        my_file = Path(self.file_path)
+        if my_file.is_file():
+            return
+        else:
+            self._save_contexts()
 
 class ContextGenerator:
 
@@ -53,7 +258,7 @@ class ContextGenerator:
         self.interpret_history_pos = 0
         self.context_pos = 0
 
-    def collect_data(self, timestamp, source, name, value=None, type="Univariate"):
+    def collect_data(self, timestamp, source, name, value=None, type="Univariate",replace=[]):
         '''
         This method is used when data are passed iteratively, and stored in buffer
         When data of target source arrive, a corresponding context is produced.
@@ -80,6 +285,9 @@ class ContextGenerator:
 
         **type**: the type of the data can be one of "isolated","configuration" when no value is passed
 
+        **replace**: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
+        when a b event is inserted, it will replace an e event with the same timestamp (if exists).
+
         **return**:  structure.Context object when the data name match to the target name or None.
         '''
 
@@ -87,20 +295,27 @@ class ContextGenerator:
             if type not in ["isolated", "configuration"]:
                 assert False, "The type must be defined as one of \"isolated\" and \"configuration\" when no value is passed"
         eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
-        self.add_to_buffer(eventpoint)
+        self.add_to_buffer(eventpoint,replace)
         if self.target == name or self.target == f"{name}@{source}":
             contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
             return contextobject
         else:
             return None
 
-    def add_to_buffer(self, e: Eventpoint):
+    def add_to_buffer(self, e: Eventpoint, replace: list):
         """
         Adds an Event point to the buffer (keeping the buffer time ordered)
         """
         index = len(self.buffer)
         for i in range(len(self.buffer) - 1, 0, -1):
-            if self.buffer[i].timestamp <= e.timestamp:
+            # check for replacement
+            if self.buffer[i].timestamp == e.timestamp:
+                for rep in replace:
+                    if self.buffer[i].code==rep[0] and e.code==rep[1]:
+                        self.buffer[i]=e
+                        return
+                index = i + 1
+            if self.buffer[i].timestamp < e.timestamp:
                 index = i + 1
                 break
         if index == len(self.buffer):
