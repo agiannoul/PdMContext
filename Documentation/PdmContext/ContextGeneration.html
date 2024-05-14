@@ -330,10 +330,12 @@ class ContextGenerator:
         else:
             return None
 
-    def add_to_buffer(self, e: Eventpoint, replace: list):
+    def add_to_buffer(self, e: Eventpoint, replace=None):
         &#34;&#34;&#34;
         Adds an Event point to the buffer (keeping the buffer time ordered)
         &#34;&#34;&#34;
+        if replace is None:
+            replace = []
         index = len(self.buffer)
         for i in range(len(self.buffer) - 1, 0, -1):
             # check for replacement
@@ -1012,10 +1014,12 @@ with data (a list of list or 2D numpy array).</p>
         else:
             return None
 
-    def add_to_buffer(self, e: Eventpoint, replace: list):
+    def add_to_buffer(self, e: Eventpoint, replace=None):
         &#34;&#34;&#34;
         Adds an Event point to the buffer (keeping the buffer time ordered)
         &#34;&#34;&#34;
+        if replace is None:
+            replace = []
         index = len(self.buffer)
         for i in range(len(self.buffer) - 1, 0, -1):
             # check for replacement
@@ -1603,7 +1607,7 @@ with data (a list of list or 2D numpy array).</p>
 </details>
 </dd>
 <dt id="PdmContext.ContextGeneration.ContextGenerator.add_to_buffer"><code class="name flex">
-<span>def <span class="ident">add_to_buffer</span></span>(<span>self, e: <a title="PdmContext.utils.structure.Eventpoint" href="utils/structure.html#PdmContext.utils.structure.Eventpoint">Eventpoint</a>, replace: list)</span>
+<span>def <span class="ident">add_to_buffer</span></span>(<span>self, e: <a title="PdmContext.utils.structure.Eventpoint" href="utils/structure.html#PdmContext.utils.structure.Eventpoint">Eventpoint</a>, replace=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds an Event point to the buffer (keeping the buffer time ordered)</p></div>
@@ -1611,10 +1615,12 @@ with data (a list of list or 2D numpy array).</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_to_buffer(self, e: Eventpoint, replace: list):
+<pre><code class="python">def add_to_buffer(self, e: Eventpoint, replace=None):
     &#34;&#34;&#34;
     Adds an Event point to the buffer (keeping the buffer time ordered)
     &#34;&#34;&#34;
+    if replace is None:
+        replace = []
     index = len(self.buffer)
     for i in range(len(self.buffer) - 1, 0, -1):
         # check for replacement
