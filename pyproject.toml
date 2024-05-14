@@ -13,7 +13,6 @@ dependencies = [
     'networkx==3.2.1',
     'numpy==1.24.3',
     'pandas==2.0.2',
-    'tqdm==4.66.1',
 ]
 
 classifiers = [
