@@ -302,10 +302,12 @@ class ContextGenerator:
         else:
             return None
 
-    def add_to_buffer(self, e: Eventpoint, replace: list):
+    def add_to_buffer(self, e: Eventpoint, replace=None):
         """
         Adds an Event point to the buffer (keeping the buffer time ordered)
         """
+        if replace is None:
+            replace = []
         index = len(self.buffer)
         for i in range(len(self.buffer) - 1, 0, -1):
             # check for replacement

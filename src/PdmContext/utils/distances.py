@@ -61,6 +61,10 @@ def distance_eu_z(context1: Context, context2: Context, a, verbose=False):
 
     **return**: a similarity between 0 and 1
     """
+    if len(context1.CD.keys()) < 1:
+        return 0, (0, 0)
+    if len(context2.CD.keys()) < 1:
+        return 0, (0, 0)
     b = 1 - a
     common_values = []
     uncommon_values = []
@@ -169,6 +173,10 @@ def distance_cc(context1: Context, context2: Context, a, verbose=False):
 
     **return**: a similarity between 0 and 1
     """
+    if len(context1.CD.keys()) < 1:
+        return 0, (0, 0)
+    if len(context2.CD.keys()) < 1:
+        return 0, (0, 0)
     b = 1 - a
     common_values = []
     uncommon_values = []
@@ -245,7 +253,10 @@ def distance_3D_sbd_jaccard(context1: Context, context2: Context, a, verbose=Fal
     **return**: a similarity between 0 and 1
     """
     import kshape.core as kcore
-
+    if len(context1.CD.keys()) < 1:
+        return 0, (0, 0)
+    if len(context2.CD.keys()) < 1:
+        return 0, (0, 0)
     #print("========================================")
     #step1=time.time()
     b = 1 - a
@@ -261,6 +272,8 @@ def distance_3D_sbd_jaccard(context1: Context, context2: Context, a, verbose=Fal
             uncommon_values.append(key)
     #step2 = time.time()
     #print(f"{step2-step1} : common_names")
+    if len(common_values)<1:
+        return 0,(0,0)
     context1series=[]
     context2series=[]
     if len(common_values) > 0 and a > 0.0000000001 and len(context2.CD[common_values[0]]) > 5 and len(context1.CD[common_values[0]]) > 5:
