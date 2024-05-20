@@ -122,30 +122,32 @@ class ContextGeneratorBatch():
 
         for namedd, datadd in zip(alldata_names, alldata_data):
             storing[namedd] = datadd
-
+        alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) > 1]
+        alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) > 1]
         # For context with more than two series calculate PC casualities
         count = len([1 for lista in alldata_data if lista is not None])
-        if count > 1 and len(alldata[0][1]) > 5:
-            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))>1]
-            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))>1]
+        if count > 1:
+            if len(alldata[0][1]) > 5:
+                # alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))>1]
+                # alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))>1]
 
-            #end = time.time()
-            #print(f"before {end - start}")
-            #start=time.time()
+                #end = time.time()
+                #print(f"before {end - start}")
+                #start=time.time()
 
-            if len(alldata) <= 1:
-                edges = []
-            else:
-                edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
-            #end=time.time()
-            #print(f"actual edge calculation {end-start}")
-            if edges is None:
-                singleedges = []
-            else:
-                singleedges = edges
-            # print(edges)
-            storing["edges"] = singleedges
-            return storing
+                if len(alldata) <= 1:
+                    edges = []
+                else:
+                    edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+                #end=time.time()
+                #print(f"actual edge calculation {end-start}")
+                if edges is None:
+                    singleedges = []
+                else:
+                    singleedges = edges
+                # print(edges)
+                storing["edges"] = singleedges
+                return storing
         storing["edges"] = []
         return storing
 
