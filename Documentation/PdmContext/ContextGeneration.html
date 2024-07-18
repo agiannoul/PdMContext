@@ -150,30 +150,32 @@ class ContextGeneratorBatch():
 
         for namedd, datadd in zip(alldata_names, alldata_data):
             storing[namedd] = datadd
-
+        alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
+        alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
         # For context with more than two series calculate PC casualities
         count = len([1 for lista in alldata_data if lista is not None])
-        if count &gt; 1 and len(alldata[0][1]) &gt; 5:
-            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
-            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+        if count &gt; 1:
+            if len(alldata[0][1]) &gt; 5:
+                # alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+                # alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
 
-            #end = time.time()
-            #print(f&#34;before {end - start}&#34;)
-            #start=time.time()
+                #end = time.time()
+                #print(f&#34;before {end - start}&#34;)
+                #start=time.time()
 
-            if len(alldata) &lt;= 1:
-                edges = []
-            else:
-                edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
-            #end=time.time()
-            #print(f&#34;actual edge calculation {end-start}&#34;)
-            if edges is None:
-                singleedges = []
-            else:
-                singleedges = edges
-            # print(edges)
-            storing[&#34;edges&#34;] = singleedges
-            return storing
+                if len(alldata) &lt;= 1:
+                    edges = []
+                else:
+                    edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+                #end=time.time()
+                #print(f&#34;actual edge calculation {end-start}&#34;)
+                if edges is None:
+                    singleedges = []
+                else:
+                    singleedges = edges
+                # print(edges)
+                storing[&#34;edges&#34;] = singleedges
+                return storing
         storing[&#34;edges&#34;] = []
         return storing
 
@@ -286,7 +288,7 @@ class ContextGenerator:
         self.interpret_history_pos = 0
         self.context_pos = 0
 
-    def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;,replace=[]):
+    def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;, replace=[]):
         &#39;&#39;&#39;
         This method is used when data are passed iteratively, and stored in buffer
         When data of target source arrive, a corresponding context is produced.
@@ -320,10 +322,10 @@ class ContextGenerator:
         &#39;&#39;&#39;
 
         if value is None:
-            if type not in [&#34;isolated&#34;, &#34;configuration&#34;]:
+            if type not in [&#34;isolated&#34;, &#34;configuration&#34;, &#34;categorical&#34;]:
                 assert False, &#34;The type must be defined as one of \&#34;isolated\&#34; and \&#34;configuration\&#34; when no value is passed&#34;
         eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
-        self.add_to_buffer(eventpoint,replace)
+        self.add_to_buffer(eventpoint, replace)
         if self.target == name or self.target == f&#34;{name}@{source}&#34;:
             contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
             return contextobject
@@ -341,8 +343,8 @@ class ContextGenerator:
             # check for replacement
             if self.buffer[i].timestamp == e.timestamp:
                 for rep in replace:
-                    if self.buffer[i].code==rep[0] and e.code==rep[1]:
-                        self.buffer[i]=e
+                    if self.buffer[i].code == rep[0] and e.code == rep[1]:
+                        self.buffer[i] = e
                         return
                 index = i + 1
             if self.buffer[i].timestamp &lt; e.timestamp:
@@ -522,10 +524,10 @@ class ContextGenerator:
         **Create CD**: Parallel continuous representations of all different sources in the buffer.
         This step involves, matching the different sample rates of different sources to that of the target.
         Transform the Event sources to continuous representation.
-        
-        **Calculate Causality edges**: Perform Causal Discovery using the causality function, to create edges 
+
+        **Calculate Causality edges**: Perform Causal Discovery using the causality function, to create edges
         (part of CR of the Context)
-        
+
         **Tag each edge with characterization**: for each (a,b) in the edges, a characterization of (unknown, decrease,
          increase), based on the type of the a.
 
@@ -738,7 +740,7 @@ class ContextGenerator:
             storing[namedd] = datadd
 
         # For context with more than two series calculate PC casualities
-        count = len([1 for lista in alldata_data if lista is not None])
+        count = len([1 for lista in alldata_data if lista is not None and len(set(lista)) &gt; 1])
         if count &gt; 1 and len(alldata[0][1]) &gt; 5:
             alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
             alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
@@ -761,12 +763,25 @@ class ContextGenerator:
         return storing
 
     def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes):
-        # if len(target_series) &lt; 5:
-        #     alldata = []
-        #     padding=[0 for q in range(5-len(target_series))]
-        #     padding.extend([tags[0] for tags in target_series])
-        #     alldata.append((target_series_name, padding))
-        #     return alldata
+        &#34;&#34;&#34;
+        This method handles the creation of continuous representation for all type of sources observed in context,
+        and is the first part for creating the CD of the context.
+
+        Based on the type of each source, call the appropriate method to create the continuous representaiton.
+
+        **Parameters**:
+
+        **target_series_name**: The name of the target series.
+
+        **target_series**: Used to align sample rate.
+
+        **type_of_series**: A dictionary to define the type of the different sources (the type can be Isolated, Configuration, Categorical and Univariate).
+
+        **allcodes**: Contain all the names for the sources we want to build the context.
+
+        **return**: The CD part of the context.
+        &#34;&#34;&#34;
+
         windowvalues = df  # .values
         alldata = []
         alldata.append((target_series_name, [tag[0] for tag in target_series]))
@@ -776,24 +791,43 @@ class ContextGenerator:
                 continue
 
             # detect the occurancies
-            occurencies = [(value, time) for code, value, time in
+            occurrences = [(value, time) for code, value, time in
                            zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if name in code]
 
             vector = [0 for i in range(len(target_series))]
-            if len(occurencies) == 0:
+            if len(occurrences) == 0:
                 vector = [0 for i in range(len(target_series))]
-            elif occurencies[0][0] is not None:
-                vector = self.build_context_for_univariate(target_series, occurencies)
+                if max(vector) == 0 and min(vector) == 0:
+                    vector = None
+                alldata.append((name, vector))
+            elif type_of_series[name] == &#34;categorical&#34; and occurrences[0][0] is not None:
+                vectors, names = self.build_context_for_categorical(target_series, occurrences, name)
+                for in_vector, new_name in zip(vectors, names):
+                    if max(in_vector) == 0 and min(in_vector) == 0:
+                        vector = None
+                    else:
+                        vector = in_vector
+                    self.type_of_series[new_name] = &#34;configuration&#34;
+                    alldata.append((new_name, vector))
+            elif occurrences[0][0] is not None:
+                vector = self.build_context_for_univariate(target_series, occurrences)
+                if max(vector) == 0 and min(vector) == 0:
+                    vector = None
+                alldata.append((name, vector))
             elif type_of_series[name] == &#34;isolated&#34;:
-                vector = self.build_context_for_isolated(target_series, occurencies)
+                vector = self.build_context_for_isolated(target_series, occurrences)
+                if max(vector) == 0 and min(vector) == 0:
+                    vector = None
+                alldata.append((name, vector))
             elif type_of_series[name] == &#34;configuration&#34;:
-                vector = self.build_context_for_confiuguration(target_series, occurencies)
+                vector = self.build_context_for_confiuguration(target_series, occurrences)
+                if max(vector) == 0 and min(vector) == 0:
+                    vector = None
+                alldata.append((name, vector))
 
             ok = &#34;ok&#34;
             # if vector is stationary then no context.
-            if max(vector) == 0 and min(vector) == 0:
-                vector = None
-            alldata.append((name, vector))
+
         return alldata
 
     def build_target_series_for_context(self, current: Eventpoint, df: np.ndarray):
@@ -820,9 +854,96 @@ class ContextGenerator:
 
         return npcontext
 
-    def build_context_for_confiuguration(self, target_series, occurencies):
+    def build_context_for_categorical(self, target_series, occurrences, name):
+        &#34;&#34;&#34;
+        This method is used to generate context time series of categorical type.
+
+        The way we do this is by generating a time series of each different category, by creating a zero and one series,
+        similar to &#34;isolated&#34; type, by filling ones in the timestamps that each category appears. Finally, we create an
+        additional series with the name state_{name}, having zeros until the occurrence of the last category, and filled
+        with ones afterward.
+
+        **Parameters**:
+
+        **target_series**: Used to align sample rate.
+
+        **occurrences**: a list of tuple with timestamps and categorical value, refering to the observed value of a
+        categorical source.
+
+        **name**: name of the categorical source.
+
+
+        **return**: A list of time-series to populate CD part of the context.
+        &#34;&#34;&#34;
+        vector = [[0] for i in range(len(target_series))]
+        pos = 0
+        unique_categories = set([occ[0] for occ in occurrences])
+        # this is to aling the series in case of different sample Rate
+        for i in range(len(target_series)):
+            timestamp = target_series[i][1]
+            current_pos = pos
+            for q in range(pos, len(occurrences)):
+                if occurrences[q][1] &gt; timestamp:
+                    current_pos = q
+                    break
+            # no data found
+
+            if current_pos == pos:
+                # if no data in betwwen values use the previus value
+                if i &gt; 0:
+                    vector[i] = [occurrences[-1][0]]
+                # if no data until i timestamp use the first occurence as value
+                else:
+                    vector[i] = [occurrences[0][0]]
+            # if multiple values in between two timestamps use the last as value
+            else:
+                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
+                vector[i] = [v for v in set(dataInBetween)]
+            # if no other occurrences just repeat the last value
+            if current_pos == len(occurrences):
+                for k in range(i + 1, len(vector)):
+                    vector[k] = [occurrences[-1][0]]
+                break
+            pos = current_pos
+        all_vectors = []
+        all_names = []
+        # one-hot encoding of unique categories
+        for value in unique_categories:
+            in_vector = [1 if value in v else 0 for v in vector]
+            if len(set(in_vector)) == 1:
+                in_vector[0] = 0
+            all_vectors.append(in_vector)
+            all_names.append(f&#34;{value}_{name}&#34;)
+        # create of the state variable
+        state_vector = [0 for i in range(len(target_series))]
+        lastv = occurrences[-1][0]
+        ## not stable
+        for i in range(len(state_vector) - 1, -1, -1):
+            if lastv in vector[i]:
+                state_vector[i] = 1
+            else:
+                break
+        all_vectors.append(state_vector)
+        all_names.append(f&#34;state_{name}&#34;)
+        return all_vectors, all_names
+
+    def build_context_for_confiuguration(self, target_series, occurrences):
+        &#34;&#34;&#34;
+         Configuration events, refers to configuration changes or events that alter the state of the monitored asset.
+          To transform these events into continuous signals, we start with a series of 0s, and after each occurrence of
+          such an event, we add 1 to all the positions after the occurrence&#39;s timestamp
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences
+        of the provided Configuration source, to populate CD part of the context.
+        &#34;&#34;&#34;
         vector = [0 for i in range(len(target_series))]
-        for occ in occurencies:
+        for occ in occurrences:
             for q in range(len(target_series)):
                 if target_series[q][1] &gt;= occ[1]:
                     for k in range(q, len(vector)):
@@ -833,24 +954,53 @@ class ContextGenerator:
             vector[0] = 0
         return vector
 
-    def build_context_for_isolated(self, target_series, occurencies):
+    def build_context_for_isolated(self, target_series, occurrences):
+        &#34;&#34;&#34;
+         Isolated events are discrete events that have an immediate impact on the behavior of the asset.
+         To transform such events into a continuous representation, we start with a series of 0s as an initial signal
+         and assign 1 to the position corresponding to the timestamps of the events. If the event timestamp does
+         not match any target_series timestamps, it is mapped to the closest timestamp in target_series.
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences 
+        of the provided isolated source, to populate CD part of the context.
+        &#34;&#34;&#34;
         vector = [0 for i in range(len(target_series))]
-        for occ in occurencies:
+        for occ in occurrences:
             for q in range(len(target_series)):
                 if target_series[q][1] &gt; occ[1]:
                     vector[q] = 1
                     break
         return vector
 
-    def build_context_for_univariate(self, target_series, occurencies):
+    def build_context_for_univariate(self, target_series, occurrences):
+        &#34;&#34;&#34;
+        For continuous data sources, we simply collect the values within the time window.
+        Although the time window is the same for all sources, each source may have a different sample rate.
+        To create a signal of the same size as target_series, we perform mean aggregation if a source has a higher
+        sample rate than target_series, using the mean value of the data between each timestamp of the target_series.
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: The univariate time series.
+
+        **return**: A time series with same size as target_series, to populate CD part of context.
+        &#34;&#34;&#34;
         allvalues = []
         vector = [0 for i in range(len(target_series))]
         pos = 0
         for i in range(len(target_series)):
             timestamp = target_series[i][1]
             current_pos = pos
-            for q in range(pos, len(occurencies)):
-                if occurencies[q][1] &gt; timestamp:
+            for q in range(pos, len(occurrences)):
+                if occurrences[q][1] &gt; timestamp:
                     current_pos = q
                     break
             # no data found
@@ -861,13 +1011,13 @@ class ContextGenerator:
                     vector[i] = vector[i - 1]
                 # if no data until i timestamp use the first occurence as value
                 else:
-                    vector[i] = occurencies[0][0]
+                    vector[i] = occurrences[0][0]
             # if multiple values in between two timestamps use the mean of them as value
             else:
-                dataInBetween = [value for value, time in occurencies[pos:current_pos]]
+                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
                 vector[i] = sum(dataInBetween) / len(dataInBetween)
-            # if no other occurencies just repeat the last value
-            if current_pos == len(occurencies):
+            # if no other occurrences just repeat the last value
+            if current_pos == len(occurrences):
                 for k in range(i + 1, len(vector)):
                     vector[k] = vector[k - 1]
                 break
@@ -970,7 +1120,7 @@ with data (a list of list or 2D numpy array).</p>
         self.interpret_history_pos = 0
         self.context_pos = 0
 
-    def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;,replace=[]):
+    def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;, replace=[]):
         &#39;&#39;&#39;
         This method is used when data are passed iteratively, and stored in buffer
         When data of target source arrive, a corresponding context is produced.
@@ -1004,10 +1154,10 @@ with data (a list of list or 2D numpy array).</p>
         &#39;&#39;&#39;
 
         if value is None:
-            if type not in [&#34;isolated&#34;, &#34;configuration&#34;]:
+            if type not in [&#34;isolated&#34;, &#34;configuration&#34;, &#34;categorical&#34;]:
                 assert False, &#34;The type must be defined as one of \&#34;isolated\&#34; and \&#34;configuration\&#34; when no value is passed&#34;
         eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
-        self.add_to_buffer(eventpoint,replace)
+        self.add_to_buffer(eventpoint, replace)
         if self.target == name or self.target == f&#34;{name}@{source}&#34;:
             contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
             return contextobject
@@ -1025,8 +1175,8 @@ with data (a list of list or 2D numpy array).</p>
             # check for replacement
             if self.buffer[i].timestamp == e.timestamp:
                 for rep in replace:
-                    if self.buffer[i].code==rep[0] and e.code==rep[1]:
-                        self.buffer[i]=e
+                    if self.buffer[i].code == rep[0] and e.code == rep[1]:
+                        self.buffer[i] = e
                         return
                 index = i + 1
             if self.buffer[i].timestamp &lt; e.timestamp:
@@ -1206,10 +1356,10 @@ with data (a list of list or 2D numpy array).</p>
         **Create CD**: Parallel continuous representations of all different sources in the buffer.
         This step involves, matching the different sample rates of different sources to that of the target.
         Transform the Event sources to continuous representation.
-        
-        **Calculate Causality edges**: Perform Causal Discovery using the causality function, to create edges 
+
+        **Calculate Causality edges**: Perform Causal Discovery using the causality function, to create edges
         (part of CR of the Context)
-        
+
         **Tag each edge with characterization**: for each (a,b) in the edges, a characterization of (unknown, decrease,
          increase), based on the type of the a.
 
@@ -1422,7 +1572,7 @@ with data (a list of list or 2D numpy array).</p>
             storing[namedd] = datadd
 
         # For context with more than two series calculate PC casualities
-        count = len([1 for lista in alldata_data if lista is not None])
+        count = len([1 for lista in alldata_data if lista is not None and len(set(lista)) &gt; 1])
         if count &gt; 1 and len(alldata[0][1]) &gt; 5:
             alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
             alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
@@ -1445,12 +1595,25 @@ with data (a list of list or 2D numpy array).</p>
         return storing
 
     def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes):
-        # if len(target_series) &lt; 5:
-        #     alldata = []
-        #     padding=[0 for q in range(5-len(target_series))]
-        #     padding.extend([tags[0] for tags in target_series])
-        #     alldata.append((target_series_name, padding))
-        #     return alldata
+        &#34;&#34;&#34;
+        This method handles the creation of continuous representation for all type of sources observed in context,
+        and is the first part for creating the CD of the context.
+
+        Based on the type of each source, call the appropriate method to create the continuous representaiton.
+
+        **Parameters**:
+
+        **target_series_name**: The name of the target series.
+
+        **target_series**: Used to align sample rate.
+
+        **type_of_series**: A dictionary to define the type of the different sources (the type can be Isolated, Configuration, Categorical and Univariate).
+
+        **allcodes**: Contain all the names for the sources we want to build the context.
+
+        **return**: The CD part of the context.
+        &#34;&#34;&#34;
+
         windowvalues = df  # .values
         alldata = []
         alldata.append((target_series_name, [tag[0] for tag in target_series]))
@@ -1460,24 +1623,43 @@ with data (a list of list or 2D numpy array).</p>
                 continue
 
             # detect the occurancies
-            occurencies = [(value, time) for code, value, time in
+            occurrences = [(value, time) for code, value, time in
                            zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if name in code]
 
             vector = [0 for i in range(len(target_series))]
-            if len(occurencies) == 0:
+            if len(occurrences) == 0:
                 vector = [0 for i in range(len(target_series))]
-            elif occurencies[0][0] is not None:
-                vector = self.build_context_for_univariate(target_series, occurencies)
+                if max(vector) == 0 and min(vector) == 0:
+                    vector = None
+                alldata.append((name, vector))
+            elif type_of_series[name] == &#34;categorical&#34; and occurrences[0][0] is not None:
+                vectors, names = self.build_context_for_categorical(target_series, occurrences, name)
+                for in_vector, new_name in zip(vectors, names):
+                    if max(in_vector) == 0 and min(in_vector) == 0:
+                        vector = None
+                    else:
+                        vector = in_vector
+                    self.type_of_series[new_name] = &#34;configuration&#34;
+                    alldata.append((new_name, vector))
+            elif occurrences[0][0] is not None:
+                vector = self.build_context_for_univariate(target_series, occurrences)
+                if max(vector) == 0 and min(vector) == 0:
+                    vector = None
+                alldata.append((name, vector))
             elif type_of_series[name] == &#34;isolated&#34;:
-                vector = self.build_context_for_isolated(target_series, occurencies)
+                vector = self.build_context_for_isolated(target_series, occurrences)
+                if max(vector) == 0 and min(vector) == 0:
+                    vector = None
+                alldata.append((name, vector))
             elif type_of_series[name] == &#34;configuration&#34;:
-                vector = self.build_context_for_confiuguration(target_series, occurencies)
+                vector = self.build_context_for_confiuguration(target_series, occurrences)
+                if max(vector) == 0 and min(vector) == 0:
+                    vector = None
+                alldata.append((name, vector))
 
             ok = &#34;ok&#34;
             # if vector is stationary then no context.
-            if max(vector) == 0 and min(vector) == 0:
-                vector = None
-            alldata.append((name, vector))
+
         return alldata
 
     def build_target_series_for_context(self, current: Eventpoint, df: np.ndarray):
@@ -1504,9 +1686,96 @@ with data (a list of list or 2D numpy array).</p>
 
         return npcontext
 
-    def build_context_for_confiuguration(self, target_series, occurencies):
+    def build_context_for_categorical(self, target_series, occurrences, name):
+        &#34;&#34;&#34;
+        This method is used to generate context time series of categorical type.
+
+        The way we do this is by generating a time series of each different category, by creating a zero and one series,
+        similar to &#34;isolated&#34; type, by filling ones in the timestamps that each category appears. Finally, we create an
+        additional series with the name state_{name}, having zeros until the occurrence of the last category, and filled
+        with ones afterward.
+
+        **Parameters**:
+
+        **target_series**: Used to align sample rate.
+
+        **occurrences**: a list of tuple with timestamps and categorical value, refering to the observed value of a
+        categorical source.
+
+        **name**: name of the categorical source.
+
+
+        **return**: A list of time-series to populate CD part of the context.
+        &#34;&#34;&#34;
+        vector = [[0] for i in range(len(target_series))]
+        pos = 0
+        unique_categories = set([occ[0] for occ in occurrences])
+        # this is to aling the series in case of different sample Rate
+        for i in range(len(target_series)):
+            timestamp = target_series[i][1]
+            current_pos = pos
+            for q in range(pos, len(occurrences)):
+                if occurrences[q][1] &gt; timestamp:
+                    current_pos = q
+                    break
+            # no data found
+
+            if current_pos == pos:
+                # if no data in betwwen values use the previus value
+                if i &gt; 0:
+                    vector[i] = [occurrences[-1][0]]
+                # if no data until i timestamp use the first occurence as value
+                else:
+                    vector[i] = [occurrences[0][0]]
+            # if multiple values in between two timestamps use the last as value
+            else:
+                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
+                vector[i] = [v for v in set(dataInBetween)]
+            # if no other occurrences just repeat the last value
+            if current_pos == len(occurrences):
+                for k in range(i + 1, len(vector)):
+                    vector[k] = [occurrences[-1][0]]
+                break
+            pos = current_pos
+        all_vectors = []
+        all_names = []
+        # one-hot encoding of unique categories
+        for value in unique_categories:
+            in_vector = [1 if value in v else 0 for v in vector]
+            if len(set(in_vector)) == 1:
+                in_vector[0] = 0
+            all_vectors.append(in_vector)
+            all_names.append(f&#34;{value}_{name}&#34;)
+        # create of the state variable
+        state_vector = [0 for i in range(len(target_series))]
+        lastv = occurrences[-1][0]
+        ## not stable
+        for i in range(len(state_vector) - 1, -1, -1):
+            if lastv in vector[i]:
+                state_vector[i] = 1
+            else:
+                break
+        all_vectors.append(state_vector)
+        all_names.append(f&#34;state_{name}&#34;)
+        return all_vectors, all_names
+
+    def build_context_for_confiuguration(self, target_series, occurrences):
+        &#34;&#34;&#34;
+         Configuration events, refers to configuration changes or events that alter the state of the monitored asset.
+          To transform these events into continuous signals, we start with a series of 0s, and after each occurrence of
+          such an event, we add 1 to all the positions after the occurrence&#39;s timestamp
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences
+        of the provided Configuration source, to populate CD part of the context.
+        &#34;&#34;&#34;
         vector = [0 for i in range(len(target_series))]
-        for occ in occurencies:
+        for occ in occurrences:
             for q in range(len(target_series)):
                 if target_series[q][1] &gt;= occ[1]:
                     for k in range(q, len(vector)):
@@ -1517,24 +1786,53 @@ with data (a list of list or 2D numpy array).</p>
             vector[0] = 0
         return vector
 
-    def build_context_for_isolated(self, target_series, occurencies):
+    def build_context_for_isolated(self, target_series, occurrences):
+        &#34;&#34;&#34;
+         Isolated events are discrete events that have an immediate impact on the behavior of the asset.
+         To transform such events into a continuous representation, we start with a series of 0s as an initial signal
+         and assign 1 to the position corresponding to the timestamps of the events. If the event timestamp does
+         not match any target_series timestamps, it is mapped to the closest timestamp in target_series.
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences 
+        of the provided isolated source, to populate CD part of the context.
+        &#34;&#34;&#34;
         vector = [0 for i in range(len(target_series))]
-        for occ in occurencies:
+        for occ in occurrences:
             for q in range(len(target_series)):
                 if target_series[q][1] &gt; occ[1]:
                     vector[q] = 1
                     break
         return vector
 
-    def build_context_for_univariate(self, target_series, occurencies):
+    def build_context_for_univariate(self, target_series, occurrences):
+        &#34;&#34;&#34;
+        For continuous data sources, we simply collect the values within the time window.
+        Although the time window is the same for all sources, each source may have a different sample rate.
+        To create a signal of the same size as target_series, we perform mean aggregation if a source has a higher
+        sample rate than target_series, using the mean value of the data between each timestamp of the target_series.
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: The univariate time series.
+
+        **return**: A time series with same size as target_series, to populate CD part of context.
+        &#34;&#34;&#34;
         allvalues = []
         vector = [0 for i in range(len(target_series))]
         pos = 0
         for i in range(len(target_series)):
             timestamp = target_series[i][1]
             current_pos = pos
-            for q in range(pos, len(occurencies)):
-                if occurencies[q][1] &gt; timestamp:
+            for q in range(pos, len(occurrences)):
+                if occurrences[q][1] &gt; timestamp:
                     current_pos = q
                     break
             # no data found
@@ -1545,13 +1843,13 @@ with data (a list of list or 2D numpy array).</p>
                     vector[i] = vector[i - 1]
                 # if no data until i timestamp use the first occurence as value
                 else:
-                    vector[i] = occurencies[0][0]
+                    vector[i] = occurrences[0][0]
             # if multiple values in between two timestamps use the mean of them as value
             else:
-                dataInBetween = [value for value, time in occurencies[pos:current_pos]]
+                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
                 vector[i] = sum(dataInBetween) / len(dataInBetween)
-            # if no other occurencies just repeat the last value
-            if current_pos == len(occurencies):
+            # if no other occurrences just repeat the last value
+            if current_pos == len(occurrences):
                 for k in range(i + 1, len(vector)):
                     vector[k] = vector[k - 1]
                 break
@@ -1626,8 +1924,8 @@ with data (a list of list or 2D numpy array).</p>
         # check for replacement
         if self.buffer[i].timestamp == e.timestamp:
             for rep in replace:
-                if self.buffer[i].code==rep[0] and e.code==rep[1]:
-                    self.buffer[i]=e
+                if self.buffer[i].code == rep[0] and e.code == rep[1]:
+                    self.buffer[i] = e
                     return
             index = i + 1
         if self.buffer[i].timestamp &lt; e.timestamp:
@@ -1647,18 +1945,132 @@ with data (a list of list or 2D numpy array).</p>
     self.buffer = self.buffer[pos:]</code></pre>
 </details>
 </dd>
-<dt id="PdmContext.ContextGeneration.ContextGenerator.build_context_for_confiuguration"><code class="name flex">
-<span>def <span class="ident">build_context_for_confiuguration</span></span>(<span>self, target_series, occurencies)</span>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.build_context_for_categorical"><code class="name flex">
+<span>def <span class="ident">build_context_for_categorical</span></span>(<span>self, target_series, occurrences, name)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>This method is used to generate context time series of categorical type.</p>
+<p>The way we do this is by generating a time series of each different category, by creating a zero and one series,
+similar to "isolated" type, by filling ones in the timestamps that each category appears. Finally, we create an
+additional series with the name state_{name}, having zeros until the occurrence of the last category, and filled
+with ones afterward.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series</strong>: Used to align sample rate.</p>
+<p><strong>occurrences</strong>: a list of tuple with timestamps and categorical value, refering to the observed value of a
+categorical source.</p>
+<p><strong>name</strong>: name of the categorical source.</p>
+<p><strong>return</strong>: A list of time-series to populate CD part of the context.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def build_context_for_confiuguration(self, target_series, occurencies):
+<pre><code class="python">def build_context_for_categorical(self, target_series, occurrences, name):
+    &#34;&#34;&#34;
+    This method is used to generate context time series of categorical type.
+
+    The way we do this is by generating a time series of each different category, by creating a zero and one series,
+    similar to &#34;isolated&#34; type, by filling ones in the timestamps that each category appears. Finally, we create an
+    additional series with the name state_{name}, having zeros until the occurrence of the last category, and filled
+    with ones afterward.
+
+    **Parameters**:
+
+    **target_series**: Used to align sample rate.
+
+    **occurrences**: a list of tuple with timestamps and categorical value, refering to the observed value of a
+    categorical source.
+
+    **name**: name of the categorical source.
+
+
+    **return**: A list of time-series to populate CD part of the context.
+    &#34;&#34;&#34;
+    vector = [[0] for i in range(len(target_series))]
+    pos = 0
+    unique_categories = set([occ[0] for occ in occurrences])
+    # this is to aling the series in case of different sample Rate
+    for i in range(len(target_series)):
+        timestamp = target_series[i][1]
+        current_pos = pos
+        for q in range(pos, len(occurrences)):
+            if occurrences[q][1] &gt; timestamp:
+                current_pos = q
+                break
+        # no data found
+
+        if current_pos == pos:
+            # if no data in betwwen values use the previus value
+            if i &gt; 0:
+                vector[i] = [occurrences[-1][0]]
+            # if no data until i timestamp use the first occurence as value
+            else:
+                vector[i] = [occurrences[0][0]]
+        # if multiple values in between two timestamps use the last as value
+        else:
+            dataInBetween = [value for value, time in occurrences[pos:current_pos]]
+            vector[i] = [v for v in set(dataInBetween)]
+        # if no other occurrences just repeat the last value
+        if current_pos == len(occurrences):
+            for k in range(i + 1, len(vector)):
+                vector[k] = [occurrences[-1][0]]
+            break
+        pos = current_pos
+    all_vectors = []
+    all_names = []
+    # one-hot encoding of unique categories
+    for value in unique_categories:
+        in_vector = [1 if value in v else 0 for v in vector]
+        if len(set(in_vector)) == 1:
+            in_vector[0] = 0
+        all_vectors.append(in_vector)
+        all_names.append(f&#34;{value}_{name}&#34;)
+    # create of the state variable
+    state_vector = [0 for i in range(len(target_series))]
+    lastv = occurrences[-1][0]
+    ## not stable
+    for i in range(len(state_vector) - 1, -1, -1):
+        if lastv in vector[i]:
+            state_vector[i] = 1
+        else:
+            break
+    all_vectors.append(state_vector)
+    all_names.append(f&#34;state_{name}&#34;)
+    return all_vectors, all_names</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.build_context_for_confiuguration"><code class="name flex">
+<span>def <span class="ident">build_context_for_confiuguration</span></span>(<span>self, target_series, occurrences)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Configuration events, refers to configuration changes or events that alter the state of the monitored asset.
+To transform these events into continuous signals, we start with a series of 0s, and after each occurrence of
+such an event, we add 1 to all the positions after the occurrence's timestamp</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series</strong>: Used to align sample rate of the continuous series.</p>
+<p><strong>occurrences</strong>: Contain time stamps of the occurrences of an isolated type source.</p>
+<p><strong>return</strong>: A binary time series with same size as target_series, that models the occurrences
+of the provided Configuration source, to populate CD part of the context.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_context_for_confiuguration(self, target_series, occurrences):
+    &#34;&#34;&#34;
+     Configuration events, refers to configuration changes or events that alter the state of the monitored asset.
+      To transform these events into continuous signals, we start with a series of 0s, and after each occurrence of
+      such an event, we add 1 to all the positions after the occurrence&#39;s timestamp
+
+     **Parameters**:
+
+    **target_series**: Used to align sample rate of the continuous series.
+
+    **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+    **return**: A binary time series with same size as target_series, that models the occurrences
+    of the provided Configuration source, to populate CD part of the context.
+    &#34;&#34;&#34;
     vector = [0 for i in range(len(target_series))]
-    for occ in occurencies:
+    for occ in occurrences:
         for q in range(len(target_series)):
             if target_series[q][1] &gt;= occ[1]:
                 for k in range(q, len(vector)):
@@ -1671,17 +2083,40 @@ with data (a list of list or 2D numpy array).</p>
 </details>
 </dd>
 <dt id="PdmContext.ContextGeneration.ContextGenerator.build_context_for_isolated"><code class="name flex">
-<span>def <span class="ident">build_context_for_isolated</span></span>(<span>self, target_series, occurencies)</span>
+<span>def <span class="ident">build_context_for_isolated</span></span>(<span>self, target_series, occurrences)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Isolated events are discrete events that have an immediate impact on the behavior of the asset.
+To transform such events into a continuous representation, we start with a series of 0s as an initial signal
+and assign 1 to the position corresponding to the timestamps of the events. If the event timestamp does
+not match any target_series timestamps, it is mapped to the closest timestamp in target_series.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series</strong>: Used to align sample rate of the continuous series.</p>
+<p><strong>occurrences</strong>: Contain time stamps of the occurrences of an isolated type source.</p>
+<p><strong>return</strong>: A binary time series with same size as target_series, that models the occurrences
+of the provided isolated source, to populate CD part of the context.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def build_context_for_isolated(self, target_series, occurencies):
+<pre><code class="python">def build_context_for_isolated(self, target_series, occurrences):
+    &#34;&#34;&#34;
+     Isolated events are discrete events that have an immediate impact on the behavior of the asset.
+     To transform such events into a continuous representation, we start with a series of 0s as an initial signal
+     and assign 1 to the position corresponding to the timestamps of the events. If the event timestamp does
+     not match any target_series timestamps, it is mapped to the closest timestamp in target_series.
+
+     **Parameters**:
+
+    **target_series**: Used to align sample rate of the continuous series.
+
+    **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+    **return**: A binary time series with same size as target_series, that models the occurrences 
+    of the provided isolated source, to populate CD part of the context.
+    &#34;&#34;&#34;
     vector = [0 for i in range(len(target_series))]
-    for occ in occurencies:
+    for occ in occurrences:
         for q in range(len(target_series)):
             if target_series[q][1] &gt; occ[1]:
                 vector[q] = 1
@@ -1690,23 +2125,44 @@ with data (a list of list or 2D numpy array).</p>
 </details>
 </dd>
 <dt id="PdmContext.ContextGeneration.ContextGenerator.build_context_for_univariate"><code class="name flex">
-<span>def <span class="ident">build_context_for_univariate</span></span>(<span>self, target_series, occurencies)</span>
+<span>def <span class="ident">build_context_for_univariate</span></span>(<span>self, target_series, occurrences)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>For continuous data sources, we simply collect the values within the time window.
+Although the time window is the same for all sources, each source may have a different sample rate.
+To create a signal of the same size as target_series, we perform mean aggregation if a source has a higher
+sample rate than target_series, using the mean value of the data between each timestamp of the target_series.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series</strong>: Used to align sample rate of the continuous series.</p>
+<p><strong>occurrences</strong>: The univariate time series.</p>
+<p><strong>return</strong>: A time series with same size as target_series, to populate CD part of context.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def build_context_for_univariate(self, target_series, occurencies):
+<pre><code class="python">def build_context_for_univariate(self, target_series, occurrences):
+    &#34;&#34;&#34;
+    For continuous data sources, we simply collect the values within the time window.
+    Although the time window is the same for all sources, each source may have a different sample rate.
+    To create a signal of the same size as target_series, we perform mean aggregation if a source has a higher
+    sample rate than target_series, using the mean value of the data between each timestamp of the target_series.
+
+     **Parameters**:
+
+    **target_series**: Used to align sample rate of the continuous series.
+
+    **occurrences**: The univariate time series.
+
+    **return**: A time series with same size as target_series, to populate CD part of context.
+    &#34;&#34;&#34;
     allvalues = []
     vector = [0 for i in range(len(target_series))]
     pos = 0
     for i in range(len(target_series)):
         timestamp = target_series[i][1]
         current_pos = pos
-        for q in range(pos, len(occurencies)):
-            if occurencies[q][1] &gt; timestamp:
+        for q in range(pos, len(occurrences)):
+            if occurrences[q][1] &gt; timestamp:
                 current_pos = q
                 break
         # no data found
@@ -1717,13 +2173,13 @@ with data (a list of list or 2D numpy array).</p>
                 vector[i] = vector[i - 1]
             # if no data until i timestamp use the first occurence as value
             else:
-                vector[i] = occurencies[0][0]
+                vector[i] = occurrences[0][0]
         # if multiple values in between two timestamps use the mean of them as value
         else:
-            dataInBetween = [value for value, time in occurencies[pos:current_pos]]
+            dataInBetween = [value for value, time in occurrences[pos:current_pos]]
             vector[i] = sum(dataInBetween) / len(dataInBetween)
-        # if no other occurencies just repeat the last value
-        if current_pos == len(occurencies):
+        # if no other occurrences just repeat the last value
+        if current_pos == len(occurrences):
             for k in range(i + 1, len(vector)):
                 vector[k] = vector[k - 1]
             break
@@ -1807,7 +2263,7 @@ which return the edges for the context.</p>
         storing[namedd] = datadd
 
     # For context with more than two series calculate PC casualities
-    count = len([1 for lista in alldata_data if lista is not None])
+    count = len([1 for lista in alldata_data if lista is not None and len(set(lista)) &gt; 1])
     if count &gt; 1 and len(alldata[0][1]) &gt; 5:
         alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
         alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
@@ -1992,7 +2448,7 @@ structure.Context object when the data name match to the target name or None.</p
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;,replace=[]):
+<pre><code class="python">def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;, replace=[]):
     &#39;&#39;&#39;
     This method is used when data are passed iteratively, and stored in buffer
     When data of target source arrive, a corresponding context is produced.
@@ -2026,10 +2482,10 @@ structure.Context object when the data name match to the target name or None.</p
     &#39;&#39;&#39;
 
     if value is None:
-        if type not in [&#34;isolated&#34;, &#34;configuration&#34;]:
+        if type not in [&#34;isolated&#34;, &#34;configuration&#34;, &#34;categorical&#34;]:
             assert False, &#34;The type must be defined as one of \&#34;isolated\&#34; and \&#34;configuration\&#34; when no value is passed&#34;
     eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
-    self.add_to_buffer(eventpoint,replace)
+    self.add_to_buffer(eventpoint, replace)
     if self.target == name or self.target == f&#34;{name}@{source}&#34;:
         contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
         return contextobject
@@ -2069,10 +2525,10 @@ increase), based on the type of the a.</p>
     **Create CD**: Parallel continuous representations of all different sources in the buffer.
     This step involves, matching the different sample rates of different sources to that of the target.
     Transform the Event sources to continuous representation.
-    
-    **Calculate Causality edges**: Perform Causal Discovery using the causality function, to create edges 
+
+    **Calculate Causality edges**: Perform Causal Discovery using the causality function, to create edges
     (part of CR of the Context)
-    
+
     **Tag each edge with characterization**: for each (a,b) in the edges, a characterization of (unknown, decrease,
      increase), based on the type of the a.
 
@@ -2149,18 +2605,39 @@ increase), based on the type of the a.</p>
 <span>def <span class="ident">create_continuous_representation</span></span>(<span>self, target_series_name, target_series, df, type_of_series, allcodes)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>This method handles the creation of continuous representation for all type of sources observed in context,
+and is the first part for creating the CD of the context.</p>
+<p>Based on the type of each source, call the appropriate method to create the continuous representaiton.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series_name</strong>: The name of the target series.</p>
+<p><strong>target_series</strong>: Used to align sample rate.</p>
+<p><strong>type_of_series</strong>: A dictionary to define the type of the different sources (the type can be Isolated, Configuration, Categorical and Univariate).</p>
+<p><strong>allcodes</strong>: Contain all the names for the sources we want to build the context.</p>
+<p><strong>return</strong>: The CD part of the context.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes):
-    # if len(target_series) &lt; 5:
-    #     alldata = []
-    #     padding=[0 for q in range(5-len(target_series))]
-    #     padding.extend([tags[0] for tags in target_series])
-    #     alldata.append((target_series_name, padding))
-    #     return alldata
+    &#34;&#34;&#34;
+    This method handles the creation of continuous representation for all type of sources observed in context,
+    and is the first part for creating the CD of the context.
+
+    Based on the type of each source, call the appropriate method to create the continuous representaiton.
+
+    **Parameters**:
+
+    **target_series_name**: The name of the target series.
+
+    **target_series**: Used to align sample rate.
+
+    **type_of_series**: A dictionary to define the type of the different sources (the type can be Isolated, Configuration, Categorical and Univariate).
+
+    **allcodes**: Contain all the names for the sources we want to build the context.
+
+    **return**: The CD part of the context.
+    &#34;&#34;&#34;
+
     windowvalues = df  # .values
     alldata = []
     alldata.append((target_series_name, [tag[0] for tag in target_series]))
@@ -2170,24 +2647,43 @@ increase), based on the type of the a.</p>
             continue
 
         # detect the occurancies
-        occurencies = [(value, time) for code, value, time in
+        occurrences = [(value, time) for code, value, time in
                        zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if name in code]
 
         vector = [0 for i in range(len(target_series))]
-        if len(occurencies) == 0:
+        if len(occurrences) == 0:
             vector = [0 for i in range(len(target_series))]
-        elif occurencies[0][0] is not None:
-            vector = self.build_context_for_univariate(target_series, occurencies)
+            if max(vector) == 0 and min(vector) == 0:
+                vector = None
+            alldata.append((name, vector))
+        elif type_of_series[name] == &#34;categorical&#34; and occurrences[0][0] is not None:
+            vectors, names = self.build_context_for_categorical(target_series, occurrences, name)
+            for in_vector, new_name in zip(vectors, names):
+                if max(in_vector) == 0 and min(in_vector) == 0:
+                    vector = None
+                else:
+                    vector = in_vector
+                self.type_of_series[new_name] = &#34;configuration&#34;
+                alldata.append((new_name, vector))
+        elif occurrences[0][0] is not None:
+            vector = self.build_context_for_univariate(target_series, occurrences)
+            if max(vector) == 0 and min(vector) == 0:
+                vector = None
+            alldata.append((name, vector))
         elif type_of_series[name] == &#34;isolated&#34;:
-            vector = self.build_context_for_isolated(target_series, occurencies)
+            vector = self.build_context_for_isolated(target_series, occurrences)
+            if max(vector) == 0 and min(vector) == 0:
+                vector = None
+            alldata.append((name, vector))
         elif type_of_series[name] == &#34;configuration&#34;:
-            vector = self.build_context_for_confiuguration(target_series, occurencies)
+            vector = self.build_context_for_confiuguration(target_series, occurrences)
+            if max(vector) == 0 and min(vector) == 0:
+                vector = None
+            alldata.append((name, vector))
 
         ok = &#34;ok&#34;
         # if vector is stationary then no context.
-        if max(vector) == 0 and min(vector) == 0:
-            vector = None
-        alldata.append((name, vector))
+
     return alldata</code></pre>
 </details>
 </dd>
@@ -2598,30 +3094,32 @@ with data (a list of list or 2D numpy array).</p>
 
         for namedd, datadd in zip(alldata_names, alldata_data):
             storing[namedd] = datadd
-
+        alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
+        alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
         # For context with more than two series calculate PC casualities
         count = len([1 for lista in alldata_data if lista is not None])
-        if count &gt; 1 and len(alldata[0][1]) &gt; 5:
-            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
-            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+        if count &gt; 1:
+            if len(alldata[0][1]) &gt; 5:
+                # alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+                # alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
 
-            #end = time.time()
-            #print(f&#34;before {end - start}&#34;)
-            #start=time.time()
+                #end = time.time()
+                #print(f&#34;before {end - start}&#34;)
+                #start=time.time()
 
-            if len(alldata) &lt;= 1:
-                edges = []
-            else:
-                edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
-            #end=time.time()
-            #print(f&#34;actual edge calculation {end-start}&#34;)
-            if edges is None:
-                singleedges = []
-            else:
-                singleedges = edges
-            # print(edges)
-            storing[&#34;edges&#34;] = singleedges
-            return storing
+                if len(alldata) &lt;= 1:
+                    edges = []
+                else:
+                    edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+                #end=time.time()
+                #print(f&#34;actual edge calculation {end-start}&#34;)
+                if edges is None:
+                    singleedges = []
+                else:
+                    singleedges = edges
+                # print(edges)
+                storing[&#34;edges&#34;] = singleedges
+                return storing
         storing[&#34;edges&#34;] = []
         return storing
 
@@ -2728,30 +3226,32 @@ with data (a list of list or 2D numpy array).</p>
 
     for namedd, datadd in zip(alldata_names, alldata_data):
         storing[namedd] = datadd
-
+    alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
+    alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
     # For context with more than two series calculate PC casualities
     count = len([1 for lista in alldata_data if lista is not None])
-    if count &gt; 1 and len(alldata[0][1]) &gt; 5:
-        alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
-        alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+    if count &gt; 1:
+        if len(alldata[0][1]) &gt; 5:
+            # alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+            # alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
 
-        #end = time.time()
-        #print(f&#34;before {end - start}&#34;)
-        #start=time.time()
+            #end = time.time()
+            #print(f&#34;before {end - start}&#34;)
+            #start=time.time()
 
-        if len(alldata) &lt;= 1:
-            edges = []
-        else:
-            edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
-        #end=time.time()
-        #print(f&#34;actual edge calculation {end-start}&#34;)
-        if edges is None:
-            singleedges = []
-        else:
-            singleedges = edges
-        # print(edges)
-        storing[&#34;edges&#34;] = singleedges
-        return storing
+            if len(alldata) &lt;= 1:
+                edges = []
+            else:
+                edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+            #end=time.time()
+            #print(f&#34;actual edge calculation {end-start}&#34;)
+            if edges is None:
+                singleedges = []
+            else:
+                singleedges = edges
+            # print(edges)
+            storing[&#34;edges&#34;] = singleedges
+            return storing
     storing[&#34;edges&#34;] = []
     return storing</code></pre>
 </details>
@@ -2891,6 +3391,7 @@ with data (a list of list or 2D numpy array).</p>
 <ul class="">
 <li><code><a title="PdmContext.ContextGeneration.ContextGenerator.Numpy_preproccess" href="#PdmContext.ContextGeneration.ContextGenerator.Numpy_preproccess">Numpy_preproccess</a></code></li>
 <li><code><a title="PdmContext.ContextGeneration.ContextGenerator.add_to_buffer" href="#PdmContext.ContextGeneration.ContextGenerator.add_to_buffer">add_to_buffer</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.build_context_for_categorical" href="#PdmContext.ContextGeneration.ContextGenerator.build_context_for_categorical">build_context_for_categorical</a></code></li>
 <li><code><a title="PdmContext.ContextGeneration.ContextGenerator.build_context_for_confiuguration" href="#PdmContext.ContextGeneration.ContextGenerator.build_context_for_confiuguration">build_context_for_confiuguration</a></code></li>
 <li><code><a title="PdmContext.ContextGeneration.ContextGenerator.build_context_for_isolated" href="#PdmContext.ContextGeneration.ContextGenerator.build_context_for_isolated">build_context_for_isolated</a></code></li>
 <li><code><a title="PdmContext.ContextGeneration.ContextGenerator.build_context_for_univariate" href="#PdmContext.ContextGeneration.ContextGenerator.build_context_for_univariate">build_context_for_univariate</a></code></li>
