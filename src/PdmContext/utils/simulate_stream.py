@@ -2,7 +2,8 @@ import pandas as pd
 
 
 class simulate_stream():
-    def __init__(self, TimeSeries: [(str, list[float], list[pd.Timestamp])], Events: [(str, list[pd.Timestamp], str)],
+    def __init__(self, TimeSeries: [(str, list[float], list[pd.Timestamp])],
+                 Events: [(str, list[pd.Timestamp], str)],Categoricals:[(str, list[pd.Timestamp],list[str], str)],
                  targetname):
         """
         This method simulate the traffic of the data
@@ -12,6 +13,8 @@ class simulate_stream():
         **TimeSeries**: A list of time series data in form of (name,list with data, list of timestamp)
 
         **Events**: A list of events in form of (name, list of timestamp when the event occured,type of the Event (isolated or configuration)) as expected in ContextGenerator.
+
+        **Categoricals**: A list of events data which contain tuples of : (name: str, occurrences :list of Dates, categories: list, type:str)
         """
         # build dataframe with columns dt, name, value, type
         dict_df = {
@@ -40,6 +43,18 @@ class simulate_stream():
                 dict_df["value"].append(None)
                 dict_df["type"].append(type)
 
+        for series in Categoricals:
+            name = series[0]
+            times = series[1]
+            values = series[2]
+            type = series[3]
+            print("HEY")
+            for dtt,val in zip(times, values):
+                dict_df["dt"].append(dtt)
+                dict_df["name"].append(name)
+                dict_df["value"].append(val)
+                dict_df["type"].append(type)
+
         self.df = pd.DataFrame(dict_df)
         self.df.sort_values(by="dt", inplace=True)
         self.uniquedates = self.df["dt"].unique()
@@ -57,7 +72,7 @@ class simulate_stream():
                     keep["dt"] = row["dt"]
                     keep["value"] = row["value"]
                 else:
-                    if row["type"] != "Univariate":
+                    if row["type"] not in  ["Univariate","categorical"]:
                         tempvalue = None
                     else:
                         tempvalue = row["value"]

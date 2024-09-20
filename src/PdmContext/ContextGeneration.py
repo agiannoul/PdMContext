@@ -310,31 +310,36 @@ class ContextGenerator:
         """
         if replace is None:
             replace = []
-        index = len(self.buffer)
-        for i in range(len(self.buffer) - 1, 0, -1):
-            # check for replacement
-            if self.buffer[i].timestamp == e.timestamp:
-                for rep in replace:
-                    if self.buffer[i].code == rep[0] and e.code == rep[1]:
-                        self.buffer[i] = e
-                        return
-                index = i + 1
-            if self.buffer[i].timestamp < e.timestamp:
-                index = i + 1
-                break
+            index = len(self.buffer)
+            for i in range(len(self.buffer) - 1, 0, -1):
+                if self.buffer[i].timestamp < e.timestamp:
+                    index = i + 1
+                    break
+        else:
+            index = len(self.buffer)
+            for i in range(len(self.buffer) - 1, 0, -1):
+                # check for replacement
+                if self.buffer[i].timestamp == e.timestamp:
+                    for rep in replace:
+                        if self.buffer[i].code == rep[0] and e.code == rep[1]:
+                            self.buffer[i] = e
+                            return
+                    index = i + 1
+                if self.buffer[i].timestamp < e.timestamp:
+                    index = i + 1
+                    break
         if index == len(self.buffer):
             self.buffer.append(e)
         else:
             self.buffer = self.buffer[: index] + [e] + self.buffer[index:]
 
-        last = self.buffer[-1]
-        pos = len(self.buffer) - 1
-        for i in range(len(self.buffer)):
-            if self.buffer[i].timestamp >= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
-                pos = i
-                break
-        self.buffer = self.buffer[pos:]
-
+        # last = self.buffer[-1]
+        # pos = len(self.buffer) - 1
+        # for i in range(len(self.buffer)):
+        #     if self.buffer[i].timestamp >= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
+        #         pos = i
+        #         break
+        #self.buffer = self.buffer[pos:]
     def generate_context(self, e: Eventpoint, buffer):
         """
         Generate context and interpretation.
