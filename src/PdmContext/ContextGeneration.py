@@ -333,13 +333,6 @@ class ContextGenerator:
         else:
             self.buffer = self.buffer[: index] + [e] + self.buffer[index:]
 
-        # last = self.buffer[-1]
-        # pos = len(self.buffer) - 1
-        # for i in range(len(self.buffer)):
-        #     if self.buffer[i].timestamp >= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
-        #         pos = i
-        #         break
-        #self.buffer = self.buffer[pos:]
     def generate_context(self, e: Eventpoint, buffer):
         """
         Generate context and interpretation.
@@ -518,19 +511,21 @@ class ContextGenerator:
         """
         # start = time.time()
         # df with ,dt,code,source,value
-        pos = self.context_pos
-        for i in range(pos, len(buffer)):
-            if buffer[i].timestamp <= (current.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
-                pos = i
-            else:
-                break
 
-        self.context_pos = pos
+        # Keep only last horizon events
+        last = self.buffer[-1]
+        pos = len(self.buffer) - 1
+        for i in range(len(self.buffer)):
+            if self.buffer[i].timestamp >= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
+                pos = i
+                break
+        self.buffer = self.buffer[pos:]
+
         # end=time.time()
         # print(f"find position on buffer: {end-start}")
 
         # start = time.time()
-        dataforcontext = buffer[pos:]
+        dataforcontext = buffer
         datatodf = [[pd.to_datetime(e.timestamp) for e in dataforcontext],
                     [str(e.code) for e in dataforcontext],
                     [str(e.source) for e in dataforcontext],
