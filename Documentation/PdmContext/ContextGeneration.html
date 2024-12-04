@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.1">
+<title>PdmContext.ContextGeneration API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>PdmContext.ContextGeneration</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="PdmContext.ContextGeneration.ContextGenerator"><code class="flex name class">
+<span>class <span class="ident">ContextGenerator</span></span>
+<span>(</span><span>target, context_horizon='8 hours', Causalityfunct=&lt;function calculate_with_pc&gt;, mapping_functions=None, debug=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This Class handle the Context Generation. It keeps an internal buffer to build the context for a target series based
+on the provided context_horizon. All data are passed though the collect_data method, which return a corresponding
+Context when target data are passed.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target</strong>: The name of the target source, which will be used as the baseline in order to map different samples
+rate to that of the target sample rate.</p>
+<p><strong>context_horizon</strong>: The time period to look back for context data, the form of that parameter is "8 hours"</p>
+<p><strong>Causalityfunct</strong>: the causality discovery method to use to produce causal relationships between context data,
+This must be a function with parameters two equal size lists, one with names and the other
+with data (a list of list or 2D numpy array).</p>
+<p><strong>mapping_functions</strong>: Dictionary used to associate each type with a mapping function.</p>
+<p>User can use this dictionary to define his own mapping function and types of sources</p>
+<p>Default value None: use default mappers for types: isolated,configuration, categorical and univariate</p>
+<p>Default Sources Types Supported (in case of mapping_functions is None):</p>
+<pre><code>1) Continuous type (those that have some kind of arithmetic value)
+
+2) Discrete events (without value) , where one of the type isolated or configuration or categorical must be assigned
+    A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
+    isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
+    Categorical values can be defined as categorical type
+    Essentially the type of the events define the way that will be transformed to real values time-series.
+</code></pre>
+<p><strong>debug</strong>: If it runs on debug mode</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ContextGenerator:
+
+    def __init__(self, target, context_horizon=&#34;8 hours&#34;,
+                 Causalityfunct=calculate_with_pc,
+                 mapping_functions=None,debug=False):
+        &#34;&#34;&#34;
+        This Class handle the Context Generation. It keeps an internal buffer to build the context for a target series based
+        on the provided context_horizon. All data are passed though the collect_data method, which return a corresponding
+        Context when target data are passed.
+
+
+        **Parameters**:
+
+        **target**: The name of the target source, which will be used as the baseline in order to map different samples
+         rate to that of the target sample rate.
+
+        **context_horizon**: The time period to look back for context data, the form of that parameter is &#34;8 hours&#34;
+
+        **Causalityfunct**: the causality discovery method to use to produce causal relationships between context data,
+            This must be a function with parameters two equal size lists, one with names and the other
+            with data (a list of list or 2D numpy array).
+
+        **mapping_functions**: Dictionary used to associate each type with a mapping function.
+
+        User can use this dictionary to define his own mapping function and types of sources
+
+        Default value None: use default mappers for types: isolated,configuration, categorical and univariate
+
+        Default Sources Types Supported (in case of mapping_functions is None):
+
+            1) Continuous type (those that have some kind of arithmetic value)
+
+            2) Discrete events (without value) , where one of the type isolated or configuration or categorical must be assigned
+                A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
+                isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
+                Categorical values can be defined as categorical type
+                Essentially the type of the events define the way that will be transformed to real values time-series.
+
+        **debug**: If it runs on debug mode
+        &#34;&#34;&#34;
+
+        self.debug = debug
+        self.target = target
+
+        self.contexts = []
+
+        self.causality_discovery = Causalityfunct
+        self.buffer = []
+
+        # helpers
+        self.type_of_series = {}
+        self.horizon = context_horizon.split(&#34; &#34;)[0]
+        if len(context_horizon.split(&#34; &#34;)) == 1:
+            self.horizon_time = &#34;hours&#34;
+        else:
+            if context_horizon.split(&#34; &#34;)[1] in [&#34;days&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;]:
+                self.horizon_time = context_horizon.split(&#34; &#34;)[1]
+            else:
+                assert False, &#34;Time horizon must be either a single number or in form of \&#34;8 hours\&#34; where acceptable time frames are hours,days,minutes,seconds&#34;
+
+        self.horizon = int(self.horizon)
+        self.interpret_history_pos = 0
+        self.context_pos = 0
+        self.default_usage=False
+        if mapping_functions is None:
+            self.default_usage=True
+            self.mapping_functions={
+                &#34;Univariate&#34;:map_univariate_to_continuous(),
+                &#34;isolated&#34;: map_isolated_to_continuous(),
+                &#34;configuration&#34;: map_configuration_to_continuous(),
+                &#34;categorical&#34;:map_categorical_to_continuous()
+            }
+        else:
+            self.mapping_functions=mapping_functions
+
+    def collect_data(self, timestamp, source, name, value=None, type=&#34;Univariate&#34;, replace=[]):
+        &#39;&#39;&#39;
+        This method is used when data are passed iteratively, and stored in buffer
+        When data of target source arrive, a corresponding context is produced.
+        Sources can be of different sample rate (all sources are mapped to the targets sample rate when context is produced)
+
+        Default Sources Supported (in case of mapping_functions is None) :
+
+        1) Continuous type (those that have some kind of arithmetic value)
+
+        2) Discrete events (without value) , where one of the type isolated or configuration or categorical must be assigned
+            A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
+            isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
+            Categorical values can be defined as categorical type
+            Essentially the type of the events define the way that will be transformed to real values time-series.
+
+
+        **Parameters**:
+
+        **timestamp**:  The timestamp of the arrived value
+
+        **source**: The source of the arrived value
+
+        **name**: The name (or identifier) of the arrived value
+
+        **value**: The value (float), in case this is None the arrived data is considered as event
+
+        **type**: the type of the data associated with the mapping function
+
+        **replace**: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
+        when a b event is inserted, it will replace an e event with the same timestamp (if exists).
+
+        **return**:  structure.Context object when the data name match to the target name or None.
+        &#39;&#39;&#39;
+
+        if value is None:
+            if type not in self.mapping_functions.keys():
+                assert False, f&#34;The type must be defined as one of mapping functions types: {self.mapping_functions.keys()} when no value is passed&#34;
+            eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
+        self.add_to_buffer(eventpoint, replace)
+        if self.target == name or self.target == f&#34;{name}@{source}&#34;:
+            contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
+            return contextobject
+        else:
+            return None
+
+    def add_to_buffer(self, e: Eventpoint, replace=None):
+        &#34;&#34;&#34;
+        Adds an Event point to the buffer (keeping the buffer time ordered)
+        &#34;&#34;&#34;
+        if e.type is None:
+            e.type=&#34;Univariate&#34;
+        if replace is None:
+            replace = []
+            index = len(self.buffer)
+            for i in range(len(self.buffer) - 1, 0, -1):
+                if self.buffer[i].timestamp &lt; e.timestamp:
+                    index = i + 1
+                    break
+        else:
+            index = len(self.buffer)
+            for i in range(len(self.buffer) - 1, 0, -1):
+                # check for replacement
+                if self.buffer[i].timestamp == e.timestamp:
+                    for rep in replace:
+                        if self.buffer[i].code == rep[0] and e.code == rep[1]:
+                            self.buffer[i] = e
+                            return
+                    index = i + 1
+                if self.buffer[i].timestamp &lt; e.timestamp:
+                    index = i + 1
+                    break
+        if index == len(self.buffer):
+            self.buffer.append(e)
+        else:
+            self.buffer = self.buffer[: index] + [e] + self.buffer[index:]
+
+    def generate_context(self, e: Eventpoint, buffer):
+        &#34;&#34;&#34;
+        Generate context (and interpretation only when mapping function is the default).
+
+        **Parameters**:
+
+        **e**: Eventpoint related to the last target&#39;s data.
+
+        **buffer**: A list with all Eventpoints in the time horizon
+        &#34;&#34;&#34;
+
+        contextcurrent, target_series_name = self.create_context(e, buffer)
+        if self.default_usage:
+            contextcurrent=self.create_interpretation(contextcurrent, target_series_name)
+        else:
+            contextcurrent.CR[&#34;interpretation&#34;]=[]
+        self.contexts.append(contextcurrent)
+
+        i=0
+        pos=0
+        while self.contexts[i].timestamp &lt; self.contexts[-1].timestamp - pd.Timedelta(self.horizon, self.horizon_time):
+            pos=i
+            i+=1
+        self.contexts=self.contexts[pos:]
+        return contextcurrent
+
+    def create_interpretation(self, contextcurrent: Context, target_series_name):
+        &#34;&#34;&#34;
+        This method collect all the contexts in the horizon and calls the interpretation method.
+
+        **Parameters**:
+
+        **contextcurrent**: The Context for which the interpretation is calculated
+
+        **target_series_name**: Then name of the target variable
+        &#34;&#34;&#34;
+        causeswindow = self.contexts
+        interpr = self.interpret(contextcurrent, causeswindow, target_series_name, self.type_of_series)
+        contextcurrent.CR[&#34;interpretation&#34;] = interpr
+        return contextcurrent
+
+    def interpret(self, context: Context, causeswindow, target, type_of_series):
+        &#34;&#34;&#34;
+        This method enhance the CR part of the Context with interpretation relating to the target variable.
+        The interpretation are based on the edges extracted from the Casualty discovery.
+        For each edge of type (seriesA -&gt; target) in the edges we test if the seriesA interprets
+        the target using the following rules:
+
+        **if seriesA is isolated**: We check if its last occurrence is the current timestamp or the previous one.
+
+        **if seriesA is configuration**: We check if the edges (seriesA -&gt; target) appears
+        in at least 80% contexts in the horizon (i.e. in causeswindow list).
+
+        **if seriesA is continuous**: Then that means the target is related with seriesA
+        and we add it to the interpretation.
+
+        All the interpretations are tagged with a timestamp which refers to the first time
+        of appearense of consecutive interpretations. Then the interpretation are sorted using
+        this timestamp. This is done to provide a hierarchy to the interpretation since it may be the case,
+        that when seriesA cause target , and SeriesB cause target, the oldest one is stronger since the SeriesB may be
+        effect of seriesA.
+
+        **Parameters**:
+
+        **context**: Context Object to be interpreted
+
+        **causeswindow**: list with the last horizon contexts
+
+        **target**: the name of the target variable to interpret
+
+        **type_of_series**: dictionary which define the type of each series (isolated,configuration or continuous)
+        &#34;&#34;&#34;
+
+        pairs = [(pair[0], pair[1], car) for pair, car in zip(context.CR[&#39;edges&#39;], context.CR[&#39;characterization&#39;]) if
+                 target in pair[1]]
+
+        # pairshop2 = []
+        # intermediates=[pair[0] for pair in pairs]
+        # allothes=[pair for pair in context.CD.keys() if pair not in intermediates]
+        #
+        # for inter_pair in intermediates:
+        #     for name in allothes:
+        #         if (name,inter_pair) in context.CR[&#34;edges&#34;]:
+        #             pairshop2.append((name,inter_pair))
+
+        interpretation = []
+        typeconection = []
+        if len(pairs) == 0:
+            return []
+        for pair in pairs:
+            if type_of_series[pair[0]] == &#34;isolated&#34;:
+                values1 = context.CD[pair[0]]
+                if values1[-1] == 1:
+                    interpretation.append((pair[0], pair[1], pair[2], context.timestamp))
+                elif values1[-2] == 1:
+                    temptimestamp = context.timestamp
+                    lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
+                    for interpair in lastcontext.CR[&#34;interpretation&#34;]:
+                        if interpair[0] == pair[0] and interpair[1] == pair[1]:
+                            temptimestamp = interpair[3]
+                    interpretation.append((pair[0], pair[1], pair[2], temptimestamp))
+            elif type_of_series[pair[0]] == &#34;configuration&#34;:
+                values1 = context.CD[pair[0]]
+                occurence = 0
+                for q in range(len(values1)):
+                    if values1[q] == values1[-1] and values1[q] &gt; 0:
+                        occurence = q
+                        break
+                if occurence == len(values1) - 1:
+                    interpretation.append((pair[0], pair[1], pair[2], context.timestamp))
+                else:
+                    lead = len(values1) - occurence
+                    counter = 0
+                    leadcontext = causeswindow[-lead:]
+                    for conte in leadcontext:
+                        try:
+                            pos = list(conte.CR[&#34;edges&#34;]).index((pair[0], pair[1]))
+                        except:
+                            pos = -1
+                        if pos != -1:
+                            if conte.CR[&#34;characterization&#34;][pos] == pair[2]:
+                                counter += 1
+                    if counter &gt;= 0.8 * lead:
+                        temptimestamp = context.timestamp
+                        lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
+                        for interpair in lastcontext.CR[&#34;interpretation&#34;]:
+                            if interpair[0] == pair[0] and interpair[1] == pair[1]:
+                                temptimestamp = interpair[3]
+                        interpretation.append((pair[0], pair[1], pair[2], temptimestamp))
+            # for real value series
+            elif len(set(context.CD[pair[0]])) &gt; 2:
+                temptimestamp = context.timestamp
+                lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
+                for interpair in lastcontext.CR[&#34;interpretation&#34;]:
+                    if interpair[0] == pair[0] and interpair[1] == pair[1]:
+                        temptimestamp = interpair[3]
+                interpretation.append((pair[0], pair[1], pair[2], temptimestamp))
+                continue
+        # sort with time
+        finterpret = []
+        for pair in interpretation:
+            finterpret.append((pair[0], pair[1], pair[2], pair[3]))
+        finterpret.sort(key=lambda tup: tup[3])  # sorts in place
+        return finterpret
+
+    def create_context(self, current: Eventpoint, buffer):
+        &#34;&#34;&#34;
+        Transform the data collected to the buffer in to suitable form and generates the CD part of the context along with
+        the edges and characterizations:
+
+        **Steps:**
+
+        **Create CD**: Parallel continuous representations of all different sources in the buffer.
+        This step involves, matching the different sample rates of different sources to that of the target.
+        Transform the Event sources to continuous representation.
+
+        **Calculate Causality edges**: Perform Causal Discovery using the causality function, to create edges
+        (part of CR of the Context)
+
+        **Tag each edge with characterization**: for each (a,b) in the edges, a characterization of (unknown, decrease,
+         increase), based on the type of the a.
+
+         **Parameters**:
+
+         **current**: The current Event of target&#39;s data which triger the context creation
+
+         **buffer**: ordered list with Eventpoint of all sources.
+
+         **return**: Context object.
+        &#34;&#34;&#34;
+        # start = time.time()
+        # df with ,dt,code,source,value
+
+        # Keep only last horizon events
+        last = self.buffer[-1]
+        pos = len(self.buffer) - 1
+        for i in range(len(self.buffer)):
+            if self.buffer[i].timestamp &gt;= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
+                pos = i
+                break
+        self.buffer = self.buffer[pos:]
+
+        # end=time.time()
+        # print(f&#34;find position on buffer: {end-start}&#34;)
+
+        # start = time.time()
+        dataforcontext = buffer
+        datatodf = [[pd.to_datetime(e.timestamp) for e in dataforcontext],
+                    [str(e.code) for e in dataforcontext],
+                    [str(e.source) for e in dataforcontext],
+                    [e.details for e in dataforcontext],
+                    [e.type for e in dataforcontext]]
+
+        npcontext = np.array(datatodf)
+        npcontext = npcontext.T
+
+        npcontext = self.Numpy_preproccess(npcontext)
+
+        # end = time.time()
+        # print(f&#34;preprocess df: {end - start}&#34;)
+        ############# create context ############################
+        # start = time.time()
+        ## collect uniqeu data series
+        # allcodes = df[&#39;code&#39;].unique()
+        allcodes = np.unique(npcontext[:, 1])
+        allcodes = [code for code in allcodes]
+        allcodes = set(allcodes)
+
+        for uncode in allcodes:
+            for qq in range(len(npcontext)):
+                if uncode in npcontext[qq][1]:
+                    self.type_of_series[uncode] = npcontext[qq][4]
+                    break
+
+        ## build target series
+        target_series_name, target_series = self.build_target_series_for_context(current, npcontext)
+
+        ## create series for each source (alldata)
+        alldata = self.create_continuous_representation(target_series_name, target_series, npcontext,
+                                                        self.type_of_series, allcodes,self.mapping_functions)
+        # end = time.time()
+        # print(f&#34;Create series: {end-start}&#34;)
+
+        storing = self.calculate_edges(alldata, current.timestamp)
+        storing[&#34;characterization&#34;] = self.get_characterization(storing)
+
+        # print(f&#34;Calculate edges: {end - start}&#34;)
+        # print(&#34;========================&#34;)
+
+        contextpbject = Context.context_from_dict(storing)
+        return contextpbject, target_series_name
+
+    def get_characterization(self, context):
+        &#34;&#34;&#34;
+        This method calculate the characterizations of (a,b) edges to characterize the influence of a in b by one of the
+        three characterizations: unknown, decrease, increase.
+
+        The characterization is calculated differently for event and continuous data.
+        **Parameters**:
+
+        **context**: dictionary with a kye &#39;edges&#39; for which a parallel list of characterizations will be created.
+        &#34;&#34;&#34;
+        edges = context[&#34;edges&#34;]
+        characterizations = []
+        for edge in edges:
+            if self.target in edge[0]:
+                char = self.characterize_event_continuous(context, edge)
+            elif self.type_of_series[edge[0]] == &#34;isolation&#34; or self.type_of_series[edge[0]] == &#34;configuration&#34;:
+                char = self.characterize_event_edge(context, edge)
+            else:
+                char = self.characterize_event_continuous(context, edge)
+            characterizations.append(char)
+        return characterizations
+
+    def characterize_event_edge(self, context, edge):
+        &#34;&#34;&#34;
+        This method characterizes the edge (a,b) when a is isolated or configuration event.
+        To do this, it detects the last occurrence of a and split the data of series a and series b based on that.
+        Then checks if the median of b after the occurrence is at larger than the median b before
+        plus two times the standard deviation of b series before the occurrence.
+        If that is true then is characterized as increase. Else it is checked for the opposite, (if it is smaller
+        for at least 2 times the standard deviation of b) and characterized as decrease. Otherwise, is characterized as
+         unknown.
+
+        **Parameters**:
+
+        **context**: that the edge to be characterized belongs.
+
+        **edge**: A tuple (a,b) where a is isolated or configuration event.
+
+        **return**: A characterization for the edge (unknown, decrease or increase)
+        &#34;&#34;&#34;
+        name1 = edge[0]
+        name2 = edge[1]
+        values1 = context[name1]
+        values2 = [float(kati) for kati in context[name2]]
+
+        occurence = len(values1) - 1
+        for i in range(len(values1) - 2, 0, -1):
+            if values1[i] != values1[-1]:
+                occurence = i + 1
+                break
+        previusoccurence = 0
+        for i in range(occurence - 2, 0, -1):
+            if values1[i] != values1[occurence - 1]:
+                previusoccurence = i
+
+        if occurence - previusoccurence &lt; 2:  # or len(values2)-occurence&lt;2:
+            return &#34;unknown&#34;
+        values2before = values2[previusoccurence:occurence]
+        # stdv = statistics.stdev(values2before)
+        # mean = statistics.stdev(values2before)
+        # values2before=[v if v&lt;mean+5*stdv else mean for v in values2before]
+
+        # values2after=values2[occurence:]
+        values2after = [values2[-1]]
+        # stdv = statistics.stdev(values2after)
+        # mean = statistics.stdev(values2after)
+        # values2after = [v if v &lt; mean + 3 * stdv else mean for v in values2after]
+
+        stdv = statistics.stdev(values2before)
+        if len(values2before) == 0:
+            char = &#34;unknown&#34;
+        elif statistics.median(values2before) - statistics.median(values2after) &gt; 2 * stdv:
+            char = &#34;decrease&#34;
+        elif statistics.median(values2after) - statistics.median(values2before) &gt; 2 * stdv:
+            char = &#34;increase&#34;
+        else:
+            char = &#34;unknown&#34;
+        return char
+
+    def characterize_event_continuous(self, context, edge):
+        &#34;&#34;&#34;
+            This method characterizes the edge (a,b) when a is continuous.
+            To do this, the delta between the timestamps of the series b is calculated
+            (i.e. the difference between current and next timestamps). If the summ of the deltas between b series data, is
+            greater than 2 times the standard deviation of the b, then the increase characterization is returned. If the sum
+            is lower than 2 times the standard deviation the decreased characterization is returned. Otherwise, the unknown
+            characterization is returned.
+
+            **Parameters**:
+
+            **context**: that the edge to be characterized belongs.
+
+            **edge**: A tuple (a,b) where a is isolated or configuration event.
+
+            **return**: A characterization for the edge (unknown, decrease or increase)
+        &#34;&#34;&#34;
+        name1 = edge[0]
+        name2 = edge[1]
+        values1 = [float(kati) for kati in context[name1]]
+        values2 = [float(kati) for kati in context[name2]]
+
+        prev = values2[0]
+        diff = 0
+        for v in values2[1:]:
+            diff += (v - prev)
+
+        if len(values2) == 0:
+            char = &#34;unknown&#34;
+        stdv = statistics.stdev(values2)
+        if diff &gt; 2 * stdv:
+            char = &#34;increase&#34;
+        elif diff &lt; -2 * stdv:
+            char = &#34;decrease&#34;
+        else:
+            char = &#34;unknown&#34;
+        return char
+
+    def calculate_edges(self, alldata, timestamp):
+        &#34;&#34;&#34;
+        Formulate the data in appropriate form to call self.calculate_causality
+        which return the edges for the context.
+
+        **Parameters**:
+
+        **alldata**: a 2D numpy array with all series data (equivalent to the CD of the Context)
+
+        **timestamp**: timestamp of the context from which the edges are calculated.
+
+        **return**: a dictionary with &#39;edges&#39; key (containing the calculated edges after Causality discovery).
+        &#34;&#34;&#34;
+        # start = time.time()
+        storing = {}
+        storing[&#34;timestamp&#34;] = timestamp
+
+        alldata_names = [nn[0] for nn in alldata]
+        alldata_data = [nn[1] for nn in alldata]
+
+        for namedd, datadd in zip(alldata_names, alldata_data):
+            storing[namedd] = datadd
+
+        # For context with more than two series calculate PC casualities
+        count = len([1 for lista in alldata_data if lista is not None and len(set(lista)) &gt; 1])
+        if count &gt; 1 and len(alldata[0][1]) &gt; 5:
+            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
+            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
+
+            # end = time.time()
+            # print(f&#34;before {end - start}&#34;)
+            # start=time.time()
+
+            edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+            # end=time.time()
+            # print(f&#34;actual edge calculation {end-start}&#34;)
+            if edges is None:
+                singleedges = []
+            else:
+                singleedges = edges
+            # print(edges)
+            storing[&#34;edges&#34;] = singleedges
+            return storing
+        storing[&#34;edges&#34;] = []
+        return storing
+
+    def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes,mapping_functions):
+        &#34;&#34;&#34;
+        This method handles the creation of continuous representation for all type of sources observed in context,
+        and is the first part for creating the CD of the context.
+
+        Based on the type of each source, call the appropriate method to create the continuous representaiton.
+
+        **Parameters**:
+
+        **target_series_name**: The name of the target series.
+
+        **target_series**: Used to align sample rate.
+
+        **type_of_series**: A dictionary to define the type of the different sources (the type can be Isolated, Configuration, Categorical and Univariate).
+
+        **allcodes**: Contain all the names for the sources we want to build the context.
+
+        **mapping_functions**: Dictionary used to associate each type with a mapping function.
+
+        **return**: The CD part of the context.
+        &#34;&#34;&#34;
+
+        windowvalues = df  # .values
+        alldata = []
+        alldata.append((target_series_name, [tag[0] for tag in target_series]))
+        for name in allcodes:
+            # already calculated in targetseries.
+            if target_series_name in name:
+                continue
+
+            # detect the occurancies
+            occurrences = [(value, time) for code, value, time in
+                           zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if name in code]
+
+            vector = [0 for i in range(len(target_series))]
+            if len(occurrences) == 0:
+                vector = [0 for i in range(len(target_series))]
+                if max(vector) == 0 and min(vector) == 0:
+                    vector = None
+                alldata.append((name, vector))
+            elif type_of_series[name] in mapping_functions.keys():
+                mapper = mapping_functions[type_of_series[name]]
+                vectors, names = mapper.map(target_series, occurrences, name)
+                for in_vector, new_name in zip(vectors, names):
+                    if max(in_vector) == 0 and min(in_vector) == 0:
+                        vector = None
+                    else:
+                        vector = in_vector
+                    if new_name not in self.type_of_series.keys():
+                        self.type_of_series[new_name] = &#34;configuration&#34;
+                    alldata.append((new_name, vector))
+            else:
+                assert False,f&#34; No mapping function defined for type {type_of_series[name]}&#34;
+
+        return alldata
+
+
+
+
+    def build_target_series_for_context(self, current: Eventpoint, df: np.ndarray):
+        target_series_name = current.code
+        windowvalues = df  # .values
+        target_series = [(value, time) for code, value, time in
+                         zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if target_series_name in code]
+
+        return target_series_name, target_series
+
+    def Numpy_preproccess(self, npcontext):
+        npcontext = np.where(npcontext == &#34;nan&#34;, None, npcontext)
+
+        mask = [(&#39;0_&#39; in code and value is None) for code, value in zip(npcontext[:, 1], npcontext[:, 3])]
+
+        # if isinstance(mask,collections.abc.Sequence)==False:
+        #     mask=[mask]
+        npcontext[mask, 3] = 0
+        mask = [(&#39;1_&#39; in code and value is None) for code, value in zip(npcontext[:, 1], npcontext[:, 3])]
+        npcontext[mask, 3] = 1
+        code_with_source = [f&#34;{code}{source}&#34; if source[0] == &#34;@&#34; else f&#34;{code}@{source}&#34; for code, source in
+                            zip(npcontext[:, 1], npcontext[:, 2])]
+        npcontext[:, 1] = code_with_source
+
+        return npcontext
+
+
+
+    def calculate_causality(self, dataor, names):
+        num_time_series = len(dataor)
+        data = np.array(dataor)
+        edges = self.causality_discovery(names, data)
+        # edges=self.calculatewithPc(names,data)
+        # edges=self.calculatewith_fci(names,data)
+        # edges=self.salesforcePC(names,data)
+        return edges
+
+    def plot(self,contexts, filteredges=None):
+        if filteredges is None:
+            filteredges = [[&#34;&#34;, &#34;&#34;, &#34;&#34;]]
+        show_context_list(contexts, self.target, filteredges=filteredges)
+
+    def plot_interpretation(self,contexts, filteredges=None):
+        if filteredges is None:
+            filteredges = [[&#34;&#34;, &#34;&#34;, &#34;&#34;]]
+        show_context_interpretations(contexts, self.target, filteredges=filteredges)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.Numpy_preproccess"><code class="name flex">
+<span>def <span class="ident">Numpy_preproccess</span></span>(<span>self, npcontext)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.add_to_buffer"><code class="name flex">
+<span>def <span class="ident">add_to_buffer</span></span>(<span>self, e: <a title="PdmContext.utils.structure.Eventpoint" href="utils/structure.html#PdmContext.utils.structure.Eventpoint">Eventpoint</a>, replace=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds an Event point to the buffer (keeping the buffer time ordered)</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.build_target_series_for_context"><code class="name flex">
+<span>def <span class="ident">build_target_series_for_context</span></span>(<span>self, current: <a title="PdmContext.utils.structure.Eventpoint" href="utils/structure.html#PdmContext.utils.structure.Eventpoint">Eventpoint</a>, df: numpy.ndarray)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.calculate_causality"><code class="name flex">
+<span>def <span class="ident">calculate_causality</span></span>(<span>self, dataor, names)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.calculate_edges"><code class="name flex">
+<span>def <span class="ident">calculate_edges</span></span>(<span>self, alldata, timestamp)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Formulate the data in appropriate form to call self.calculate_causality
+which return the edges for the context.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>alldata</strong>: a 2D numpy array with all series data (equivalent to the CD of the Context)</p>
+<p><strong>timestamp</strong>: timestamp of the context from which the edges are calculated.</p>
+<p><strong>return</strong>: a dictionary with 'edges' key (containing the calculated edges after Causality discovery).</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.characterize_event_continuous"><code class="name flex">
+<span>def <span class="ident">characterize_event_continuous</span></span>(<span>self, context, edge)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method characterizes the edge (a,b) when a is continuous.
+To do this, the delta between the timestamps of the series b is calculated
+(i.e. the difference between current and next timestamps). If the summ of the deltas between b series data, is
+greater than 2 times the standard deviation of the b, then the increase characterization is returned. If the sum
+is lower than 2 times the standard deviation the decreased characterization is returned. Otherwise, the unknown
+characterization is returned.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>context</strong>: that the edge to be characterized belongs.</p>
+<p><strong>edge</strong>: A tuple (a,b) where a is isolated or configuration event.</p>
+<p><strong>return</strong>: A characterization for the edge (unknown, decrease or increase)</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.characterize_event_edge"><code class="name flex">
+<span>def <span class="ident">characterize_event_edge</span></span>(<span>self, context, edge)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method characterizes the edge (a,b) when a is isolated or configuration event.
+To do this, it detects the last occurrence of a and split the data of series a and series b based on that.
+Then checks if the median of b after the occurrence is at larger than the median b before
+plus two times the standard deviation of b series before the occurrence.
+If that is true then is characterized as increase. Else it is checked for the opposite, (if it is smaller
+for at least 2 times the standard deviation of b) and characterized as decrease. Otherwise, is characterized as
+unknown.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>context</strong>: that the edge to be characterized belongs.</p>
+<p><strong>edge</strong>: A tuple (a,b) where a is isolated or configuration event.</p>
+<p><strong>return</strong>: A characterization for the edge (unknown, decrease or increase)</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.collect_data"><code class="name flex">
+<span>def <span class="ident">collect_data</span></span>(<span>self, timestamp, source, name, value=None, type='Univariate', replace=[])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method is used when data are passed iteratively, and stored in buffer
+When data of target source arrive, a corresponding context is produced.
+Sources can be of different sample rate (all sources are mapped to the targets sample rate when context is produced)</p>
+<p>Default Sources Supported (in case of mapping_functions is None) :</p>
+<p>1) Continuous type (those that have some kind of arithmetic value)</p>
+<p>2) Discrete events (without value) , where one of the type isolated or configuration or categorical must be assigned
+A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
+isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
+Categorical values can be defined as categorical type
+Essentially the type of the events define the way that will be transformed to real values time-series.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>timestamp</strong>:
+The timestamp of the arrived value</p>
+<p><strong>source</strong>: The source of the arrived value</p>
+<p><strong>name</strong>: The name (or identifier) of the arrived value</p>
+<p><strong>value</strong>: The value (float), in case this is None the arrived data is considered as event</p>
+<p><strong>type</strong>: the type of the data associated with the mapping function</p>
+<p><strong>replace</strong>: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
+when a b event is inserted, it will replace an e event with the same timestamp (if exists).</p>
+<p><strong>return</strong>:
+structure.Context object when the data name match to the target name or None.</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.create_context"><code class="name flex">
+<span>def <span class="ident">create_context</span></span>(<span>self, current: <a title="PdmContext.utils.structure.Eventpoint" href="utils/structure.html#PdmContext.utils.structure.Eventpoint">Eventpoint</a>, buffer)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transform the data collected to the buffer in to suitable form and generates the CD part of the context along with
+the edges and characterizations:</p>
+<p><strong>Steps:</strong></p>
+<p><strong>Create CD</strong>: Parallel continuous representations of all different sources in the buffer.
+This step involves, matching the different sample rates of different sources to that of the target.
+Transform the Event sources to continuous representation.</p>
+<p><strong>Calculate Causality edges</strong>: Perform Causal Discovery using the causality function, to create edges
+(part of CR of the Context)</p>
+<p><strong>Tag each edge with characterization</strong>: for each (a,b) in the edges, a characterization of (unknown, decrease,
+increase), based on the type of the a.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>current</strong>: The current Event of target's data which triger the context creation</p>
+<p><strong>buffer</strong>: ordered list with Eventpoint of all sources.</p>
+<p><strong>return</strong>: Context object.</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.create_continuous_representation"><code class="name flex">
+<span>def <span class="ident">create_continuous_representation</span></span>(<span>self, target_series_name, target_series, df, type_of_series, allcodes, mapping_functions)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method handles the creation of continuous representation for all type of sources observed in context,
+and is the first part for creating the CD of the context.</p>
+<p>Based on the type of each source, call the appropriate method to create the continuous representaiton.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series_name</strong>: The name of the target series.</p>
+<p><strong>target_series</strong>: Used to align sample rate.</p>
+<p><strong>type_of_series</strong>: A dictionary to define the type of the different sources (the type can be Isolated, Configuration, Categorical and Univariate).</p>
+<p><strong>allcodes</strong>: Contain all the names for the sources we want to build the context.</p>
+<p><strong>mapping_functions</strong>: Dictionary used to associate each type with a mapping function.</p>
+<p><strong>return</strong>: The CD part of the context.</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.create_interpretation"><code class="name flex">
+<span>def <span class="ident">create_interpretation</span></span>(<span>self, contextcurrent: <a title="PdmContext.utils.structure.Context" href="utils/structure.html#PdmContext.utils.structure.Context">Context</a>, target_series_name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method collect all the contexts in the horizon and calls the interpretation method.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>contextcurrent</strong>: The Context for which the interpretation is calculated</p>
+<p><strong>target_series_name</strong>: Then name of the target variable</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.generate_context"><code class="name flex">
+<span>def <span class="ident">generate_context</span></span>(<span>self, e: <a title="PdmContext.utils.structure.Eventpoint" href="utils/structure.html#PdmContext.utils.structure.Eventpoint">Eventpoint</a>, buffer)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate context (and interpretation only when mapping function is the default).</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>e</strong>: Eventpoint related to the last target's data.</p>
+<p><strong>buffer</strong>: A list with all Eventpoints in the time horizon</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.get_characterization"><code class="name flex">
+<span>def <span class="ident">get_characterization</span></span>(<span>self, context)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method calculate the characterizations of (a,b) edges to characterize the influence of a in b by one of the
+three characterizations: unknown, decrease, increase.</p>
+<p>The characterization is calculated differently for event and continuous data.
+<strong>Parameters</strong>:</p>
+<p><strong>context</strong>: dictionary with a kye 'edges' for which a parallel list of characterizations will be created.</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.interpret"><code class="name flex">
+<span>def <span class="ident">interpret</span></span>(<span>self, context: <a title="PdmContext.utils.structure.Context" href="utils/structure.html#PdmContext.utils.structure.Context">Context</a>, causeswindow, target, type_of_series)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method enhance the CR part of the Context with interpretation relating to the target variable.
+The interpretation are based on the edges extracted from the Casualty discovery.
+For each edge of type (seriesA -&gt; target) in the edges we test if the seriesA interprets
+the target using the following rules:</p>
+<p><strong>if seriesA is isolated</strong>: We check if its last occurrence is the current timestamp or the previous one.</p>
+<p><strong>if seriesA is configuration</strong>: We check if the edges (seriesA -&gt; target) appears
+in at least 80% contexts in the horizon (i.e. in causeswindow list).</p>
+<p><strong>if seriesA is continuous</strong>: Then that means the target is related with seriesA
+and we add it to the interpretation.</p>
+<p>All the interpretations are tagged with a timestamp which refers to the first time
+of appearense of consecutive interpretations. Then the interpretation are sorted using
+this timestamp. This is done to provide a hierarchy to the interpretation since it may be the case,
+that when seriesA cause target , and SeriesB cause target, the oldest one is stronger since the SeriesB may be
+effect of seriesA.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>context</strong>: Context Object to be interpreted</p>
+<p><strong>causeswindow</strong>: list with the last horizon contexts</p>
+<p><strong>target</strong>: the name of the target variable to interpret</p>
+<p><strong>type_of_series</strong>: dictionary which define the type of each series (isolated,configuration or continuous)</p></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.plot"><code class="name flex">
+<span>def <span class="ident">plot</span></span>(<span>self, contexts, filteredges=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGenerator.plot_interpretation"><code class="name flex">
+<span>def <span class="ident">plot_interpretation</span></span>(<span>self, contexts, filteredges=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch"><code class="flex name class">
+<span>class <span class="ident">ContextGeneratorBatch</span></span>
+<span>(</span><span>df_data, target, type_of_series, context_horizon='8 hours', Causalityfunct=&lt;function calculate_with_pc&gt;, debug=False, file_path=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This version doesn't support interpretation and is created for faster experiments using Context.</p>
+<p><strong>df_data</strong> The data to consider in context in form of Data Frame.</p>
+<p><strong> target</strong> The name of the target source, which will be used as the baseline in order to map different samples</p>
+<p><strong>type_of_series</strong>: dictionary which define the type of each series (isolated,configuration or continuous)
+rate to that of the target sample rate.</p>
+<p><strong>context_horizon</strong> The time period to look back for context data, the form of that parameter is "8 hours"</p>
+<p><strong>Causalityfunct</strong> the causality discovery method to use to produce causal relationships between context data,
+This must be a function with parameters two equal size lists, one with names and the other
+with data (a list of list or 2D numpy array).</p>
+<p><strong>debug</strong> If it runs on debug mode</p>
+<p><strong>file_path</strong> Store the results of context in pickle file, considered only when it is not None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ContextGeneratorBatch():
+    def __init__(self,df_data,target,type_of_series,context_horizon=&#34;8 hours&#34;,Causalityfunct=calculate_with_pc,debug=False,file_path=None):
+        &#34;&#34;&#34;
+        This version doesn&#39;t support interpretation and is created for faster experiments using Context.
+
+        **df_data** The data to consider in context in form of Data Frame.
+
+        ** target** The name of the target source, which will be used as the baseline in order to map different samples
+
+        **type_of_series**: dictionary which define the type of each series (isolated,configuration or continuous)
+         rate to that of the target sample rate.
+
+        **context_horizon** The time period to look back for context data, the form of that parameter is &#34;8 hours&#34;
+
+        **Causalityfunct** the causality discovery method to use to produce causal relationships between context data,
+            This must be a function with parameters two equal size lists, one with names and the other
+            with data (a list of list or 2D numpy array).
+
+        **debug** If it runs on debug mode
+
+        **file_path** Store the results of context in pickle file, considered only when it is not None.
+        &#34;&#34;&#34;
+
+        self.file_path=file_path
+        self.debug=debug
+        self.target=target
+        self.df_data=df_data
+
+
+        self.contexts=self._load_contexts()
+
+        self.causality_discovery=Causalityfunct
+        self.buffer=[]
+
+
+        #helpers
+        self.type_of_series = type_of_series
+        self.horizon = context_horizon.split(&#34; &#34;)[0]
+        if len(context_horizon.split(&#34; &#34;)) == 1:
+            self.horizon_time = &#34;hours&#34;
+        else:
+            if context_horizon.split(&#34; &#34;)[1] in [&#34;days&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;]:
+                self.horizon_time = context_horizon.split(&#34; &#34;)[1]
+            else:
+                assert False, &#34;Time horizon must be either a single number or in form of \&#34;8 hours\&#34; where acceptable time frames are hours,days,minutes,seconds&#34;
+
+        self.horizon = int(self.horizon)
+
+
+        self.interpret_history_pos = 0
+        self.context_pos = 0
+
+
+    def generate_context(self,datetime_index):
+        contextpbject, target_series_name,time_index=self.create_context(datetime_index)
+
+        self.contexts[time_index]=contextpbject
+
+        return contextpbject
+
+    def _save_contexts(self):
+        if self.file_path is None:
+            return
+        with open(self.file_path, &#39;wb&#39;) as f:
+            pickle.dump(self.contexts, f)
+
+    def _load_contexts(self):
+        if self.file_path is None:
+            return {}
+
+        my_file = Path(self.file_path)
+        if my_file.is_file():
+            with open(self.file_path, &#39;rb&#39;) as f:
+                return pickle.load(f)
+        else:
+            return  {}
+    def create_context(self, datetime_index):
+
+        start_index = datetime_index - pd.Timedelta(self.horizon, self.horizon_time)
+
+        context=self.df_data.loc[start_index:datetime_index]
+
+        allcodes = np.unique(self.df_data.columns)
+        allcodes = [code for code in allcodes]
+        allcodes = set(allcodes)
+
+        ## build target series
+        target_series_name= self.target
+        target_series=context[self.target].values
+
+        ## create series for each source (alldata)
+        alldata = []
+        for col in context.columns:
+            alldata.append((col, context[col].values))
+        # end = time.time()
+        # print(f&#34;Create series: {end-start}&#34;)
+
+        storing = self.calculate_edges(alldata, context.index[-1])
+        storing[&#34;characterization&#34;] = self.getcaracterize(storing)
+
+        # print(f&#34;Calculate edges: {end - start}&#34;)
+        # print(&#34;========================&#34;)
+
+        contextpbject = Context.context_from_dict(storing)
+        return contextpbject, target_series_name,context.index[-1]
+
+    def calculate_edges(self,alldata, timestamp):
+        #start = time.time()
+        storing = {}
+        storing[&#34;timestamp&#34;] = timestamp
+
+        alldata_names = [nn[0] for nn in alldata]
+        alldata_data = [nn[1] for nn in alldata]
+
+        for namedd, datadd in zip(alldata_names, alldata_data):
+            storing[namedd] = datadd
+        alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
+        alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) &gt; 1]
+        # For context with more than two series calculate PC casualities
+        count = len([1 for lista in alldata_data if lista is not None])
+        if count &gt; 1:
+            if len(alldata[0][1]) &gt; 5:
+                # alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+                # alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1]))&gt;1]
+
+                #end = time.time()
+                #print(f&#34;before {end - start}&#34;)
+                #start=time.time()
+
+                if len(alldata) &lt;= 1:
+                    edges = []
+                else:
+                    edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+                #end=time.time()
+                #print(f&#34;actual edge calculation {end-start}&#34;)
+                if edges is None:
+                    singleedges = []
+                else:
+                    singleedges = edges
+                # print(edges)
+                storing[&#34;edges&#34;] = singleedges
+                return storing
+        storing[&#34;edges&#34;] = []
+        return storing
+
+    def calculate_causality(self, dataor, names):
+        num_time_series = len(dataor)
+        data = np.array(dataor)
+        edges = self.causality_discovery(names, data)
+        # edges=self.calculatewithPc(names,data)
+        # edges=self.calculatewith_fci(names,data)
+        # edges=self.salesforcePC(names,data)
+        return edges
+    def getcaracterize(self,context):
+        edges = context[&#34;edges&#34;]
+        characterizations = []
+        for edge in edges:
+            name1 = edge[0]
+            name2 = edge[1]
+            values1 = context[name1]
+            values2 = [float(kati) for kati in context[name2]]
+
+            occurence=len(values1)-1
+            for i in range(len(values1)-2,0,-1):
+                if values1[i] != values1[-1]:
+                    occurence = i+1
+                    break
+            previusoccurence = 0
+            for i in range(occurence-2,0,-1):
+                if values1[i] !=  values1[occurence-1]:
+                    previusoccurence = i
+
+            if occurence - previusoccurence &lt; 2:  # or len(values2)-occurence&lt;2:
+                characterizations.append(&#34;uknown&#34;)
+                continue
+            values2before = values2[previusoccurence:occurence]
+            # stdv = statistics.stdev(values2before)
+            # mean = statistics.stdev(values2before)
+            # values2before=[v if v&lt;mean+5*stdv else mean for v in values2before]
+
+            # values2after=values2[occurence:]
+            values2after = [values2[-1]]
+            # stdv = statistics.stdev(values2after)
+            # mean = statistics.stdev(values2after)
+            # values2after = [v if v &lt; mean + 3 * stdv else mean for v in values2after]
+
+            stdv = statistics.stdev(values2before)
+            if len(values2before) == 0:
+                char = &#34;uknown&#34;
+            elif statistics.median(values2before) - statistics.median(values2after) &gt; 2 * stdv:
+                char = &#34;decrease&#34;
+            elif statistics.median(values2after) - statistics.median(values2before) &gt; 2 * stdv:
+                char = &#34;increase&#34;
+            else:
+                char = &#34;uknown&#34;
+            characterizations.append(char)
+        return characterizations
+
+
+    def __del__(self):
+        if self.file_path is None:
+            return
+        my_file = Path(self.file_path)
+        if my_file.is_file():
+            return
+        else:
+            self._save_contexts()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_causality"><code class="name flex">
+<span>def <span class="ident">calculate_causality</span></span>(<span>self, dataor, names)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_edges"><code class="name flex">
+<span>def <span class="ident">calculate_edges</span></span>(<span>self, alldata, timestamp)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.create_context"><code class="name flex">
+<span>def <span class="ident">create_context</span></span>(<span>self, datetime_index)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.generate_context"><code class="name flex">
+<span>def <span class="ident">generate_context</span></span>(<span>self, datetime_index)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="PdmContext.ContextGeneration.ContextGeneratorBatch.getcaracterize"><code class="name flex">
+<span>def <span class="ident">getcaracterize</span></span>(<span>self, context)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="PdmContext" href="index.html">PdmContext</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="PdmContext.ContextGeneration.ContextGenerator" href="#PdmContext.ContextGeneration.ContextGenerator">ContextGenerator</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.Numpy_preproccess" href="#PdmContext.ContextGeneration.ContextGenerator.Numpy_preproccess">Numpy_preproccess</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.add_to_buffer" href="#PdmContext.ContextGeneration.ContextGenerator.add_to_buffer">add_to_buffer</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.build_target_series_for_context" href="#PdmContext.ContextGeneration.ContextGenerator.build_target_series_for_context">build_target_series_for_context</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.calculate_causality" href="#PdmContext.ContextGeneration.ContextGenerator.calculate_causality">calculate_causality</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.calculate_edges" href="#PdmContext.ContextGeneration.ContextGenerator.calculate_edges">calculate_edges</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.characterize_event_continuous" href="#PdmContext.ContextGeneration.ContextGenerator.characterize_event_continuous">characterize_event_continuous</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.characterize_event_edge" href="#PdmContext.ContextGeneration.ContextGenerator.characterize_event_edge">characterize_event_edge</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.collect_data" href="#PdmContext.ContextGeneration.ContextGenerator.collect_data">collect_data</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.create_context" href="#PdmContext.ContextGeneration.ContextGenerator.create_context">create_context</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.create_continuous_representation" href="#PdmContext.ContextGeneration.ContextGenerator.create_continuous_representation">create_continuous_representation</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.create_interpretation" href="#PdmContext.ContextGeneration.ContextGenerator.create_interpretation">create_interpretation</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.generate_context" href="#PdmContext.ContextGeneration.ContextGenerator.generate_context">generate_context</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.get_characterization" href="#PdmContext.ContextGeneration.ContextGenerator.get_characterization">get_characterization</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.interpret" href="#PdmContext.ContextGeneration.ContextGenerator.interpret">interpret</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.plot" href="#PdmContext.ContextGeneration.ContextGenerator.plot">plot</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGenerator.plot_interpretation" href="#PdmContext.ContextGeneration.ContextGenerator.plot_interpretation">plot_interpretation</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch" href="#PdmContext.ContextGeneration.ContextGeneratorBatch">ContextGeneratorBatch</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_causality" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_causality">calculate_causality</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_edges" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.calculate_edges">calculate_edges</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.create_context" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.create_context">create_context</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.generate_context" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.generate_context">generate_context</a></code></li>
+<li><code><a title="PdmContext.ContextGeneration.ContextGeneratorBatch.getcaracterize" href="#PdmContext.ContextGeneration.ContextGeneratorBatch.getcaracterize">getcaracterize</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.1</a>.</p>
+</footer>
+</body>
+</html>
