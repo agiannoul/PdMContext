@@ -9,9 +9,6 @@ from PdmContext.utils.mapping_functions import map_categorical_to_continuous, ma
 from pathlib import Path
 import pickle
 
-from jedi.plugins.django import mapping
-
-
 class ContextGeneratorBatch():
     def __init__(self,df_data,target,type_of_series,context_horizon="8 hours",Causalityfunct=calculate_with_pc,debug=False,file_path=None):
         """
@@ -554,12 +551,11 @@ class ContextGenerator:
                 break
         self.buffer = self.buffer[pos:]
 
-        self.context_pos = pos
         # end=time.time()
         # print(f"find position on buffer: {end-start}")
 
         # start = time.time()
-        dataforcontext = buffer[pos:]
+        dataforcontext = buffer
         datatodf = [[pd.to_datetime(e.timestamp) for e in dataforcontext],
                     [str(e.code) for e in dataforcontext],
                     [str(e.source) for e in dataforcontext],
