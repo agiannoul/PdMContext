@@ -48,7 +48,6 @@ class simulate_stream():
             times = series[1]
             values = series[2]
             type = series[3]
-            print("HEY")
             for dtt,val in zip(times, values):
                 dict_df["dt"].append(dtt)
                 dict_df["name"].append(name)
@@ -118,4 +117,4 @@ def simulate_from_df(df: pd.DataFrame, eventTypes: [(str, str)], target_name: st
     timeseries = []
     for col in dfn.columns:
         timeseries.append((col, dfn[col].values, [dt for dt in dfn.index]))
-    return simulate_stream(TimeSeries=timeseries, Events=Events, targetname=target_name)
+    return simulate_stream(TimeSeries=timeseries, Events=Events,Categoricals=[], targetname=target_name)

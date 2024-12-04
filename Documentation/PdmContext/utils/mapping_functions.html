@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.1">
+<title>PdmContext.utils.mapping_functions API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>PdmContext.utils.mapping_functions</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="PdmContext.utils.mapping_functions.map_categorical_to_continuous"><code class="flex name class">
+<span>class <span class="ident">map_categorical_to_continuous</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapper Class for mapping categorical to continuous time-series.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class map_categorical_to_continuous:
+    &#34;&#34;&#34;
+    Wrapper Class for mapping categorical to continuous time-series.
+
+    &#34;&#34;&#34;
+    def __init__(self):
+        pass
+    def map(self,target_series, occurrences, name):
+        &#34;&#34;&#34;
+        This method is used to generate context time series of categorical type.
+
+        The way we do this is by generating a time series of each different category, by creating a zero and one series,
+        similar to &#34;isolated&#34; type, by filling ones in the timestamps that each category appears. Finally, we create an
+        additional series with the name state_{name}, having zeros until the occurrence of the last category, and filled
+        with ones afterward.
+
+        **Parameters**:
+
+        **target_series**: Used to align sample rate.
+
+        **occurrences**: a list of tuple with timestamps and categorical value, refering to the observed value of a
+        categorical source.
+
+        **name**: name of the categorical source.
+
+
+        **return**: A list of time-series to populate CD part of the context.
+        &#34;&#34;&#34;
+        vector = [[0] for i in range(len(target_series))]
+        pos = 0
+        unique_categories = set([occ[0] for occ in occurrences])
+        # this is to aling the series in case of different sample Rate
+        for i in range(len(target_series)):
+            timestamp = target_series[i][1]
+            current_pos = pos
+            for q in range(pos, len(occurrences)):
+                if occurrences[q][1] &gt; timestamp:
+                    current_pos = q
+                    break
+            # no data found
+
+            if current_pos == pos:
+                # if no data in betwwen values use the previus value
+                if i &gt; 0:
+                    vector[i] = [occurrences[-1][0]]
+                # if no data until i timestamp use the first occurence as value
+                else:
+                    vector[i] = [occurrences[0][0]]
+            # if multiple values in between two timestamps use the last as value
+            else:
+                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
+                vector[i] = [v for v in set(dataInBetween)]
+            # if no other occurrences just repeat the last value
+            if current_pos == len(occurrences):
+                for k in range(i + 1, len(vector)):
+                    vector[k] = [occurrences[-1][0]]
+                break
+            pos = current_pos
+        all_vectors = []
+        all_names = []
+        # one-hot encoding of unique categories
+        for value in unique_categories:
+            in_vector = [1 if value in v else 0 for v in vector]
+            if len(set(in_vector)) == 1:
+                in_vector[0] = 0
+            all_vectors.append(in_vector)
+            all_names.append(f&#34;{value}_{name}&#34;)
+        # create of the state variable
+        state_vector = [0 for i in range(len(target_series))]
+        lastv = occurrences[-1][0]
+        ## not stable
+        for i in range(len(state_vector) - 1, -1, -1):
+            if lastv in vector[i]:
+                state_vector[i] = 1
+            else:
+                break
+        all_vectors.append(state_vector)
+        all_names.append(f&#34;state_{name}&#34;)
+        return all_vectors, all_names</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.utils.mapping_functions.map_categorical_to_continuous.map"><code class="name flex">
+<span>def <span class="ident">map</span></span>(<span>self, target_series, occurrences, name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method is used to generate context time series of categorical type.</p>
+<p>The way we do this is by generating a time series of each different category, by creating a zero and one series,
+similar to "isolated" type, by filling ones in the timestamps that each category appears. Finally, we create an
+additional series with the name state_{name}, having zeros until the occurrence of the last category, and filled
+with ones afterward.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series</strong>: Used to align sample rate.</p>
+<p><strong>occurrences</strong>: a list of tuple with timestamps and categorical value, refering to the observed value of a
+categorical source.</p>
+<p><strong>name</strong>: name of the categorical source.</p>
+<p><strong>return</strong>: A list of time-series to populate CD part of the context.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="PdmContext.utils.mapping_functions.map_configuration_to_continuous"><code class="flex name class">
+<span>class <span class="ident">map_configuration_to_continuous</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapper Class for mapping configuration events (defined as events with constant impact) to continuous time-series.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class map_configuration_to_continuous:
+    &#34;&#34;&#34;
+        Wrapper Class for mapping configuration events (defined as events with constant impact) to continuous time-series.
+
+    &#34;&#34;&#34;
+    def __init__(self):
+        pass
+    def map(self,target_series, occurrences,name):
+        &#34;&#34;&#34;
+         Configuration events, refers to configuration changes or events that alter the state of the monitored asset.
+          To transform these events into continuous signals, we start with a series of 0s, and after each occurrence of
+          such an event, we add 1 to all the positions after the occurrence&#39;s timestamp
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences
+        of the provided Configuration source, to populate CD part of the context.
+        &#34;&#34;&#34;
+        vector = [0 for i in range(len(target_series))]
+        for occ in occurrences:
+            for q in range(len(target_series)):
+                if target_series[q][1] &gt;= occ[1]:
+                    for k in range(q, len(vector)):
+                        vector[k] += 1
+                    break
+        ## not stable
+        if len(set(vector)) == 1:
+            vector[0] = 0
+        return [vector],[name]</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.utils.mapping_functions.map_configuration_to_continuous.map"><code class="name flex">
+<span>def <span class="ident">map</span></span>(<span>self, target_series, occurrences, name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Configuration events, refers to configuration changes or events that alter the state of the monitored asset.
+To transform these events into continuous signals, we start with a series of 0s, and after each occurrence of
+such an event, we add 1 to all the positions after the occurrence's timestamp</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series</strong>: Used to align sample rate of the continuous series.</p>
+<p><strong>occurrences</strong>: Contain time stamps of the occurrences of an isolated type source.</p>
+<p><strong>return</strong>: A binary time series with same size as target_series, that models the occurrences
+of the provided Configuration source, to populate CD part of the context.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="PdmContext.utils.mapping_functions.map_isolated_to_continuous"><code class="flex name class">
+<span>class <span class="ident">map_isolated_to_continuous</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapper Class for mapping isolated events (defined as events with instant impact) to continuous time-series.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class map_isolated_to_continuous:
+    &#34;&#34;&#34;
+           Wrapper Class for mapping isolated events (defined as events with instant impact) to continuous time-series.
+
+    &#34;&#34;&#34;
+    def __init__(self):
+        pass
+    def map(self,target_series, occurrences,name):
+        &#34;&#34;&#34;
+         Isolated events are discrete events that have an immediate impact on the behavior of the asset.
+         To transform such events into a continuous representation, we start with a series of 0s as an initial signal
+         and assign 1 to the position corresponding to the timestamps of the events. If the event timestamp does
+         not match any target_series timestamps, it is mapped to the closest timestamp in target_series.
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences
+        of the provided isolated source, to populate CD part of the context.
+        &#34;&#34;&#34;
+        vector = [0 for i in range(len(target_series))]
+        for occ in occurrences:
+            for q in range(len(target_series)):
+                if target_series[q][1] &gt; occ[1]:
+                    vector[q] = 1
+                    break
+        return [vector],[name]</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.utils.mapping_functions.map_isolated_to_continuous.map"><code class="name flex">
+<span>def <span class="ident">map</span></span>(<span>self, target_series, occurrences, name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Isolated events are discrete events that have an immediate impact on the behavior of the asset.
+To transform such events into a continuous representation, we start with a series of 0s as an initial signal
+and assign 1 to the position corresponding to the timestamps of the events. If the event timestamp does
+not match any target_series timestamps, it is mapped to the closest timestamp in target_series.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series</strong>: Used to align sample rate of the continuous series.</p>
+<p><strong>occurrences</strong>: Contain time stamps of the occurrences of an isolated type source.</p>
+<p><strong>return</strong>: A binary time series with same size as target_series, that models the occurrences
+of the provided isolated source, to populate CD part of the context.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="PdmContext.utils.mapping_functions.map_univariate_to_continuous"><code class="flex name class">
+<span>class <span class="ident">map_univariate_to_continuous</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapper Class for mapping univariate time-series (defined as events with instant impact) to continuous time-series with same frequency as a target time-series.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class map_univariate_to_continuous:
+    &#34;&#34;&#34;
+        Wrapper Class for mapping univariate time-series (defined as events with instant impact) to continuous time-series with same frequency as a target time-series.
+    &#34;&#34;&#34;
+    def __init__(self):
+        self.existing_results={}
+    def map(self,target_series, occurrences,name):
+        &#34;&#34;&#34;
+        For continuous data sources, we simply collect the values within the time window.
+        Although the time window is the same for all sources, each source may have a different sample rate.
+        To create a signal of the same size as target_series, we perform mean aggregation if a source has a higher
+        sample rate than target_series, using the mean value of the data between each timestamp of the target_series.
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: The univariate time series.
+
+        **return**: A time series with same size as target_series, to populate CD part of context.
+        &#34;&#34;&#34;
+
+        if name not in self.existing_results.keys():
+            self.existing_results[name]=[]
+        # position of first timestamp of target series in aggregated data
+        spos=-1
+        for tup in self.existing_results[name]:
+            spos += 1
+            if tup[1]&gt;=target_series[0][1]:
+                break
+
+        self.existing_results[name]=self.existing_results[name][spos:]
+
+        pos = 0
+        if len(self.existing_results[name]) &gt; 0:
+            for q in range(len(occurrences)):
+                pos = q
+                if occurrences[q][1] &gt; self.existing_results[name][-1][1]:
+                    break
+
+        vector = [tup[0] for tup in self.existing_results[name]]+[0 for i in range(len(target_series)-len(self.existing_results[name]))]
+
+        for i in range(len(self.existing_results[name]),len(target_series)):
+            timestamp = target_series[i][1]
+            current_pos = pos
+            for q in range(pos, len(occurrences)):
+                if occurrences[q][1] &gt; timestamp:
+                    current_pos = q
+                    break
+            if i==len(target_series)-1:
+                current_pos=len(occurrences)+1
+            # no data found
+
+            if current_pos == pos:
+                # if no data in betwwen values use the previus value
+                if i &gt; 0:
+                    vector[i] = vector[i - 1]
+                # if no data until i timestamp use the first occurence as value
+                else:
+                    vector[i] = occurrences[0][0]
+            # if multiple values in between two timestamps use the mean of them as value
+            else:
+                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
+                vector[i] = sum(dataInBetween) / len(dataInBetween)
+            # if no other occurrences just repeat the last value
+            if current_pos == len(occurrences):
+                for k in range(i + 1, len(vector)):
+                    vector[k] = vector[k - 1]
+                break
+            pos = current_pos
+        self.existing_results[name]=[(v,tup[1]) for v,tup in zip(vector,target_series)]
+        return [vector],[name]</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.utils.mapping_functions.map_univariate_to_continuous.map"><code class="name flex">
+<span>def <span class="ident">map</span></span>(<span>self, target_series, occurrences, name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>For continuous data sources, we simply collect the values within the time window.
+Although the time window is the same for all sources, each source may have a different sample rate.
+To create a signal of the same size as target_series, we perform mean aggregation if a source has a higher
+sample rate than target_series, using the mean value of the data between each timestamp of the target_series.</p>
+<p><strong>Parameters</strong>:</p>
+<p><strong>target_series</strong>: Used to align sample rate of the continuous series.</p>
+<p><strong>occurrences</strong>: The univariate time series.</p>
+<p><strong>return</strong>: A time series with same size as target_series, to populate CD part of context.</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="PdmContext.utils" href="index.html">PdmContext.utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="PdmContext.utils.mapping_functions.map_categorical_to_continuous" href="#PdmContext.utils.mapping_functions.map_categorical_to_continuous">map_categorical_to_continuous</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.utils.mapping_functions.map_categorical_to_continuous.map" href="#PdmContext.utils.mapping_functions.map_categorical_to_continuous.map">map</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="PdmContext.utils.mapping_functions.map_configuration_to_continuous" href="#PdmContext.utils.mapping_functions.map_configuration_to_continuous">map_configuration_to_continuous</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.utils.mapping_functions.map_configuration_to_continuous.map" href="#PdmContext.utils.mapping_functions.map_configuration_to_continuous.map">map</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="PdmContext.utils.mapping_functions.map_isolated_to_continuous" href="#PdmContext.utils.mapping_functions.map_isolated_to_continuous">map_isolated_to_continuous</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.utils.mapping_functions.map_isolated_to_continuous.map" href="#PdmContext.utils.mapping_functions.map_isolated_to_continuous.map">map</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="PdmContext.utils.mapping_functions.map_univariate_to_continuous" href="#PdmContext.utils.mapping_functions.map_univariate_to_continuous">map_univariate_to_continuous</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.utils.mapping_functions.map_univariate_to_continuous.map" href="#PdmContext.utils.mapping_functions.map_univariate_to_continuous.map">map</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.1</a>.</p>
+</footer>
+</body>
+</html>

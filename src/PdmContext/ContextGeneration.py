@@ -5,8 +5,12 @@ import pandas as pd
 from PdmContext.utils.structure import Eventpoint, Context
 from PdmContext.utils.causal_discovery_functions import calculate_with_pc
 from PdmContext.utils.showcontext import show_context_list, show_context_interpretations
+from PdmContext.utils.mapping_functions import map_categorical_to_continuous, map_configuration_to_continuous,map_isolated_to_continuous,map_univariate_to_continuous
 from pathlib import Path
 import pickle
+
+from jedi.plugins.django import mapping
+
 
 class ContextGeneratorBatch():
     def __init__(self,df_data,target,type_of_series,context_horizon="8 hours",Causalityfunct=calculate_with_pc,debug=False,file_path=None):
@@ -55,6 +59,8 @@ class ContextGeneratorBatch():
                 assert False, "Time horizon must be either a single number or in form of \"8 hours\" where acceptable time frames are hours,days,minutes,seconds"
 
         self.horizon = int(self.horizon)
+
+
         self.interpret_history_pos = 0
         self.context_pos = 0
 
@@ -216,10 +222,12 @@ class ContextGeneratorBatch():
 
 class ContextGenerator:
 
-    def __init__(self, target, context_horizon="8", Causalityfunct=calculate_with_pc, debug=False):
+    def __init__(self, target, context_horizon="8 hours",
+                 Causalityfunct=calculate_with_pc,
+                 mapping_functions=None,debug=False):
         """
         This Class handle the Context Generation. It keeps an internal buffer to build the context for a target series based
-        on the provided context_horizon. All data are passed though the collect_data method, which return a correspoding
+        on the provided context_horizon. All data are passed though the collect_data method, which return a corresponding
         Context when target data are passed.
 
 
@@ -233,6 +241,22 @@ class ContextGenerator:
         **Causalityfunct**: the causality discovery method to use to produce causal relationships between context data,
             This must be a function with parameters two equal size lists, one with names and the other
             with data (a list of list or 2D numpy array).
+
+        **mapping_functions**: Dictionary used to associate each type with a mapping function.
+
+        User can use this dictionary to define his own mapping function and types of sources
+
+        Default value None: use default mappers for types: isolated,configuration, categorical and univariate
+
+        Default Sources Types Supported (in case of mapping_functions is None):
+
+            1) Continuous type (those that have some kind of arithmetic value)
+
+            2) Discrete events (without value) , where one of the type isolated or configuration or categorical must be assigned
+                A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
+                isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
+                Categorical values can be defined as categorical type
+                Essentially the type of the events define the way that will be transformed to real values time-series.
 
         **debug**: If it runs on debug mode
         """
@@ -259,6 +283,17 @@ class ContextGenerator:
         self.horizon = int(self.horizon)
         self.interpret_history_pos = 0
         self.context_pos = 0
+        self.default_usage=False
+        if mapping_functions is None:
+            self.default_usage=True
+            self.mapping_functions={
+                "Univariate":map_univariate_to_continuous(),
+                "isolated": map_isolated_to_continuous(),
+                "configuration": map_configuration_to_continuous(),
+                "categorical":map_categorical_to_continuous()
+            }
+        else:
+            self.mapping_functions=mapping_functions
 
     def collect_data(self, timestamp, source, name, value=None, type="Univariate", replace=[]):
         '''
@@ -266,14 +301,16 @@ class ContextGenerator:
         When data of target source arrive, a corresponding context is produced.
         Sources can be of different sample rate (all sources are mapped to the targets sample rate when context is produced)
 
-        Sources can be of either:
+        Default Sources Supported (in case of mapping_functions is None) :
 
         1) Continuous type (those that have some kind of arithmetic value)
 
-        2) Discrete events (without value) , where one of the type isolated or configuration must be assigned
+        2) Discrete events (without value) , where one of the type isolated or configuration or categorical must be assigned
             A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
             isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
+            Categorical values can be defined as categorical type
             Essentially the type of the events define the way that will be transformed to real values time-series.
+
 
         **Parameters**:
 
@@ -285,7 +322,7 @@ class ContextGenerator:
 
         **value**: The value (float), in case this is None the arrived data is considered as event
 
-        **type**: the type of the data can be one of "isolated","configuration" when no value is passed
+        **type**: the type of the data associated with the mapping function
 
         **replace**: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
         when a b event is inserted, it will replace an e event with the same timestamp (if exists).
@@ -294,8 +331,8 @@ class ContextGenerator:
         '''
 
         if value is None:
-            if type not in ["isolated", "configuration", "categorical"]:
-                assert False, "The type must be defined as one of \"isolated\" and \"configuration\" when no value is passed"
+            if type not in self.mapping_functions.keys():
+                assert False, f"The type must be defined as one of mapping functions types: {self.mapping_functions.keys()} when no value is passed"
         eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
         self.add_to_buffer(eventpoint, replace)
         if self.target == name or self.target == f"{name}@{source}":
@@ -308,6 +345,8 @@ class ContextGenerator:
         """
         Adds an Event point to the buffer (keeping the buffer time ordered)
         """
+        if e.type is None:
+            e.type="Univariate"
         if replace is None:
             replace = []
             index = len(self.buffer)
@@ -342,7 +381,7 @@ class ContextGenerator:
         #self.buffer = self.buffer[pos:]
     def generate_context(self, e: Eventpoint, buffer):
         """
-        Generate context and interpretation.
+        Generate context (and interpretation only when mapping function is the default).
 
         **Parameters**:
 
@@ -352,16 +391,19 @@ class ContextGenerator:
         """
 
         contextcurrent, target_series_name = self.create_context(e, buffer)
-
+        if self.default_usage:
+            contextcurrent=self.create_interpretation(contextcurrent, target_series_name)
+        else:
+            contextcurrent.CR["interpretation"]=[]
         self.contexts.append(contextcurrent)
-        self.create_interpretation(contextcurrent, target_series_name)
 
-        intertups = [tttup for tttup in
-                     self.contexts[-1].CR["interpretation"]]
-        # this is usefull for ploting
-        self.contexts[-1].CR["interpretation"] = intertups
-
-        return self.contexts[-1]
+        i=0
+        pos=0
+        while self.contexts[i].timestamp < self.contexts[-1].timestamp - pd.Timedelta(self.horizon, self.horizon_time):
+            pos=i
+            i+=1
+        self.contexts=self.contexts[pos:]
+        return contextcurrent
 
     def create_interpretation(self, contextcurrent: Context, target_series_name):
         """
@@ -373,19 +415,10 @@ class ContextGenerator:
 
         **target_series_name**: Then name of the target variable
         """
-
-        rikicontext = self.contexts
-        pos = self.interpret_history_pos
-        temppos = pos
-        for q in range(pos, len(rikicontext)):
-            temppos = q
-            if pd.to_datetime(rikicontext[q].timestamp) >= (
-                    pd.to_datetime(contextcurrent.timestamp) - pd.Timedelta(self.horizon, self.horizon_time)):
-                break
-        causeswindow = rikicontext[temppos:]
-        self.interpret_history_pos = temppos
+        causeswindow = self.contexts
         interpr = self.interpret(contextcurrent, causeswindow, target_series_name, self.type_of_series)
-        self.contexts[-1].CR["interpretation"] = interpr
+        contextcurrent.CR["interpretation"] = interpr
+        return contextcurrent
 
     def interpret(self, context: Context, causeswindow, target, type_of_series):
         """
@@ -563,7 +596,7 @@ class ContextGenerator:
 
         ## create series for each source (alldata)
         alldata = self.create_continuous_representation(target_series_name, target_series, npcontext,
-                                                        self.type_of_series, allcodes)
+                                                        self.type_of_series, allcodes,self.mapping_functions)
         # end = time.time()
         # print(f"Create series: {end-start}")
 
@@ -739,7 +772,7 @@ class ContextGenerator:
         storing["edges"] = []
         return storing
 
-    def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes):
+    def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes,mapping_functions):
         """
         This method handles the creation of continuous representation for all type of sources observed in context,
         and is the first part for creating the CD of the context.
@@ -755,6 +788,8 @@ class ContextGenerator:
         **type_of_series**: A dictionary to define the type of the different sources (the type can be Isolated, Configuration, Categorical and Univariate).
 
         **allcodes**: Contain all the names for the sources we want to build the context.
+
+        **mapping_functions**: Dictionary used to associate each type with a mapping function.
 
         **return**: The CD part of the context.
         """
@@ -777,35 +812,24 @@ class ContextGenerator:
                 if max(vector) == 0 and min(vector) == 0:
                     vector = None
                 alldata.append((name, vector))
-            elif type_of_series[name] == "categorical" and occurrences[0][0] is not None:
-                vectors, names = self.build_context_for_categorical(target_series, occurrences, name)
+            elif type_of_series[name] in mapping_functions.keys():
+                mapper = mapping_functions[type_of_series[name]]
+                vectors, names = mapper.map(target_series, occurrences, name)
                 for in_vector, new_name in zip(vectors, names):
                     if max(in_vector) == 0 and min(in_vector) == 0:
                         vector = None
                     else:
                         vector = in_vector
-                    self.type_of_series[new_name] = "configuration"
+                    if new_name not in self.type_of_series.keys():
+                        self.type_of_series[new_name] = "configuration"
                     alldata.append((new_name, vector))
-            elif occurrences[0][0] is not None:
-                vector = self.build_context_for_univariate(target_series, occurrences)
-                if max(vector) == 0 and min(vector) == 0:
-                    vector = None
-                alldata.append((name, vector))
-            elif type_of_series[name] == "isolated":
-                vector = self.build_context_for_isolated(target_series, occurrences)
-                if max(vector) == 0 and min(vector) == 0:
-                    vector = None
-                alldata.append((name, vector))
-            elif type_of_series[name] == "configuration":
-                vector = self.build_context_for_confiuguration(target_series, occurrences)
-                if max(vector) == 0 and min(vector) == 0:
-                    vector = None
-                alldata.append((name, vector))
-
-            ok = "ok"
-            # if vector is stationary then no context.
+            else:
+                assert False,f" No mapping function defined for type {type_of_series[name]}"
 
         return alldata
+
+
+
 
     def build_target_series_for_context(self, current: Eventpoint, df: np.ndarray):
         target_series_name = current.code
@@ -831,176 +855,7 @@ class ContextGenerator:
 
         return npcontext
 
-    def build_context_for_categorical(self, target_series, occurrences, name):
-        """
-        This method is used to generate context time series of categorical type.
 
-        The way we do this is by generating a time series of each different category, by creating a zero and one series,
-        similar to "isolated" type, by filling ones in the timestamps that each category appears. Finally, we create an
-        additional series with the name state_{name}, having zeros until the occurrence of the last category, and filled
-        with ones afterward.
-
-        **Parameters**:
-
-        **target_series**: Used to align sample rate.
-
-        **occurrences**: a list of tuple with timestamps and categorical value, refering to the observed value of a
-        categorical source.
-
-        **name**: name of the categorical source.
-
-
-        **return**: A list of time-series to populate CD part of the context.
-        """
-        vector = [[0] for i in range(len(target_series))]
-        pos = 0
-        unique_categories = set([occ[0] for occ in occurrences])
-        # this is to aling the series in case of different sample Rate
-        for i in range(len(target_series)):
-            timestamp = target_series[i][1]
-            current_pos = pos
-            for q in range(pos, len(occurrences)):
-                if occurrences[q][1] > timestamp:
-                    current_pos = q
-                    break
-            # no data found
-
-            if current_pos == pos:
-                # if no data in betwwen values use the previus value
-                if i > 0:
-                    vector[i] = [occurrences[-1][0]]
-                # if no data until i timestamp use the first occurence as value
-                else:
-                    vector[i] = [occurrences[0][0]]
-            # if multiple values in between two timestamps use the last as value
-            else:
-                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
-                vector[i] = [v for v in set(dataInBetween)]
-            # if no other occurrences just repeat the last value
-            if current_pos == len(occurrences):
-                for k in range(i + 1, len(vector)):
-                    vector[k] = [occurrences[-1][0]]
-                break
-            pos = current_pos
-        all_vectors = []
-        all_names = []
-        # one-hot encoding of unique categories
-        for value in unique_categories:
-            in_vector = [1 if value in v else 0 for v in vector]
-            if len(set(in_vector)) == 1:
-                in_vector[0] = 0
-            all_vectors.append(in_vector)
-            all_names.append(f"{value}_{name}")
-        # create of the state variable
-        state_vector = [0 for i in range(len(target_series))]
-        lastv = occurrences[-1][0]
-        ## not stable
-        for i in range(len(state_vector) - 1, -1, -1):
-            if lastv in vector[i]:
-                state_vector[i] = 1
-            else:
-                break
-        all_vectors.append(state_vector)
-        all_names.append(f"state_{name}")
-        return all_vectors, all_names
-
-    def build_context_for_confiuguration(self, target_series, occurrences):
-        """
-         Configuration events, refers to configuration changes or events that alter the state of the monitored asset.
-          To transform these events into continuous signals, we start with a series of 0s, and after each occurrence of
-          such an event, we add 1 to all the positions after the occurrence's timestamp
-
-         **Parameters**:
-
-        **target_series**: Used to align sample rate of the continuous series.
-
-        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
-
-        **return**: A binary time series with same size as target_series, that models the occurrences
-        of the provided Configuration source, to populate CD part of the context.
-        """
-        vector = [0 for i in range(len(target_series))]
-        for occ in occurrences:
-            for q in range(len(target_series)):
-                if target_series[q][1] >= occ[1]:
-                    for k in range(q, len(vector)):
-                        vector[k] += 1
-                    break
-        ## not stable
-        if len(set(vector)) == 1:
-            vector[0] = 0
-        return vector
-
-    def build_context_for_isolated(self, target_series, occurrences):
-        """
-         Isolated events are discrete events that have an immediate impact on the behavior of the asset.
-         To transform such events into a continuous representation, we start with a series of 0s as an initial signal
-         and assign 1 to the position corresponding to the timestamps of the events. If the event timestamp does
-         not match any target_series timestamps, it is mapped to the closest timestamp in target_series.
-
-         **Parameters**:
-
-        **target_series**: Used to align sample rate of the continuous series.
-
-        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
-
-        **return**: A binary time series with same size as target_series, that models the occurrences 
-        of the provided isolated source, to populate CD part of the context.
-        """
-        vector = [0 for i in range(len(target_series))]
-        for occ in occurrences:
-            for q in range(len(target_series)):
-                if target_series[q][1] > occ[1]:
-                    vector[q] = 1
-                    break
-        return vector
-
-    def build_context_for_univariate(self, target_series, occurrences):
-        """
-        For continuous data sources, we simply collect the values within the time window.
-        Although the time window is the same for all sources, each source may have a different sample rate.
-        To create a signal of the same size as target_series, we perform mean aggregation if a source has a higher
-        sample rate than target_series, using the mean value of the data between each timestamp of the target_series.
-
-         **Parameters**:
-
-        **target_series**: Used to align sample rate of the continuous series.
-
-        **occurrences**: The univariate time series.
-
-        **return**: A time series with same size as target_series, to populate CD part of context.
-        """
-        allvalues = []
-        vector = [0 for i in range(len(target_series))]
-        pos = 0
-        for i in range(len(target_series)):
-            timestamp = target_series[i][1]
-            current_pos = pos
-            for q in range(pos, len(occurrences)):
-                if occurrences[q][1] > timestamp:
-                    current_pos = q
-                    break
-            # no data found
-
-            if current_pos == pos:
-                # if no data in betwwen values use the previus value
-                if i > 0:
-                    vector[i] = vector[i - 1]
-                # if no data until i timestamp use the first occurence as value
-                else:
-                    vector[i] = occurrences[0][0]
-            # if multiple values in between two timestamps use the mean of them as value
-            else:
-                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
-                vector[i] = sum(dataInBetween) / len(dataInBetween)
-            # if no other occurrences just repeat the last value
-            if current_pos == len(occurrences):
-                for k in range(i + 1, len(vector)):
-                    vector[k] = vector[k - 1]
-                break
-            pos = current_pos
-
-        return vector
 
     def calculate_causality(self, dataor, names):
         num_time_series = len(dataor)
@@ -1011,12 +866,12 @@ class ContextGenerator:
         # edges=self.salesforcePC(names,data)
         return edges
 
-    def plot(self, filteredges=None):
+    def plot(self,contexts, filteredges=None):
         if filteredges is None:
             filteredges = [["", "", ""]]
-        show_context_list(self.contexts, self.target, filteredges=filteredges)
+        show_context_list(contexts, self.target, filteredges=filteredges)
 
-    def plot_interpretation(self, filteredges=None):
+    def plot_interpretation(self,contexts, filteredges=None):
         if filteredges is None:
             filteredges = [["", "", ""]]
-        show_context_interpretations(self.contexts, self.target, filteredges=filteredges)
+        show_context_interpretations(contexts, self.target, filteredges=filteredges)

@@ -1,10 +1,10 @@
 [project]
 name = "PdmContext"
-version = "0.1.7"
+version = "0.1.9"
 authors = [
   { name="Apostolos Giannoulidis", email="agiannous@csd.auth.gr" },
 ]
-description = "Context is used here to provide a better understanding of how changes in data affect anomaly detection task. Essentially, Context represent the data (CD), existing in a time window, and their relationships (CR), where the relationships are extracted using causal discovery between the data (the causal discovery method can be user defiend)."
+description = "Context is used to provide a better understanding of how changes in data affect anomaly detection task. Essentially, Context represent all availiable data (CD), existing in a time window, and their relationships (CR), where the relationships are extracted using causal discovery algorithms, providing explainable context."
 readme = "README.md"
 requires-python = ">=3.8"
 
