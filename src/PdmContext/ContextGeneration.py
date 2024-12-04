@@ -333,7 +333,7 @@ class ContextGenerator:
         if value is None:
             if type not in self.mapping_functions.keys():
                 assert False, f"The type must be defined as one of mapping functions types: {self.mapping_functions.keys()} when no value is passed"
-        eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
+            eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
         self.add_to_buffer(eventpoint, replace)
         if self.target == name or self.target == f"{name}@{source}":
             contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
@@ -372,13 +372,6 @@ class ContextGenerator:
         else:
             self.buffer = self.buffer[: index] + [e] + self.buffer[index:]
 
-        # last = self.buffer[-1]
-        # pos = len(self.buffer) - 1
-        # for i in range(len(self.buffer)):
-        #     if self.buffer[i].timestamp >= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
-        #         pos = i
-        #         break
-        #self.buffer = self.buffer[pos:]
     def generate_context(self, e: Eventpoint, buffer):
         """
         Generate context (and interpretation only when mapping function is the default).
@@ -551,12 +544,15 @@ class ContextGenerator:
         """
         # start = time.time()
         # df with ,dt,code,source,value
-        pos = self.context_pos
-        for i in range(pos, len(buffer)):
-            if buffer[i].timestamp <= (current.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
+
+        # Keep only last horizon events
+        last = self.buffer[-1]
+        pos = len(self.buffer) - 1
+        for i in range(len(self.buffer)):
+            if self.buffer[i].timestamp >= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
                 pos = i
-            else:
                 break
+        self.buffer = self.buffer[pos:]
 
         self.context_pos = pos
         # end=time.time()
