@@ -330,7 +330,7 @@ class ContextGenerator:
         if value is None:
             if type not in self.mapping_functions.keys():
                 assert False, f"The type must be defined as one of mapping functions types: {self.mapping_functions.keys()} when no value is passed"
-            eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
+        eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
         self.add_to_buffer(eventpoint, replace)
         if self.target == name or self.target == f"{name}@{source}":
             contextobject = self.generate_context(e=eventpoint, buffer=self.buffer)
