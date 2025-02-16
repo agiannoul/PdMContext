@@ -1,6 +1,7 @@
 [project]
 name = "PdmContext"
-version = "0.1.10"
+version = "0.1.12"
+
 authors = [
   { name="Apostolos Giannoulidis", email="agiannous@csd.auth.gr" },
 ]

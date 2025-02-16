@@ -4,7 +4,7 @@
 
 Essentially Context represents the available data existing in a time window (**context_horizon**), mapped from multimodal representation to multivariate time-series (**CD**), and their relationships (**CR**), where the relationships are extracted using **causal discovery** between the time-series of CD.
 
-![t](src/images/frameworkFormalization.png).
+![image](src/images/frameworkFormalization.png).
 
 Context is implemented as an online process, where data are collected as they arrive. The arrival of a new value from a **target** series triggers the creation of a new context which includes: A) The mapping of availiable multimodal sources to multivariate time-series (**CR**) and  B) the application of a causality discovery to extract cause-effect relationships  between the available data sources in form of graph (**CR**).  
 
@@ -90,7 +90,7 @@ The way they transom a different sources in time series data can be seen in the 
 - **configuration**: speed change
 - **Univariate**: temperature, some_KPI
 
-![t](src/images/CDextraction.png).
+![image](src/images/CDextraction.png).
 
 ### More details regarding the default mapping_functions:
 
@@ -110,3 +110,26 @@ The default mappers support also data which are not numeric, but related to some
 3) **categorical**: Categorical events that refer to some kind of state (i.e. day of the week: Monday,...). Here each category is treated as configuration one, and a state variable is created which signal is one after the last change of category.
 
 The map_isolated_to_continuous, map_configuration_to_continuous, map_categorical_to_continuous classes are used of to transform the occurrence of events into continuous space time-series and add them to **CD**.
+
+
+## Causality Discovery Efficiency
+
+To calculate context we perform Causality Discovery over the mapped signals. Thus, causality discovery calculated is performed for every new observation of the target signal.
+To deal with that we implement a moving Causality Discovery version of PC algorithm combined with Fishers z-transformation independence test. 
+Under `utils.MovingPC` we implement the class `RunningCovarianceTimestamps()` which handle the calculation of aggregated signals' statistics on the fly, able to delete and add new data samples.
+By that way the process of Causality Discovery becomes a lot faster, considering that as new target samples are observed there is little change to data (e.g. a few samples are added and subtracted from the context horizon)
+This class is leveraged by `utils.MovingPC.MovingPC` and can be used by creating an object and passing the method calculate_with_pc_moving to the context generation class.
+
+```python
+from PdMContext.ContextGenerator import ContextGenerator
+from PdMContext.utils.MovingPC import MovingPC
+
+MPC=MovingPC()
+
+con_gen=ContextGenerator(target="anomaly scores", context_horizon="8 hours",Causality_function=MPC.calculate_with_pc_moving)
+```
+
+Caution: In order to use this functionality there is on requirement, that the mapping functions produce stable transformations, meaning that the values of already observed timestamps
+are not changing by the mapping function. 
+
+The default mapping (Isolated, Configuration and Univariate) produce stable transformation except for the case of categorical values.

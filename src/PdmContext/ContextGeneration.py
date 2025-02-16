@@ -154,10 +154,10 @@ class ContextGeneratorBatch():
         storing["edges"] = []
         return storing
 
-    def calculate_causality(self, dataor, names):
+    def calculate_causality(self, dataor, names,timestamps):
         num_time_series = len(dataor)
         data = np.array(dataor)
-        edges = self.causality_discovery(names, data)
+        edges = self.causality_discovery(names, data,timestamps)
         # edges=self.calculatewithPc(names,data)
         # edges=self.calculatewith_fci(names,data)
         # edges=self.salesforcePC(names,data)
@@ -221,7 +221,7 @@ class ContextGenerator:
 
     def __init__(self, target, context_horizon="8 hours",
                  Causalityfunct=calculate_with_pc,
-                 mapping_functions=None,debug=False):
+                 mapping_functions=None,debug=False,characterize_it=True):
         """
         This Class handle the Context Generation. It keeps an internal buffer to build the context for a target series based
         on the provided context_horizon. All data are passed though the collect_data method, which return a corresponding
@@ -257,7 +257,7 @@ class ContextGenerator:
 
         **debug**: If it runs on debug mode
         """
-
+        self.characterize_it=characterize_it
         self.debug = debug
         self.target = target
 
@@ -381,7 +381,7 @@ class ContextGenerator:
         """
 
         contextcurrent, target_series_name = self.create_context(e, buffer)
-        if self.default_usage:
+        if self.default_usage and self.characterize_it:
             contextcurrent=self.create_interpretation(contextcurrent, target_series_name)
         else:
             contextcurrent.CR["interpretation"]=[]
@@ -592,10 +592,12 @@ class ContextGenerator:
         # end = time.time()
         # print(f"Create series: {end-start}")
 
-        storing = self.calculate_edges(alldata, current.timestamp)
-        storing["characterization"] = self.get_characterization(storing)
-
-        # print(f"Calculate edges: {end - start}")
+        storing = self.calculate_edges(alldata, current.timestamp,[t[1] for t in target_series])
+        if self.characterize_it:
+            storing["characterization"] = self.get_characterization(storing)
+        else:
+            storing["characterization"]=[]
+            # print(f"Calculate edges: {end - start}")
         # print("========================")
 
         contextpbject = Context.context_from_dict(storing)
@@ -718,7 +720,7 @@ class ContextGenerator:
             char = "unknown"
         return char
 
-    def calculate_edges(self, alldata, timestamp):
+    def calculate_edges(self, alldata, timestamp,timestamps):
         """
         Formulate the data in appropriate form to call self.calculate_causality
         which return the edges for the context.
@@ -751,7 +753,7 @@ class ContextGenerator:
             # print(f"before {end - start}")
             # start=time.time()
 
-            edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+            edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names,timestamps)
             # end=time.time()
             # print(f"actual edge calculation {end-start}")
             if edges is None:
@@ -797,6 +799,11 @@ class ContextGenerator:
             # detect the occurancies
             occurrences = [(value, time) for code, value, time in
                            zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if name in code]
+
+            # # Filter rows where `name` is in column 1
+            # mask = np.char.find(windowvalues[:, 1].astype(str), name) >= 0
+            # # Extract the required columns using NumPy indexing
+            # occurrences = list(zip(windowvalues[mask, 3], windowvalues[mask, 0]))
 
             vector = [0 for i in range(len(target_series))]
             if len(occurrences) == 0:
@@ -849,10 +856,10 @@ class ContextGenerator:
 
 
 
-    def calculate_causality(self, dataor, names):
+    def calculate_causality(self, dataor, names,timestamps):
         num_time_series = len(dataor)
         data = np.array(dataor)
-        edges = self.causality_discovery(names, data)
+        edges = self.causality_discovery(names, data,timestamps)
         # edges=self.calculatewithPc(names,data)
         # edges=self.calculatewith_fci(names,data)
         # edges=self.salesforcePC(names,data)

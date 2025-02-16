@@ -1,0 +1,1198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>PdmContext.utils.MovingPC API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>PdmContext.utils.MovingPC</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import math
+
+import numpy as np
+
+
+class RunningCovarianceTimestamps:
+    def __init__(self):
+        &#34;&#34;&#34;
+        Initializes running sum, sum of squares, mean, and covariance matrix
+        for incremental updates.
+        &#34;&#34;&#34;
+        import scipy.stats as stats
+        self._stats=stats
+        self.datacopy=None
+        self.data = None
+    def init(self,data,timestamps):
+        self.data = data
+        self.n, self.d = data.shape
+        # Sufficient statistics
+        self.sum = np.sum(data, axis=0)
+        self.sum_sq = np.dot(data.T, data)  # Sum of outer products
+        self.mean = self.sum / self.n
+
+        self.cov = self.coovarianve(self.sum, self.sum_sq, self.mean, self.n)
+        self.corr = self.covariance_to_correlation(self.cov)
+        self.timestamps = timestamps
+        self.datacopy=data
+        return
+    def update(self, data, timestamps):
+
+        &#34;&#34;&#34;
+        Updates the sufficient statistics when a sample is removed and a new one is added.
+        Recomputes the mean and covariance exactly as np.cov would.
+
+        &#34;&#34;&#34;
+        # Update the sums
+
+
+        if self.data is None or self.data.shape[1]!=data.shape[1]:
+            self.init(data, timestamps)
+            return
+        if timestamps[0]==self.timestamps[0] and timestamps[-1]==self.timestamps[-1]:
+            return
+
+
+        assert self.data.shape[1] == data.shape[1], &#34;Data have different shapes&#34;
+
+        positionOld = self.timestamps.index(timestamps[0])
+        oldsamples = self.data[:positionOld]
+
+        positionNew = timestamps.index(self.timestamps[-1])+1
+        newsamples = data[positionNew:]
+
+        for old_sample in oldsamples:
+            self.sum = self.sum - old_sample
+            self.sum_sq = self.sum_sq - np.outer(old_sample, old_sample)
+        self.datacopy=self.datacopy[positionOld:]
+        for new_sample in newsamples:
+            self.sum = self.sum + new_sample
+            self.sum_sq = self.sum_sq + np.outer(new_sample, new_sample)
+        self.datacopy = np.vstack([self.datacopy, newsamples])
+
+        # if abs(np.sum(self.datacopy-data))&gt;0.00000001:
+        #     ok=&#39;ok&#39;
+        self.n = data.shape[0]
+        # Update the mean
+        self.mean = self.sum / self.n
+
+        # Recompute the covariance (unbiased estimate with ddof=1)
+        self.cov = self.coovarianve(self.sum, self.sum_sq, self.mean, self.n)
+        self.corr=self.covariance_to_correlation(self.cov)
+
+
+        self.timestamps = timestamps
+        self.data = data
+
+    def covariance_to_correlation(self,C):
+        &#34;&#34;&#34;Convert a covariance matrix C to a correlation matrix R.&#34;&#34;&#34;
+        diag_sqrt = np.sqrt(np.diag(C))  # Square root of diagonal elements
+        R = C / np.outer(diag_sqrt, diag_sqrt)  # Element-wise division
+        return R
+
+    def coovarianve(self,sum, sum_sq, mean, n):
+        return (sum_sq - (np.outer(mean, sum) + np.outer(sum, mean)) + np.outer(mean, mean) * n) / (n - 1)
+
+    # def computer_originalfisherz(self,data, x, y, z):
+    #     import scipy.stats as stats
+    #
+    #     n = data.shape[0]
+    #     k = len(z)
+    #     sub_corr=None
+    #     corr=np.corrcoef(data.T)
+    #     if k == 0:
+    #         r = np.corrcoef(data[:, [x, y]].T)[0][1]
+    #     else:
+    #         sub_index = [x, y]
+    #         sub_index.extend(z)
+    #         sub_corr = np.corrcoef(data[:, sub_index].T)
+    #         # inverse matrix
+    #         try:
+    #             PM = np.linalg.inv(sub_corr)
+    #         except np.linalg.LinAlgError:
+    #             PM = np.linalg.pinv(sub_corr)
+    #         r = -1 * PM[0, 1] / math.sqrt(abs(PM[0, 0] * PM[1, 1]))
+    #     cut_at = 0.99999
+    #     rold=r
+    #     r = min(cut_at, max(-1 * cut_at, r))  # make r between -1 and 1
+    #
+    #     # Fisher’s z-transform
+    #     res = math.sqrt(n - k - 3) * .5 * math.log1p((2 * r) / (1 - r))
+    #     p_value = 2 * (1 - stats.norm.cdf(abs(res)))
+    #
+    #     return corr,sub_corr,r,rold, res, p_value
+
+    def compute_fisherz(self, x, y, z=[]):
+        assert self.data is not None, &#34;Moving Covariance Not initialized&#34;
+
+        k = len(z)
+        if k == 0:
+            r = self.corr[x, y]
+        else:
+            sub_index = [x, y]
+            sub_index.extend(z)
+            sub_corr = self.corr[sub_index][:,sub_index]
+            try:
+                PM = np.linalg.inv(sub_corr)
+            except np.linalg.LinAlgError:
+                PM = np.linalg.pinv(sub_corr)
+            r = -1 * PM[0, 1] / math.sqrt(abs(PM[0, 0] * PM[1, 1]))
+        cut_at = 0.99999
+        r = min(cut_at, max(-1 * cut_at, r))  # make r between -1 and 1
+
+        # Fisher’s z-transform
+        res = math.sqrt(self.n - k - 3) * .5 * math.log1p((2 * r) / (1 - r))
+        p_value = 2 * (1 - self._stats.norm.cdf(abs(res)))
+
+        return None, None, p_value
+
+
+
+class PC():
+
+    def __init__(self, variant=&#39;stable&#39;, alpha=0.05,
+                 priori_knowledge=None):
+        from castle.common import Tensor
+        self._Tensor=Tensor
+
+        from castle.common.priori_knowledge import orient_by_priori_knowledge
+        self._orient_by_priori_knowledge=orient_by_priori_knowledge
+
+        from itertools import permutations
+        self._permutations = permutations
+        from itertools import combinations
+        self._combinations = combinations
+
+        from copy import deepcopy
+        self._deepcopy = deepcopy
+        self.variant = variant
+        self.alpha = alpha
+        self.ci_test = RunningCovarianceTimestamps()
+        self.causal_matrix = None
+        self.priori_knowledge = priori_knowledge
+
+    def learn(self, data,timestamps, columns=None, **kwargs):
+        &#34;&#34;&#34;
+        Based on the implementation of gCastle Library
+        &#34;&#34;&#34;
+
+
+        self.ci_test.update(data,timestamps)
+        if self.ci_test.data is None:
+            self.causal_matrix=None
+            return
+        data = self._Tensor(data, columns=columns)
+
+        skeleton, sep_set = self.find_skeleton(data,
+                                          alpha=self.alpha,
+                                          ci_test_class=self.ci_test,
+                                          variant=self.variant,
+                                          priori_knowledge=self.priori_knowledge,
+                                          **kwargs)
+
+        self._causal_matrix = self._Tensor(
+            self.orient(skeleton, sep_set, self.priori_knowledge).astype(int),
+            index=data.columns,
+            columns=data.columns
+        )
+        self.causal_matrix=self._causal_matrix
+
+    def orient(self, skeleton, sep_set, priori_knowledge=None):
+
+
+        if priori_knowledge is not None:
+            skeleton = self._orient_by_priori_knowledge(skeleton, priori_knowledge)
+
+        columns = list(range(skeleton.shape[1]))
+        cpdag = self._deepcopy(abs(skeleton))
+        # pre-processing
+        for ij in sep_set.keys():
+            i, j = ij
+            all_k = [x for x in columns if x not in ij]
+            for k in all_k:
+                if cpdag[i, k] + cpdag[k, i] != 0 \
+                        and cpdag[k, j] + cpdag[j, k] != 0:
+                    if k not in sep_set[ij]:
+                        if cpdag[i, k] + cpdag[k, i] == 2:
+                            cpdag[k, i] = 0
+                        if cpdag[j, k] + cpdag[k, j] == 2:
+                            cpdag[k, j] = 0
+        while True:
+            old_cpdag = self._deepcopy(cpdag)
+            pairs = list(self._combinations(columns, 2))
+            for ij in pairs:
+                i, j = ij
+                if cpdag[i, j] * cpdag[j, i] == 1:
+                    # rule1
+                    for i, j in self._permutations(ij, 2):
+                        all_k = [x for x in columns if x not in ij]
+                        for k in all_k:
+                            if cpdag[k, i] == 1 and cpdag[i, k] == 0 \
+                                    and cpdag[k, j] + cpdag[j, k] == 0:
+                                cpdag[j, i] = 0
+                    # rule2
+                    for i, j in self._permutations(ij, 2):
+                        all_k = [x for x in columns if x not in ij]
+                        for k in all_k:
+                            if (cpdag[i, k] == 1 and cpdag[k, i] == 0) \
+                                    and (cpdag[k, j] == 1 and cpdag[j, k] == 0):
+                                cpdag[j, i] = 0
+                    # rule3
+                    for i, j in self._permutations(ij, 2):
+                        for kl in sep_set.keys():  # k and l are nonadjacent.
+                            k, l = kl
+                            # if i——k——&gt;j and  i——l——&gt;j
+                            if cpdag[i, k] == 1 \
+                                    and cpdag[k, i] == 1 \
+                                    and cpdag[k, j] == 1 \
+                                    and cpdag[j, k] == 0 \
+                                    and cpdag[i, l] == 1 \
+                                    and cpdag[l, i] == 1 \
+                                    and cpdag[l, j] == 1 \
+                                    and cpdag[j, l] == 0:
+                                cpdag[j, i] = 0
+                    # rule4
+                    for i, j in self._permutations(ij, 2):
+                        for kj in sep_set.keys():  # k and j are nonadjacent.
+                            if j not in kj:
+                                continue
+                            else:
+                                kj = list(kj)
+                                kj.remove(j)
+                                k = kj[0]
+                                ls = [x for x in columns if x not in [i, j, k]]
+                                for l in ls:
+                                    if cpdag[k, l] == 1 \
+                                            and cpdag[l, k] == 0 \
+                                            and cpdag[i, k] == 1 \
+                                            and cpdag[k, i] == 1 \
+                                            and cpdag[l, j] == 1 \
+                                            and cpdag[j, l] == 0:
+                                        cpdag[j, i] = 0
+            if np.all(cpdag == old_cpdag):
+                break
+
+        return cpdag
+
+    def _loop(self,G, d):
+
+        assert G.shape[0] == G.shape[1]
+
+        pairs = [(x, y) for x, y in self._combinations(set(range(G.shape[0])), 2)]
+        less_d = 0
+        for i, j in pairs:
+            adj_i = set(np.argwhere(G[i] != 0).reshape(-1, ))
+            z = adj_i - {j}  # adj(C, i)\{j}
+            if len(z) &lt; d:
+                less_d += 1
+            else:
+                break
+        if less_d == len(pairs):
+            return False
+        else:
+            return True
+
+
+
+
+
+    def find_skeleton(self,data, alpha, ci_test_class, variant=&#39;original&#39;,
+                      priori_knowledge=None, base_skeleton=None,
+                      p_cores=1, s=None, batch=None):
+        ci_test = ci_test_class.compute_fisherz
+        n_feature = data.shape[1]
+        if base_skeleton is None:
+            skeleton = np.ones((n_feature, n_feature)) - np.eye(n_feature)
+        else:
+            row, col = np.diag_indices_from(base_skeleton)
+            base_skeleton[row, col] = 0
+            skeleton = base_skeleton
+        nodes = set(range(n_feature))
+
+        # update skeleton based on priori knowledge
+        for i, j in self._combinations(nodes, 2):
+            if priori_knowledge is not None and (
+                    priori_knowledge.is_forbidden(i, j)
+                    and priori_knowledge.is_forbidden(j, i)):
+                skeleton[i, j] = skeleton[j, i] = 0
+
+        sep_set = {}
+        d = -1
+        while self._loop(skeleton, d):  # until for each adj(C,i)\{j} &lt; l
+            d += 1
+            if variant == &#39;stable&#39;:
+                C = self._deepcopy(skeleton)
+            else:
+                C = skeleton
+            if variant != &#39;parallel&#39;:
+                for i, j in self._combinations(nodes, 2):
+                    if skeleton[i, j] == 0:
+                        continue
+                    adj_i = set(np.argwhere(C[i] == 1).reshape(-1, ))
+                    z = adj_i - {j}  # adj(C, i)\{j}
+                    if len(z) &gt;= d:
+                        # |adj(C, i)\{j}| &gt;= l
+                        for sub_z in self._combinations(z, d):
+                            sub_z = list(sub_z)
+                            _,_,p_value, = ci_test(i, j, sub_z)
+                            if p_value &gt;= alpha:
+                                skeleton[i, j] = skeleton[j, i] = 0
+                                sep_set[(i, j)] = sub_z
+                                break
+
+        return skeleton, sep_set
+
+
+class MovingPC():
+    def __init__(self):
+        self.pc = PC()
+        import networkx as nx
+        self._nx=nx
+
+    def calculate_with_pc_moving(self,names, data,timestamps):
+
+        sorted_indices = np.argsort(names)
+        Xdata = data[:, sorted_indices]
+        names = [names[i] for i in sorted_indices]
+
+
+        self.pc.learn(Xdata,timestamps)
+        learned_graph = self._nx.DiGraph(self.pc.causal_matrix)
+        # Relabel the nodes
+        MAPPING = {k: n for k, n in zip(range(len(names)), names)}
+        learned_graph = self._nx.relabel_nodes(learned_graph, MAPPING, copy=True)
+        edges =learned_graph.edges
+        fedges =[]
+        for tup in edges:
+            if tup not in fedges:
+                fedges.append(tup)
+            if (tup[1] ,tup[0]) not in fedges:
+                fedges.append((tup[1] ,tup[0]))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="PdmContext.utils.MovingPC.MovingPC"><code class="flex name class">
+<span>class <span class="ident">MovingPC</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MovingPC():
+    def __init__(self):
+        self.pc = PC()
+        import networkx as nx
+        self._nx=nx
+
+    def calculate_with_pc_moving(self,names, data,timestamps):
+
+        sorted_indices = np.argsort(names)
+        Xdata = data[:, sorted_indices]
+        names = [names[i] for i in sorted_indices]
+
+
+        self.pc.learn(Xdata,timestamps)
+        learned_graph = self._nx.DiGraph(self.pc.causal_matrix)
+        # Relabel the nodes
+        MAPPING = {k: n for k, n in zip(range(len(names)), names)}
+        learned_graph = self._nx.relabel_nodes(learned_graph, MAPPING, copy=True)
+        edges =learned_graph.edges
+        fedges =[]
+        for tup in edges:
+            if tup not in fedges:
+                fedges.append(tup)
+            if (tup[1] ,tup[0]) not in fedges:
+                fedges.append((tup[1] ,tup[0]))</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.utils.MovingPC.MovingPC.calculate_with_pc_moving"><code class="name flex">
+<span>def <span class="ident">calculate_with_pc_moving</span></span>(<span>self, names, data, timestamps)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_with_pc_moving(self,names, data,timestamps):
+
+    sorted_indices = np.argsort(names)
+    Xdata = data[:, sorted_indices]
+    names = [names[i] for i in sorted_indices]
+
+
+    self.pc.learn(Xdata,timestamps)
+    learned_graph = self._nx.DiGraph(self.pc.causal_matrix)
+    # Relabel the nodes
+    MAPPING = {k: n for k, n in zip(range(len(names)), names)}
+    learned_graph = self._nx.relabel_nodes(learned_graph, MAPPING, copy=True)
+    edges =learned_graph.edges
+    fedges =[]
+    for tup in edges:
+        if tup not in fedges:
+            fedges.append(tup)
+        if (tup[1] ,tup[0]) not in fedges:
+            fedges.append((tup[1] ,tup[0]))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="PdmContext.utils.MovingPC.PC"><code class="flex name class">
+<span>class <span class="ident">PC</span></span>
+<span>(</span><span>variant='stable', alpha=0.05, priori_knowledge=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PC():
+
+    def __init__(self, variant=&#39;stable&#39;, alpha=0.05,
+                 priori_knowledge=None):
+        from castle.common import Tensor
+        self._Tensor=Tensor
+
+        from castle.common.priori_knowledge import orient_by_priori_knowledge
+        self._orient_by_priori_knowledge=orient_by_priori_knowledge
+
+        from itertools import permutations
+        self._permutations = permutations
+        from itertools import combinations
+        self._combinations = combinations
+
+        from copy import deepcopy
+        self._deepcopy = deepcopy
+        self.variant = variant
+        self.alpha = alpha
+        self.ci_test = RunningCovarianceTimestamps()
+        self.causal_matrix = None
+        self.priori_knowledge = priori_knowledge
+
+    def learn(self, data,timestamps, columns=None, **kwargs):
+        &#34;&#34;&#34;
+        Based on the implementation of gCastle Library
+        &#34;&#34;&#34;
+
+
+        self.ci_test.update(data,timestamps)
+        if self.ci_test.data is None:
+            self.causal_matrix=None
+            return
+        data = self._Tensor(data, columns=columns)
+
+        skeleton, sep_set = self.find_skeleton(data,
+                                          alpha=self.alpha,
+                                          ci_test_class=self.ci_test,
+                                          variant=self.variant,
+                                          priori_knowledge=self.priori_knowledge,
+                                          **kwargs)
+
+        self._causal_matrix = self._Tensor(
+            self.orient(skeleton, sep_set, self.priori_knowledge).astype(int),
+            index=data.columns,
+            columns=data.columns
+        )
+        self.causal_matrix=self._causal_matrix
+
+    def orient(self, skeleton, sep_set, priori_knowledge=None):
+
+
+        if priori_knowledge is not None:
+            skeleton = self._orient_by_priori_knowledge(skeleton, priori_knowledge)
+
+        columns = list(range(skeleton.shape[1]))
+        cpdag = self._deepcopy(abs(skeleton))
+        # pre-processing
+        for ij in sep_set.keys():
+            i, j = ij
+            all_k = [x for x in columns if x not in ij]
+            for k in all_k:
+                if cpdag[i, k] + cpdag[k, i] != 0 \
+                        and cpdag[k, j] + cpdag[j, k] != 0:
+                    if k not in sep_set[ij]:
+                        if cpdag[i, k] + cpdag[k, i] == 2:
+                            cpdag[k, i] = 0
+                        if cpdag[j, k] + cpdag[k, j] == 2:
+                            cpdag[k, j] = 0
+        while True:
+            old_cpdag = self._deepcopy(cpdag)
+            pairs = list(self._combinations(columns, 2))
+            for ij in pairs:
+                i, j = ij
+                if cpdag[i, j] * cpdag[j, i] == 1:
+                    # rule1
+                    for i, j in self._permutations(ij, 2):
+                        all_k = [x for x in columns if x not in ij]
+                        for k in all_k:
+                            if cpdag[k, i] == 1 and cpdag[i, k] == 0 \
+                                    and cpdag[k, j] + cpdag[j, k] == 0:
+                                cpdag[j, i] = 0
+                    # rule2
+                    for i, j in self._permutations(ij, 2):
+                        all_k = [x for x in columns if x not in ij]
+                        for k in all_k:
+                            if (cpdag[i, k] == 1 and cpdag[k, i] == 0) \
+                                    and (cpdag[k, j] == 1 and cpdag[j, k] == 0):
+                                cpdag[j, i] = 0
+                    # rule3
+                    for i, j in self._permutations(ij, 2):
+                        for kl in sep_set.keys():  # k and l are nonadjacent.
+                            k, l = kl
+                            # if i——k——&gt;j and  i——l——&gt;j
+                            if cpdag[i, k] == 1 \
+                                    and cpdag[k, i] == 1 \
+                                    and cpdag[k, j] == 1 \
+                                    and cpdag[j, k] == 0 \
+                                    and cpdag[i, l] == 1 \
+                                    and cpdag[l, i] == 1 \
+                                    and cpdag[l, j] == 1 \
+                                    and cpdag[j, l] == 0:
+                                cpdag[j, i] = 0
+                    # rule4
+                    for i, j in self._permutations(ij, 2):
+                        for kj in sep_set.keys():  # k and j are nonadjacent.
+                            if j not in kj:
+                                continue
+                            else:
+                                kj = list(kj)
+                                kj.remove(j)
+                                k = kj[0]
+                                ls = [x for x in columns if x not in [i, j, k]]
+                                for l in ls:
+                                    if cpdag[k, l] == 1 \
+                                            and cpdag[l, k] == 0 \
+                                            and cpdag[i, k] == 1 \
+                                            and cpdag[k, i] == 1 \
+                                            and cpdag[l, j] == 1 \
+                                            and cpdag[j, l] == 0:
+                                        cpdag[j, i] = 0
+            if np.all(cpdag == old_cpdag):
+                break
+
+        return cpdag
+
+    def _loop(self,G, d):
+
+        assert G.shape[0] == G.shape[1]
+
+        pairs = [(x, y) for x, y in self._combinations(set(range(G.shape[0])), 2)]
+        less_d = 0
+        for i, j in pairs:
+            adj_i = set(np.argwhere(G[i] != 0).reshape(-1, ))
+            z = adj_i - {j}  # adj(C, i)\{j}
+            if len(z) &lt; d:
+                less_d += 1
+            else:
+                break
+        if less_d == len(pairs):
+            return False
+        else:
+            return True
+
+
+
+
+
+    def find_skeleton(self,data, alpha, ci_test_class, variant=&#39;original&#39;,
+                      priori_knowledge=None, base_skeleton=None,
+                      p_cores=1, s=None, batch=None):
+        ci_test = ci_test_class.compute_fisherz
+        n_feature = data.shape[1]
+        if base_skeleton is None:
+            skeleton = np.ones((n_feature, n_feature)) - np.eye(n_feature)
+        else:
+            row, col = np.diag_indices_from(base_skeleton)
+            base_skeleton[row, col] = 0
+            skeleton = base_skeleton
+        nodes = set(range(n_feature))
+
+        # update skeleton based on priori knowledge
+        for i, j in self._combinations(nodes, 2):
+            if priori_knowledge is not None and (
+                    priori_knowledge.is_forbidden(i, j)
+                    and priori_knowledge.is_forbidden(j, i)):
+                skeleton[i, j] = skeleton[j, i] = 0
+
+        sep_set = {}
+        d = -1
+        while self._loop(skeleton, d):  # until for each adj(C,i)\{j} &lt; l
+            d += 1
+            if variant == &#39;stable&#39;:
+                C = self._deepcopy(skeleton)
+            else:
+                C = skeleton
+            if variant != &#39;parallel&#39;:
+                for i, j in self._combinations(nodes, 2):
+                    if skeleton[i, j] == 0:
+                        continue
+                    adj_i = set(np.argwhere(C[i] == 1).reshape(-1, ))
+                    z = adj_i - {j}  # adj(C, i)\{j}
+                    if len(z) &gt;= d:
+                        # |adj(C, i)\{j}| &gt;= l
+                        for sub_z in self._combinations(z, d):
+                            sub_z = list(sub_z)
+                            _,_,p_value, = ci_test(i, j, sub_z)
+                            if p_value &gt;= alpha:
+                                skeleton[i, j] = skeleton[j, i] = 0
+                                sep_set[(i, j)] = sub_z
+                                break
+
+        return skeleton, sep_set</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.utils.MovingPC.PC.find_skeleton"><code class="name flex">
+<span>def <span class="ident">find_skeleton</span></span>(<span>self, data, alpha, ci_test_class, variant='original', priori_knowledge=None, base_skeleton=None, p_cores=1, s=None, batch=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_skeleton(self,data, alpha, ci_test_class, variant=&#39;original&#39;,
+                  priori_knowledge=None, base_skeleton=None,
+                  p_cores=1, s=None, batch=None):
+    ci_test = ci_test_class.compute_fisherz
+    n_feature = data.shape[1]
+    if base_skeleton is None:
+        skeleton = np.ones((n_feature, n_feature)) - np.eye(n_feature)
+    else:
+        row, col = np.diag_indices_from(base_skeleton)
+        base_skeleton[row, col] = 0
+        skeleton = base_skeleton
+    nodes = set(range(n_feature))
+
+    # update skeleton based on priori knowledge
+    for i, j in self._combinations(nodes, 2):
+        if priori_knowledge is not None and (
+                priori_knowledge.is_forbidden(i, j)
+                and priori_knowledge.is_forbidden(j, i)):
+            skeleton[i, j] = skeleton[j, i] = 0
+
+    sep_set = {}
+    d = -1
+    while self._loop(skeleton, d):  # until for each adj(C,i)\{j} &lt; l
+        d += 1
+        if variant == &#39;stable&#39;:
+            C = self._deepcopy(skeleton)
+        else:
+            C = skeleton
+        if variant != &#39;parallel&#39;:
+            for i, j in self._combinations(nodes, 2):
+                if skeleton[i, j] == 0:
+                    continue
+                adj_i = set(np.argwhere(C[i] == 1).reshape(-1, ))
+                z = adj_i - {j}  # adj(C, i)\{j}
+                if len(z) &gt;= d:
+                    # |adj(C, i)\{j}| &gt;= l
+                    for sub_z in self._combinations(z, d):
+                        sub_z = list(sub_z)
+                        _,_,p_value, = ci_test(i, j, sub_z)
+                        if p_value &gt;= alpha:
+                            skeleton[i, j] = skeleton[j, i] = 0
+                            sep_set[(i, j)] = sub_z
+                            break
+
+    return skeleton, sep_set</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.MovingPC.PC.learn"><code class="name flex">
+<span>def <span class="ident">learn</span></span>(<span>self, data, timestamps, columns=None, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Based on the implementation of gCastle Library</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def learn(self, data,timestamps, columns=None, **kwargs):
+    &#34;&#34;&#34;
+    Based on the implementation of gCastle Library
+    &#34;&#34;&#34;
+
+
+    self.ci_test.update(data,timestamps)
+    if self.ci_test.data is None:
+        self.causal_matrix=None
+        return
+    data = self._Tensor(data, columns=columns)
+
+    skeleton, sep_set = self.find_skeleton(data,
+                                      alpha=self.alpha,
+                                      ci_test_class=self.ci_test,
+                                      variant=self.variant,
+                                      priori_knowledge=self.priori_knowledge,
+                                      **kwargs)
+
+    self._causal_matrix = self._Tensor(
+        self.orient(skeleton, sep_set, self.priori_knowledge).astype(int),
+        index=data.columns,
+        columns=data.columns
+    )
+    self.causal_matrix=self._causal_matrix</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.MovingPC.PC.orient"><code class="name flex">
+<span>def <span class="ident">orient</span></span>(<span>self, skeleton, sep_set, priori_knowledge=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def orient(self, skeleton, sep_set, priori_knowledge=None):
+
+
+    if priori_knowledge is not None:
+        skeleton = self._orient_by_priori_knowledge(skeleton, priori_knowledge)
+
+    columns = list(range(skeleton.shape[1]))
+    cpdag = self._deepcopy(abs(skeleton))
+    # pre-processing
+    for ij in sep_set.keys():
+        i, j = ij
+        all_k = [x for x in columns if x not in ij]
+        for k in all_k:
+            if cpdag[i, k] + cpdag[k, i] != 0 \
+                    and cpdag[k, j] + cpdag[j, k] != 0:
+                if k not in sep_set[ij]:
+                    if cpdag[i, k] + cpdag[k, i] == 2:
+                        cpdag[k, i] = 0
+                    if cpdag[j, k] + cpdag[k, j] == 2:
+                        cpdag[k, j] = 0
+    while True:
+        old_cpdag = self._deepcopy(cpdag)
+        pairs = list(self._combinations(columns, 2))
+        for ij in pairs:
+            i, j = ij
+            if cpdag[i, j] * cpdag[j, i] == 1:
+                # rule1
+                for i, j in self._permutations(ij, 2):
+                    all_k = [x for x in columns if x not in ij]
+                    for k in all_k:
+                        if cpdag[k, i] == 1 and cpdag[i, k] == 0 \
+                                and cpdag[k, j] + cpdag[j, k] == 0:
+                            cpdag[j, i] = 0
+                # rule2
+                for i, j in self._permutations(ij, 2):
+                    all_k = [x for x in columns if x not in ij]
+                    for k in all_k:
+                        if (cpdag[i, k] == 1 and cpdag[k, i] == 0) \
+                                and (cpdag[k, j] == 1 and cpdag[j, k] == 0):
+                            cpdag[j, i] = 0
+                # rule3
+                for i, j in self._permutations(ij, 2):
+                    for kl in sep_set.keys():  # k and l are nonadjacent.
+                        k, l = kl
+                        # if i——k——&gt;j and  i——l——&gt;j
+                        if cpdag[i, k] == 1 \
+                                and cpdag[k, i] == 1 \
+                                and cpdag[k, j] == 1 \
+                                and cpdag[j, k] == 0 \
+                                and cpdag[i, l] == 1 \
+                                and cpdag[l, i] == 1 \
+                                and cpdag[l, j] == 1 \
+                                and cpdag[j, l] == 0:
+                            cpdag[j, i] = 0
+                # rule4
+                for i, j in self._permutations(ij, 2):
+                    for kj in sep_set.keys():  # k and j are nonadjacent.
+                        if j not in kj:
+                            continue
+                        else:
+                            kj = list(kj)
+                            kj.remove(j)
+                            k = kj[0]
+                            ls = [x for x in columns if x not in [i, j, k]]
+                            for l in ls:
+                                if cpdag[k, l] == 1 \
+                                        and cpdag[l, k] == 0 \
+                                        and cpdag[i, k] == 1 \
+                                        and cpdag[k, i] == 1 \
+                                        and cpdag[l, j] == 1 \
+                                        and cpdag[j, l] == 0:
+                                    cpdag[j, i] = 0
+        if np.all(cpdag == old_cpdag):
+            break
+
+    return cpdag</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="PdmContext.utils.MovingPC.RunningCovarianceTimestamps"><code class="flex name class">
+<span>class <span class="ident">RunningCovarianceTimestamps</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initializes running sum, sum of squares, mean, and covariance matrix
+for incremental updates.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RunningCovarianceTimestamps:
+    def __init__(self):
+        &#34;&#34;&#34;
+        Initializes running sum, sum of squares, mean, and covariance matrix
+        for incremental updates.
+        &#34;&#34;&#34;
+        import scipy.stats as stats
+        self._stats=stats
+        self.datacopy=None
+        self.data = None
+    def init(self,data,timestamps):
+        self.data = data
+        self.n, self.d = data.shape
+        # Sufficient statistics
+        self.sum = np.sum(data, axis=0)
+        self.sum_sq = np.dot(data.T, data)  # Sum of outer products
+        self.mean = self.sum / self.n
+
+        self.cov = self.coovarianve(self.sum, self.sum_sq, self.mean, self.n)
+        self.corr = self.covariance_to_correlation(self.cov)
+        self.timestamps = timestamps
+        self.datacopy=data
+        return
+    def update(self, data, timestamps):
+
+        &#34;&#34;&#34;
+        Updates the sufficient statistics when a sample is removed and a new one is added.
+        Recomputes the mean and covariance exactly as np.cov would.
+
+        &#34;&#34;&#34;
+        # Update the sums
+
+
+        if self.data is None or self.data.shape[1]!=data.shape[1]:
+            self.init(data, timestamps)
+            return
+        if timestamps[0]==self.timestamps[0] and timestamps[-1]==self.timestamps[-1]:
+            return
+
+
+        assert self.data.shape[1] == data.shape[1], &#34;Data have different shapes&#34;
+
+        positionOld = self.timestamps.index(timestamps[0])
+        oldsamples = self.data[:positionOld]
+
+        positionNew = timestamps.index(self.timestamps[-1])+1
+        newsamples = data[positionNew:]
+
+        for old_sample in oldsamples:
+            self.sum = self.sum - old_sample
+            self.sum_sq = self.sum_sq - np.outer(old_sample, old_sample)
+        self.datacopy=self.datacopy[positionOld:]
+        for new_sample in newsamples:
+            self.sum = self.sum + new_sample
+            self.sum_sq = self.sum_sq + np.outer(new_sample, new_sample)
+        self.datacopy = np.vstack([self.datacopy, newsamples])
+
+        # if abs(np.sum(self.datacopy-data))&gt;0.00000001:
+        #     ok=&#39;ok&#39;
+        self.n = data.shape[0]
+        # Update the mean
+        self.mean = self.sum / self.n
+
+        # Recompute the covariance (unbiased estimate with ddof=1)
+        self.cov = self.coovarianve(self.sum, self.sum_sq, self.mean, self.n)
+        self.corr=self.covariance_to_correlation(self.cov)
+
+
+        self.timestamps = timestamps
+        self.data = data
+
+    def covariance_to_correlation(self,C):
+        &#34;&#34;&#34;Convert a covariance matrix C to a correlation matrix R.&#34;&#34;&#34;
+        diag_sqrt = np.sqrt(np.diag(C))  # Square root of diagonal elements
+        R = C / np.outer(diag_sqrt, diag_sqrt)  # Element-wise division
+        return R
+
+    def coovarianve(self,sum, sum_sq, mean, n):
+        return (sum_sq - (np.outer(mean, sum) + np.outer(sum, mean)) + np.outer(mean, mean) * n) / (n - 1)
+
+    # def computer_originalfisherz(self,data, x, y, z):
+    #     import scipy.stats as stats
+    #
+    #     n = data.shape[0]
+    #     k = len(z)
+    #     sub_corr=None
+    #     corr=np.corrcoef(data.T)
+    #     if k == 0:
+    #         r = np.corrcoef(data[:, [x, y]].T)[0][1]
+    #     else:
+    #         sub_index = [x, y]
+    #         sub_index.extend(z)
+    #         sub_corr = np.corrcoef(data[:, sub_index].T)
+    #         # inverse matrix
+    #         try:
+    #             PM = np.linalg.inv(sub_corr)
+    #         except np.linalg.LinAlgError:
+    #             PM = np.linalg.pinv(sub_corr)
+    #         r = -1 * PM[0, 1] / math.sqrt(abs(PM[0, 0] * PM[1, 1]))
+    #     cut_at = 0.99999
+    #     rold=r
+    #     r = min(cut_at, max(-1 * cut_at, r))  # make r between -1 and 1
+    #
+    #     # Fisher’s z-transform
+    #     res = math.sqrt(n - k - 3) * .5 * math.log1p((2 * r) / (1 - r))
+    #     p_value = 2 * (1 - stats.norm.cdf(abs(res)))
+    #
+    #     return corr,sub_corr,r,rold, res, p_value
+
+    def compute_fisherz(self, x, y, z=[]):
+        assert self.data is not None, &#34;Moving Covariance Not initialized&#34;
+
+        k = len(z)
+        if k == 0:
+            r = self.corr[x, y]
+        else:
+            sub_index = [x, y]
+            sub_index.extend(z)
+            sub_corr = self.corr[sub_index][:,sub_index]
+            try:
+                PM = np.linalg.inv(sub_corr)
+            except np.linalg.LinAlgError:
+                PM = np.linalg.pinv(sub_corr)
+            r = -1 * PM[0, 1] / math.sqrt(abs(PM[0, 0] * PM[1, 1]))
+        cut_at = 0.99999
+        r = min(cut_at, max(-1 * cut_at, r))  # make r between -1 and 1
+
+        # Fisher’s z-transform
+        res = math.sqrt(self.n - k - 3) * .5 * math.log1p((2 * r) / (1 - r))
+        p_value = 2 * (1 - self._stats.norm.cdf(abs(res)))
+
+        return None, None, p_value</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.compute_fisherz"><code class="name flex">
+<span>def <span class="ident">compute_fisherz</span></span>(<span>self, x, y, z=[])</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_fisherz(self, x, y, z=[]):
+    assert self.data is not None, &#34;Moving Covariance Not initialized&#34;
+
+    k = len(z)
+    if k == 0:
+        r = self.corr[x, y]
+    else:
+        sub_index = [x, y]
+        sub_index.extend(z)
+        sub_corr = self.corr[sub_index][:,sub_index]
+        try:
+            PM = np.linalg.inv(sub_corr)
+        except np.linalg.LinAlgError:
+            PM = np.linalg.pinv(sub_corr)
+        r = -1 * PM[0, 1] / math.sqrt(abs(PM[0, 0] * PM[1, 1]))
+    cut_at = 0.99999
+    r = min(cut_at, max(-1 * cut_at, r))  # make r between -1 and 1
+
+    # Fisher’s z-transform
+    res = math.sqrt(self.n - k - 3) * .5 * math.log1p((2 * r) / (1 - r))
+    p_value = 2 * (1 - self._stats.norm.cdf(abs(res)))
+
+    return None, None, p_value</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.coovarianve"><code class="name flex">
+<span>def <span class="ident">coovarianve</span></span>(<span>self, sum, sum_sq, mean, n)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def coovarianve(self,sum, sum_sq, mean, n):
+    return (sum_sq - (np.outer(mean, sum) + np.outer(sum, mean)) + np.outer(mean, mean) * n) / (n - 1)</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.covariance_to_correlation"><code class="name flex">
+<span>def <span class="ident">covariance_to_correlation</span></span>(<span>self, C)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a covariance matrix C to a correlation matrix R.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def covariance_to_correlation(self,C):
+    &#34;&#34;&#34;Convert a covariance matrix C to a correlation matrix R.&#34;&#34;&#34;
+    diag_sqrt = np.sqrt(np.diag(C))  # Square root of diagonal elements
+    R = C / np.outer(diag_sqrt, diag_sqrt)  # Element-wise division
+    return R</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.init"><code class="name flex">
+<span>def <span class="ident">init</span></span>(<span>self, data, timestamps)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def init(self,data,timestamps):
+    self.data = data
+    self.n, self.d = data.shape
+    # Sufficient statistics
+    self.sum = np.sum(data, axis=0)
+    self.sum_sq = np.dot(data.T, data)  # Sum of outer products
+    self.mean = self.sum / self.n
+
+    self.cov = self.coovarianve(self.sum, self.sum_sq, self.mean, self.n)
+    self.corr = self.covariance_to_correlation(self.cov)
+    self.timestamps = timestamps
+    self.datacopy=data
+    return</code></pre>
+</details>
+</dd>
+<dt id="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.update"><code class="name flex">
+<span>def <span class="ident">update</span></span>(<span>self, data, timestamps)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates the sufficient statistics when a sample is removed and a new one is added.
+Recomputes the mean and covariance exactly as np.cov would.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update(self, data, timestamps):
+
+    &#34;&#34;&#34;
+    Updates the sufficient statistics when a sample is removed and a new one is added.
+    Recomputes the mean and covariance exactly as np.cov would.
+
+    &#34;&#34;&#34;
+    # Update the sums
+
+
+    if self.data is None or self.data.shape[1]!=data.shape[1]:
+        self.init(data, timestamps)
+        return
+    if timestamps[0]==self.timestamps[0] and timestamps[-1]==self.timestamps[-1]:
+        return
+
+
+    assert self.data.shape[1] == data.shape[1], &#34;Data have different shapes&#34;
+
+    positionOld = self.timestamps.index(timestamps[0])
+    oldsamples = self.data[:positionOld]
+
+    positionNew = timestamps.index(self.timestamps[-1])+1
+    newsamples = data[positionNew:]
+
+    for old_sample in oldsamples:
+        self.sum = self.sum - old_sample
+        self.sum_sq = self.sum_sq - np.outer(old_sample, old_sample)
+    self.datacopy=self.datacopy[positionOld:]
+    for new_sample in newsamples:
+        self.sum = self.sum + new_sample
+        self.sum_sq = self.sum_sq + np.outer(new_sample, new_sample)
+    self.datacopy = np.vstack([self.datacopy, newsamples])
+
+    # if abs(np.sum(self.datacopy-data))&gt;0.00000001:
+    #     ok=&#39;ok&#39;
+    self.n = data.shape[0]
+    # Update the mean
+    self.mean = self.sum / self.n
+
+    # Recompute the covariance (unbiased estimate with ddof=1)
+    self.cov = self.coovarianve(self.sum, self.sum_sq, self.mean, self.n)
+    self.corr=self.covariance_to_correlation(self.cov)
+
+
+    self.timestamps = timestamps
+    self.data = data</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="PdmContext.utils" href="index.html">PdmContext.utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="PdmContext.utils.MovingPC.MovingPC" href="#PdmContext.utils.MovingPC.MovingPC">MovingPC</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.utils.MovingPC.MovingPC.calculate_with_pc_moving" href="#PdmContext.utils.MovingPC.MovingPC.calculate_with_pc_moving">calculate_with_pc_moving</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="PdmContext.utils.MovingPC.PC" href="#PdmContext.utils.MovingPC.PC">PC</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.utils.MovingPC.PC.find_skeleton" href="#PdmContext.utils.MovingPC.PC.find_skeleton">find_skeleton</a></code></li>
+<li><code><a title="PdmContext.utils.MovingPC.PC.learn" href="#PdmContext.utils.MovingPC.PC.learn">learn</a></code></li>
+<li><code><a title="PdmContext.utils.MovingPC.PC.orient" href="#PdmContext.utils.MovingPC.PC.orient">orient</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="PdmContext.utils.MovingPC.RunningCovarianceTimestamps" href="#PdmContext.utils.MovingPC.RunningCovarianceTimestamps">RunningCovarianceTimestamps</a></code></h4>
+<ul class="">
+<li><code><a title="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.compute_fisherz" href="#PdmContext.utils.MovingPC.RunningCovarianceTimestamps.compute_fisherz">compute_fisherz</a></code></li>
+<li><code><a title="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.coovarianve" href="#PdmContext.utils.MovingPC.RunningCovarianceTimestamps.coovarianve">coovarianve</a></code></li>
+<li><code><a title="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.covariance_to_correlation" href="#PdmContext.utils.MovingPC.RunningCovarianceTimestamps.covariance_to_correlation">covariance_to_correlation</a></code></li>
+<li><code><a title="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.init" href="#PdmContext.utils.MovingPC.RunningCovarianceTimestamps.init">init</a></code></li>
+<li><code><a title="PdmContext.utils.MovingPC.RunningCovarianceTimestamps.update" href="#PdmContext.utils.MovingPC.RunningCovarianceTimestamps.update">update</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

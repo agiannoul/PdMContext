@@ -3,7 +3,7 @@ def empty_cause(names, data):
     return []
 
 
-def calculate_with_pc(names, data):
+def calculate_with_pc(names, data,timestamps):
     """
     Peter-Clark (PC) algorithm for causal discovery from gcastle package.
 
