@@ -11,7 +11,7 @@ def filter_edges(edge, char, filteredges):
     return False
 
 
-def show_context_list(contextlist: list[Context], target_text, filteredges=[["", "", ""]]):
+def show_context_list(contextlist: list[Context], target_text, filteredges=[["", "", ""]],char=True):
     """
     Visualization of Contexts in the contextlist
 
@@ -45,12 +45,18 @@ def show_context_list(contextlist: list[Context], target_text, filteredges=[["",
 
         target_values.append(context_obj.CD[target_text][-1])
 
-        for edge, char in zip(context_obj.CR["edges"], context_obj.CR["characterization"]):
-            if filter_edges(edge, char, filteredges):
-                querytimes.append(timestamptemp2)
-                queryvalues.append(target_values[-1])
-                querycolors.append(f"{edge[0].split('@')[0]}->{edge[1].split('@')[0]}")
-
+        if char:
+            for edge, char in zip(context_obj.CR["edges"], context_obj.CR["characterization"]):
+                if filter_edges(edge, char, filteredges):
+                    querytimes.append(timestamptemp2)
+                    queryvalues.append(target_values[-1])
+                    querycolors.append(f"{edge[0].split('@')[0]}->{edge[1].split('@')[0]}")
+        else:
+            for edge in context_obj.CR["edges"]:
+                if filter_edges(edge, " ", filteredges):
+                    querytimes.append(timestamptemp2)
+                    queryvalues.append(target_values[-1])
+                    querycolors.append(f"{edge[0].split('@')[0]}->{edge[1].split('@')[0]}")
     width = 3
     # Plot the complete timespan
     ax.clear()

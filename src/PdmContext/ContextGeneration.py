@@ -865,10 +865,10 @@ class ContextGenerator:
         # edges=self.salesforcePC(names,data)
         return edges
 
-    def plot(self,contexts, filteredges=None):
+    def plot(self,contexts, filteredges=None,char=True):
         if filteredges is None:
             filteredges = [["", "", ""]]
-        show_context_list(contexts, self.target, filteredges=filteredges)
+        show_context_list(contexts, self.target, filteredges=filteredges,char=char)
 
     def plot_interpretation(self,contexts, filteredges=None):
         if filteredges is None:

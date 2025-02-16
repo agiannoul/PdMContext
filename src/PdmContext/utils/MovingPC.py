@@ -358,3 +358,4 @@ class MovingPC():
                 fedges.append(tup)
             if (tup[1] ,tup[0]) not in fedges:
                 fedges.append((tup[1] ,tup[0]))
+        return fedges
