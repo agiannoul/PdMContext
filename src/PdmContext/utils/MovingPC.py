@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+import scipy.stats as stats
 
 
 class RunningCovarianceTimestamps:
@@ -9,8 +10,6 @@ class RunningCovarianceTimestamps:
         Initializes running sum, sum of squares, mean, and covariance matrix
         for incremental updates.
         """
-        import scipy.stats as stats
-        self._stats=stats
         self.datacopy=None
         self.data = None
     def init(self,data,timestamps):
@@ -132,29 +131,22 @@ class RunningCovarianceTimestamps:
 
         # Fisher’s z-transform
         res = math.sqrt(self.n - k - 3) * .5 * math.log1p((2 * r) / (1 - r))
-        p_value = 2 * (1 - self._stats.norm.cdf(abs(res)))
+        p_value = 2 * (1 - stats.norm.cdf(abs(res)))
 
         return None, None, p_value
 
+from castle.common import Tensor
+from castle.common.priori_knowledge import orient_by_priori_knowledge
+from itertools import permutations
+from itertools import combinations
+from copy import deepcopy
 
 
 class PC():
 
     def __init__(self, variant='stable', alpha=0.05,
                  priori_knowledge=None):
-        from castle.common import Tensor
         self._Tensor=Tensor
-
-        from castle.common.priori_knowledge import orient_by_priori_knowledge
-        self._orient_by_priori_knowledge=orient_by_priori_knowledge
-
-        from itertools import permutations
-        self._permutations = permutations
-        from itertools import combinations
-        self._combinations = combinations
-
-        from copy import deepcopy
-        self._deepcopy = deepcopy
         self.variant = variant
         self.alpha = alpha
         self.ci_test = RunningCovarianceTimestamps()
@@ -191,10 +183,10 @@ class PC():
 
 
         if priori_knowledge is not None:
-            skeleton = self._orient_by_priori_knowledge(skeleton, priori_knowledge)
+            skeleton = orient_by_priori_knowledge(skeleton, priori_knowledge)
 
         columns = list(range(skeleton.shape[1]))
-        cpdag = self._deepcopy(abs(skeleton))
+        cpdag = self.deepcopy(abs(skeleton))
         # pre-processing
         for ij in sep_set.keys():
             i, j = ij
@@ -208,27 +200,27 @@ class PC():
                         if cpdag[j, k] + cpdag[k, j] == 2:
                             cpdag[k, j] = 0
         while True:
-            old_cpdag = self._deepcopy(cpdag)
-            pairs = list(self._combinations(columns, 2))
+            old_cpdag = self.deepcopy(cpdag)
+            pairs = list(combinations(columns, 2))
             for ij in pairs:
                 i, j = ij
                 if cpdag[i, j] * cpdag[j, i] == 1:
                     # rule1
-                    for i, j in self._permutations(ij, 2):
+                    for i, j in permutations(ij, 2):
                         all_k = [x for x in columns if x not in ij]
                         for k in all_k:
                             if cpdag[k, i] == 1 and cpdag[i, k] == 0 \
                                     and cpdag[k, j] + cpdag[j, k] == 0:
                                 cpdag[j, i] = 0
                     # rule2
-                    for i, j in self._permutations(ij, 2):
+                    for i, j in permutations(ij, 2):
                         all_k = [x for x in columns if x not in ij]
                         for k in all_k:
                             if (cpdag[i, k] == 1 and cpdag[k, i] == 0) \
                                     and (cpdag[k, j] == 1 and cpdag[j, k] == 0):
                                 cpdag[j, i] = 0
                     # rule3
-                    for i, j in self._permutations(ij, 2):
+                    for i, j in permutations(ij, 2):
                         for kl in sep_set.keys():  # k and l are nonadjacent.
                             k, l = kl
                             # if i——k——>j and  i——l——>j
@@ -242,7 +234,7 @@ class PC():
                                     and cpdag[j, l] == 0:
                                 cpdag[j, i] = 0
                     # rule4
-                    for i, j in self._permutations(ij, 2):
+                    for i, j in permutations(ij, 2):
                         for kj in sep_set.keys():  # k and j are nonadjacent.
                             if j not in kj:
                                 continue
@@ -268,7 +260,7 @@ class PC():
 
         assert G.shape[0] == G.shape[1]
 
-        pairs = [(x, y) for x, y in self._combinations(set(range(G.shape[0])), 2)]
+        pairs = [(x, y) for x, y in combinations(set(range(G.shape[0])), 2)]
         less_d = 0
         for i, j in pairs:
             adj_i = set(np.argwhere(G[i] != 0).reshape(-1, ))
@@ -300,7 +292,7 @@ class PC():
         nodes = set(range(n_feature))
 
         # update skeleton based on priori knowledge
-        for i, j in self._combinations(nodes, 2):
+        for i, j in combinations(nodes, 2):
             if priori_knowledge is not None and (
                     priori_knowledge.is_forbidden(i, j)
                     and priori_knowledge.is_forbidden(j, i)):
@@ -311,18 +303,18 @@ class PC():
         while self._loop(skeleton, d):  # until for each adj(C,i)\{j} < l
             d += 1
             if variant == 'stable':
-                C = self._deepcopy(skeleton)
+                C = self.deepcopy(skeleton)
             else:
                 C = skeleton
             if variant != 'parallel':
-                for i, j in self._combinations(nodes, 2):
+                for i, j in combinations(nodes, 2):
                     if skeleton[i, j] == 0:
                         continue
                     adj_i = set(np.argwhere(C[i] == 1).reshape(-1, ))
                     z = adj_i - {j}  # adj(C, i)\{j}
                     if len(z) >= d:
                         # |adj(C, i)\{j}| >= l
-                        for sub_z in self._combinations(z, d):
+                        for sub_z in combinations(z, d):
                             sub_z = list(sub_z)
                             _,_,p_value, = ci_test(i, j, sub_z)
                             if p_value >= alpha:
