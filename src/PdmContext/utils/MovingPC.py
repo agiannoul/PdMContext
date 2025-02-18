@@ -147,7 +147,6 @@ class PC():
 
     def __init__(self, variant='stable', alpha=0.05,
                  priori_knowledge=None):
-        self._Tensor=Tensor
         self.variant = variant
         self.alpha = alpha
         self.ci_test = RunningCovarianceTimestamps()
@@ -164,7 +163,7 @@ class PC():
         if self.ci_test.data is None:
             self.causal_matrix=None
             return
-        data = self._Tensor(data, columns=columns)
+        data = Tensor(data, columns=columns)
 
         skeleton, sep_set = self.find_skeleton(data,
                                           alpha=self.alpha,
@@ -173,7 +172,7 @@ class PC():
                                           priori_knowledge=self.priori_knowledge,
                                           **kwargs)
 
-        self._causal_matrix = self._Tensor(
+        self._causal_matrix = Tensor(
             self.orient(skeleton, sep_set, self.priori_knowledge).astype(int),
             index=data.columns,
             columns=data.columns
@@ -187,7 +186,7 @@ class PC():
             skeleton = orient_by_priori_knowledge(skeleton, priori_knowledge)
 
         columns = list(range(skeleton.shape[1]))
-        cpdag = self.deepcopy(abs(skeleton))
+        cpdag = deepcopy(abs(skeleton))
         # pre-processing
         for ij in sep_set.keys():
             i, j = ij
@@ -201,7 +200,7 @@ class PC():
                         if cpdag[j, k] + cpdag[k, j] == 2:
                             cpdag[k, j] = 0
         while True:
-            old_cpdag = self.deepcopy(cpdag)
+            old_cpdag = deepcopy(cpdag)
             pairs = list(combinations(columns, 2))
             for ij in pairs:
                 i, j = ij
@@ -304,7 +303,7 @@ class PC():
         while self._loop(skeleton, d):  # until for each adj(C,i)\{j} < l
             d += 1
             if variant == 'stable':
-                C = self.deepcopy(skeleton)
+                C = deepcopy(skeleton)
             else:
                 C = skeleton
             if variant != 'parallel':
