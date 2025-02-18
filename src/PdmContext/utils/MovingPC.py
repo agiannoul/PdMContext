@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 import scipy.stats as stats
+import networkx as nx
 
 
 class RunningCovarianceTimestamps:
@@ -328,8 +329,6 @@ class PC():
 class MovingPC():
     def __init__(self):
         self.pc = PC()
-        import networkx as nx
-        self._nx=nx
 
     def calculate_with_pc_moving(self,names, data,timestamps):
 
@@ -339,10 +338,10 @@ class MovingPC():
 
 
         self.pc.learn(Xdata,timestamps)
-        learned_graph = self._nx.DiGraph(self.pc.causal_matrix)
+        learned_graph = nx.DiGraph(self.pc.causal_matrix)
         # Relabel the nodes
         MAPPING = {k: n for k, n in zip(range(len(names)), names)}
-        learned_graph = self._nx.relabel_nodes(learned_graph, MAPPING, copy=True)
+        learned_graph = nx.relabel_nodes(learned_graph, MAPPING, copy=True)
         edges =learned_graph.edges
         fedges =[]
         for tup in edges:
