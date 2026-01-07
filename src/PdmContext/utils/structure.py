@@ -10,7 +10,7 @@ class Eventpoint():
         instance of such class represent a single data sample from specific source
         (where the code refers to the feature name), The details are used to sotre the actual data, while the type
         refer to the type of data (crucial for event data which must be on of isolated or configuration)
-        
+
         """
         self.code = code
         self.source = source
@@ -24,7 +24,7 @@ class Context():
     def __init__(self, timestamp, CD: dict, CR: dict, details=None):
         '''
         Representation of the Context
-        
+
         **timestamp**: A timestamp of the context
 
         **CD**: a dictionary with names the different data sources (names)
@@ -68,6 +68,19 @@ class Context():
                 CD[key] = contextdict[key]
 
         return cls(timestamp, CD, CR, details)
+
+    def to_dict(self):
+        contextdict = {}
+
+        contextdict["edges"] = self.CR["edges"]
+        contextdict["interpretation"] = self.CR["interpretation"]
+        contextdict["characterization"] = self.CR["characterization"]
+        for key in self.CD.keys():
+            contextdict[key] = self.CD[key]
+        contextdict["timestamp"] = self.timestamp
+        contextdict["details"] = self.details
+
+        return contextdict
 
     def plotCD(self):
         alldata_names = [name for name in self.CD.keys()]

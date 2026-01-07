@@ -10,7 +10,7 @@ class ContextGenerator:
 
     def __init__(self, target, context_horizon="8 hours",
                  Causalityfunct=calculate_with_pc,
-                 mapping_functions=None,debug=False,characterize_it=False,keep_context=False):
+                 mapping_functions=None,debug=False):
         """
         This Class handle the Context Generation. It keeps an internal buffer to build the context for a target series based
         on the provided context_horizon. All data are passed though the collect_data method, which return a corresponding
@@ -138,8 +138,6 @@ class ContextGenerator:
         if len(self.buffer)>0:
             if e.timestamp<self.buffer[0][0]: # in case of very late data, memory safe.
                 return
-        if e.details == "nan":
-            e.details = None
         if replace is None:
             replace = []
             index = len(self.buffer)
@@ -234,15 +232,32 @@ class ContextGenerator:
             dataforcontext = buffer
         else:
             dataforcontext=self.buffer
+        # datatodf = [[pd.to_datetime(e.timestamp) for e in dataforcontext],
+        #             [str(e.code) for e in dataforcontext],
+        #             [str(e.source) for e in dataforcontext],
+        #             [e.details for e in dataforcontext],
+        #             [e.type for e in dataforcontext]]
+        npcontext=np.array(dataforcontext)
+        # npcontext = np.array(datatodf)
+        # npcontext = npcontext.T
 
-        allcodes = set([row[1] for row in dataforcontext])
+        npcontext = self.Numpy_preproccess(npcontext)
 
+        allcodes = np.unique(npcontext[:, 1])
+        allcodes = [code for code in allcodes]
+        allcodes = set(allcodes)
+
+        # for uncode in allcodes:
+        #     for qq in range(len(npcontext)):
+        #         if uncode in npcontext[qq][1]:
+        #             self.type_of_series[uncode] = npcontext[qq][3]
+        #             break
 
         ## build target series
-        target_series_name, target_series = self.build_target_series_for_context(current, dataforcontext)
+        target_series_name, target_series = self.build_target_series_for_context(current, npcontext)
 
         ## create series for each source (alldata)
-        alldata = self.create_continuous_representation(target_series_name, target_series, dataforcontext,
+        alldata = self.create_continuous_representation(target_series_name, target_series, npcontext,
                                                         self.type_of_series, allcodes,self.mapping_functions)
         # end = time.time()
         # print(f"Create series: {end-start}")
@@ -299,7 +314,7 @@ class ContextGenerator:
         storing["edges"] = []
         return storing
 
-    def create_continuous_representation(self, target_series_name, target_series, windowvalues, type_of_series, allcodes,mapping_functions):
+    def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes,mapping_functions):
         """
         This method handles the creation of continuous representation for all type of sources observed in context,
         and is the first part for creating the CD of the context.
@@ -321,6 +336,7 @@ class ContextGenerator:
         **return**: The CD part of the context.
         """
 
+        windowvalues = df  # .values
         alldata = []
         alldata.append((target_series_name, [tag[0] for tag in target_series]))
         for name in allcodes:
@@ -328,12 +344,10 @@ class ContextGenerator:
             if target_series_name in name:
                 continue
 
-
-            occurrences = [
-                (value, ts)
-                for ts, code, value, _ in windowvalues
-                if name == code
-            ]
+            # detect the occurancies
+            occurrences = [(value, time) for code, value, time in
+                           zip(windowvalues[:, 1], windowvalues[:, 2], windowvalues[:, 0]) if name in code]
+            # occurrences=self.select_values(windowvalues,name)
 
             if len(occurrences) == 0:
                 vector = None
@@ -356,22 +370,28 @@ class ContextGenerator:
 
 
     def select_values(self,windowvalues,series_name):
-        times, codes, values, _ = zip(*windowvalues)
+        codes = windowvalues[:, 1]
+        values = windowvalues[:, 2]
+        times = windowvalues[:, 0]
 
         mask = np.char.find(codes.astype(str), series_name) >= 0
         target_series = np.column_stack((values[mask], times[mask]))
         return target_series
 
-    def build_target_series_for_context(self, current: Eventpoint, windowvalues: list):
+    def build_target_series_for_context(self, current: Eventpoint, df: np.ndarray):
         target_series_name = current.code
+        windowvalues = df  # .values
 
+        target_series=[(value, time) for code, value, time in
+         zip(windowvalues[:, 1], windowvalues[:, 2], windowvalues[:, 0]) if target_series_name in code]
+        # target_series=self.select_values(windowvalues,target_series_name)
 
-        target_series = [
-            (value, ts)
-            for ts, code, value, _ in windowvalues
-            if target_series_name in code
-        ]
         return target_series_name, target_series
+
+    def Numpy_preproccess(self, npcontext):
+        npcontext = np.where(npcontext == "nan", None, npcontext)
+
+        return npcontext
 
 
 
