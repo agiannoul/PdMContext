@@ -1,389 +1,458 @@
-import numpy as np
+class map_base():
+    def __init__(self):
+        self.existing_results = {}
+        self.existing_timestamps = {}
+        self.last_occurance = {}
 
-import pandas as pd
-from PdmContext.utils.structure import Eventpoint, Context
-from PdmContext.utils.causal_discovery_functions import calculate_with_pc
-from PdmContext.utils.showcontext import show_context_list
-from PdmContext.utils.mapping_functions import map_categorical_to_continuous, map_configuration_to_continuous,map_isolated_to_continuous,map_univariate_to_continuous
-
-class ContextGenerator:
-
-    def __init__(self, target, context_horizon="8 hours",
-                 Causalityfunct=calculate_with_pc,
-                 mapping_functions=None,debug=False,characterize_it=False,keep_context=False):
+    def find_pos(self, name, occurrences, target_series):
         """
-        This Class handle the Context Generation. It keeps an internal buffer to build the context for a target series based
-        on the provided context_horizon. All data are passed though the collect_data method, which return a corresponding
-        Context when target data are passed.
-
+        This method is used to find the position of the first timestamp of target_series in aggregated data.
 
         **Parameters**:
-
-        **target**: The name of the target source, which will be used as the baseline in order to map different samples
-         rate to that of the target sample rate.
-
-        **context_horizon**: The time period to look back for context data, the form of that parameter is "8 hours"
-
-        **Causalityfunct**: the causality discovery method to use to produce causal relationships between context data,
-            This must be a function with parameters two equal size lists, one with names and the other
-            with data (a list of list or 2D numpy array).
-
-        **mapping_functions**: Dictionary used to associate each type with a mapping function.
-
-        User can use this dictionary to define his own mapping function and types of sources
-
-        Default value None: use default mappers for types: isolated,configuration, categorical and univariate
-
-        Default Sources Types Supported (in case of mapping_functions is None):
-
-            1) Continuous type (those that have some kind of arithmetic value)
-
-            2) Discrete events (without value) , where one of the type isolated or configuration or categorical must be assigned
-                A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
-                isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
-                Categorical values can be defined as categorical type
-                Essentially the type of the events define the way that will be transformed to real values time-series.
-
-        **debug**: If it runs on debug mode
+        **name**: name of the source.
+        **occurrences**: a list of tuple with timestamps and categorical value, referring to the observed value of a
+        categorical source.
+        **target_series**: Used to align sample rate.
+        **return**: The position of the first timestamp of target_series in aggregated data.
         """
-        self.debug = debug
-        self.target = target
-
-        self.causality_discovery = Causalityfunct
-        self.buffer = [] # buffer 0: timestamp, 1: code, 2: value, 3:type
-
-        # helpers
-        self.type_of_series = {}
-        self.horizon = context_horizon.split(" ")[0]
-        if len(context_horizon.split(" ")) == 1:
-            self.horizon_time = "hours"
+        if name not in self.existing_results.keys():
+            self.existing_results[name] = []
+            self.existing_timestamps[name] = []
+            self.last_occurance[name] = None
+            pos_occ = 0
+            pos_target = 0
         else:
-            if context_horizon.split(" ")[1] in ["days", "hours", "minutes", "seconds"]:
-                self.horizon_time = context_horizon.split(" ")[1]
-            else:
-                assert False, "Time horizon must be either a single number or in form of \"8 hours\" where acceptable time frames are hours,days,minutes,seconds"
-
-        self.horizon = int(self.horizon)
-
-        self.default_usage=False
-        if mapping_functions is None:
-            self.default_usage=True
-            self.mapping_functions={
-                "Univariate":map_univariate_to_continuous(),
-                "isolated": map_isolated_to_continuous(),
-                "configuration": map_configuration_to_continuous(),
-                "categorical":map_categorical_to_continuous()
-            }
-        else:
-            self.mapping_functions=mapping_functions
-
-    def collect_data(self, timestamp, source, name, value=None, type="Univariate", replace=[]):
-        '''
-        This method is used when data are passed iteratively, and stored in buffer
-        When data of target source arrive, a corresponding context is produced.
-        Sources can be of different sample rate (all sources are mapped to the targets sample rate when context is produced)
-
-        Default Sources Supported (in case of mapping_functions is None) :
-
-        1) Continuous type (those that have some kind of arithmetic value)
-
-        2) Discrete events (without value) , where one of the type isolated or configuration or categorical must be assigned
-            A guide on how to specify the type is, that events which assumed to have impact only on their occurrence, are called
-            isolated, while others that are related to some kind of configuration with more permanent impact, are called configuration.
-            Categorical values can be defined as categorical type
-            Essentially the type of the events define the way that will be transformed to real values time-series.
-
-
-        **Parameters**:
-
-        **timestamp**:  The timestamp of the arrived value
-
-        **source**: The source of the arrived value
-
-        **name**: The name (or identifier) of the arrived value
-
-        **value**: The value (float), in case this is None the arrived data is considered as event
-
-        **type**: the type of the data associated with the mapping function
-
-        **replace**: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
-        when a b event is inserted, it will replace an e event with the same timestamp (if exists).
-
-        **return**:  structure.Context object when the data name match to the target name or None.
-        '''
-
-        if value is None:
-            if type not in self.mapping_functions.keys():
-                assert False, f"The type must be defined as one of mapping functions types: {self.mapping_functions.keys()} when no value is passed"
-        eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
-        self.add_to_buffer(eventpoint, replace)
-        if self.target == name or self.target == f"{name}@{source}":
-            contextobject = self.generate_context(e=eventpoint)
-            return contextobject
-        else:
-            return None
-
-    def replace_buffer_with_event(self,pos,event):
-        self.buffer[pos][0] = pd.to_datetime(event.timestamp)
-        self.buffer[pos][1] = f"{event.code}@{event.source}"
-        self.buffer[pos][2] = event.details
-        self.buffer[pos][3] = event.type
-
-    def add_to_buffer(self, e: Eventpoint, replace=None):
-        """
-        Adds an Event point to the buffer (keeping the buffer time ordered)
-        """
-        if e.type is None:
-            e.type="Univariate"
-        if len(self.buffer)>0:
-            if e.timestamp<self.buffer[0][0]: # in case of very late data, memory safe.
-                return
-        if e.details == "nan":
-            e.details = None
-        if replace is None:
-            replace = []
-            index = len(self.buffer)
-            for i in range(len(self.buffer) - 1, 0, -1):
-                if self.buffer[i][0] < e.timestamp:
-                    index = i + 1
+            pos_occ = len(occurrences)
+            for i in range(len(occurrences) - 1, -1, -1):
+                pos_occ = i
+                if occurrences[i][1] <= self.last_occurance[name]:
+                    pos_occ += 1
                     break
-        else:
-            index = len(self.buffer)
-            for i in range(len(self.buffer) - 1, 0, -1):
-                # check for replacement
-                if self.buffer[i][0] == e.timestamp:
-                    for rep in replace:
-                        if self.buffer[i][1] == rep[0] and e.code == rep[1]:
-                            self.replace_buffer_with_event(i,e)
-                            return
-                    index = i + 1
-                if self.buffer[i][0] < e.timestamp:
-                    index = i + 1
+            pos_target = len(target_series)
+            for i in range(len(target_series) - 1, -1, -1):
+                pos_target = i
+                if target_series[i][1] <= self.existing_timestamps[name][-1]:
+                    pos_target += 1
                     break
-        if index == len(self.buffer) and index!=0:
-            self.buffer.append([pd.to_datetime(e.timestamp),f"{e.code}@{e.source}",e.details,e.type])
-            pos=0
-            for i in  range(len(self.buffer)):
-                if self.buffer[i][0]>self.buffer[-1][0]-pd.Timedelta(self.horizon, self.horizon_time):
-                    pos=i
-                    break
-            if pos>0:
-                self.buffer=self.buffer[pos:]
-        else:
-            self.buffer = self.buffer[: index] + [[pd.to_datetime(e.timestamp),f"{e.code}@{e.source}",e.details,e.type]] + self.buffer[index:]
-        if e.type is not None:
-            self.type_of_series[f"{e.code}@{e.source}"] = e.type
-    def generate_context(self, e: Eventpoint, buffer=None):
+        self.last_occurance[name] = occurrences[-1][1]
+        return pos_target, pos_occ
+
+    def trim(self, name, target_series):
+        self.existing_timestamps[name] = self.existing_timestamps[name][-len(target_series):]
+        self.existing_results[name] = self.existing_results[name][-len(target_series):]
+
+
+class map_categorical_to_continuous:
+    """
+    Wrapper Class for mapping categorical to continuous time-series.
+
+    """
+
+    def __init__(self):
+        pass
+
+    def map(self, target_series, occurrences, name):
         """
-        Generate context
+        This method is used to generate context time series of categorical type.
+
+        The way we do this is by generating a time series of each different category, by creating a zero and one series,
+        similar to "isolated" type, by filling ones in the timestamps that each category appears. Finally, we create an
+        additional series with the name state_{name}, having zeros until the occurrence of the last category, and filled
+        with ones afterward.
 
         **Parameters**:
-
-        **e**: Eventpoint related to the last target's data.
-
-        **buffer**: A list with all Eventpoints in the time horizon
-        """
-
-        contextcurrent, target_series_name = self.create_context(e, buffer)
-
-        return contextcurrent
-
-    def create_context(self, current: Eventpoint, buffer):
-        """
-        Transform the data collected to the buffer in to suitable form and generates the CD part of the context along with
-        the edges and characterizations:
-
-        **Steps:**
-
-        **Create CD**: Parallel continuous representations of all different sources in the buffer.
-        This step involves, matching the different sample rates of different sources to that of the target.
-        Transform the Event sources to continuous representation.
-
-        **Calculate Causality edges**: Perform Causal Discovery using the causality function, to create edges
-        (part of CR of the Context)
-
-        **Tag each edge with characterization**: for each (a,b) in the edges, a characterization of (unknown, decrease,
-         increase), based on the type of the a.
-
-         **Parameters**:
-
-         **current**: The current Event of target's data which triger the context creation
-
-         **buffer**: ordered list with Eventpoint of all sources.
-
-         **return**: Context object.
-        """
-        # start = time.time()
-        # df with ,dt,code,source,value
-
-        # Keep only last horizon events
-        last = self.buffer[-1]
-        pos = len(self.buffer) - 1
-        horizon_window=pd.Timedelta(self.horizon, self.horizon_time)
-        for i in range(len(self.buffer)):
-            if self.buffer[i][0] >= (last[0] - horizon_window):
-                pos = i
-                break
-        self.buffer = self.buffer[pos:]
-
-        # end=time.time()
-        # print(f"find position on buffer: {end-start}")
-
-        # start = time.time()
-        if buffer is not None:
-            dataforcontext = buffer
-        else:
-            dataforcontext=self.buffer
-
-        allcodes = set([row[1] for row in dataforcontext])
-
-
-        ## build target series
-        target_series_name, target_series = self.build_target_series_for_context(current, dataforcontext)
-
-        ## create series for each source (alldata)
-        alldata = self.create_continuous_representation(target_series_name, target_series, dataforcontext,
-                                                        self.type_of_series, allcodes,self.mapping_functions)
-        # end = time.time()
-        # print(f"Create series: {end-start}")
-
-        storing = self.calculate_edges(alldata, current.timestamp,[t[1] for t in target_series])
-
-        storing["characterization"]=[]
-            # print(f"Calculate edges: {end - start}")
-        # print("========================")
-
-        contextpbject = Context.context_from_dict(storing)
-        return contextpbject, target_series_name
-
-    def calculate_edges(self, alldata, timestamp,timestamps):
-        """
-        Formulate the data in appropriate form to call self.calculate_causality
-        which return the edges for the context.
-
-        **Parameters**:
-
-        **alldata**: a 2D numpy array with all series data (equivalent to the CD of the Context)
-
-        **timestamp**: timestamp of the context from which the edges are calculated.
-
-        **return**: a dictionary with 'edges' key (containing the calculated edges after Causality discovery).
-        """
-        # start = time.time()
-        storing = {}
-        storing["timestamp"] = timestamp
-
-
-        for nn in alldata:
-            storing[nn[0]] = nn[1]
-
-        # For context with more than two series calculate PC casualities
-        alldata_data=[]
-        alldata_names=[]
-        for nn in alldata:
-            if nn[1] is not None and len(set(nn[1])) > 1:
-                alldata_data.append(nn[1])
-                alldata_names.append(nn[0])
-        count=len(alldata_data)
-        if count > 1 and len(alldata[0][1]) > 5:
-
-            edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names,timestamps)
-
-            if edges is None:
-                singleedges = []
-            else:
-                singleedges = edges
-            # print(edges)
-            storing["edges"] = singleedges
-            return storing
-        storing["edges"] = []
-        return storing
-
-    def create_continuous_representation(self, target_series_name, target_series, windowvalues, type_of_series, allcodes,mapping_functions):
-        """
-        This method handles the creation of continuous representation for all type of sources observed in context,
-        and is the first part for creating the CD of the context.
-
-        Based on the type of each source, call the appropriate method to create the continuous representaiton.
-
-        **Parameters**:
-
-        **target_series_name**: The name of the target series.
 
         **target_series**: Used to align sample rate.
 
-        **type_of_series**: A dictionary to define the type of the different sources (the type can be Isolated, Configuration, Categorical and Univariate).
+        **occurrences**: a list of tuple with timestamps and categorical value, refering to the observed value of a
+        categorical source.
 
-        **allcodes**: Contain all the names for the sources we want to build the context.
+        **name**: name of the categorical source.
 
-        **mapping_functions**: Dictionary used to associate each type with a mapping function.
 
-        **return**: The CD part of the context.
+        **return**: A list of time-series to populate CD part of the context.
+        """
+        vector = [[0] for i in range(len(target_series))]
+        pos = 0
+        unique_categories = set([occ[0] for occ in occurrences])
+        # this is to aling the series in case of different sample Rate
+        for i in range(len(target_series)):
+            timestamp = target_series[i][1]
+            current_pos = pos
+            for q in range(pos, len(occurrences)):
+                if occurrences[q][1] > timestamp:
+                    current_pos = q
+                    break
+            # no data found
+
+            if current_pos == pos:
+                # if no data in betwwen values use the previus value
+                if i > 0:
+                    vector[i] = [occurrences[-1][0]]
+                # if no data until i timestamp use the first occurence as value
+                else:
+                    vector[i] = [occurrences[0][0]]
+            # if multiple values in between two timestamps use the last as value
+            else:
+                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
+                vector[i] = [v for v in set(dataInBetween)]
+            # if no other occurrences just repeat the last value
+            if current_pos == len(occurrences):
+                for k in range(i + 1, len(vector)):
+                    vector[k] = [occurrences[-1][0]]
+                break
+            pos = current_pos
+        all_vectors = []
+        all_names = []
+        # one-hot encoding of unique categories
+        for value in unique_categories:
+            in_vector = [1 if value in v else 0 for v in vector]
+            if len(set(in_vector)) == 1:
+                in_vector[0] = 0
+            all_vectors.append(in_vector)
+            all_names.append(f"{value}_{name}")
+        # create of the state variable
+        state_vector = [0 for i in range(len(target_series))]
+        lastv = occurrences[-1][0]
+        ## not stable
+        for i in range(len(state_vector) - 1, -1, -1):
+            if lastv in vector[i]:
+                state_vector[i] = 1
+            else:
+                break
+        all_vectors.append(state_vector)
+        all_names.append(f"state_{name}")
+        return all_vectors, all_names
+
+
+class map_configuration_to_continuous(map_base):
+    """
+        Wrapper Class for mapping configuration events (defined as events with constant impact) to continuous time-series.
+
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.existing_results = {}
+        self.base = {}
+
+    def map(self, target_series, occurrences, name):
+        """
+         Configuration events, refers to configuration changes or events that alter the state of the monitored asset.
+          To transform these events into continuous signals, we start with a series of 0s, and after each occurrence of
+          such an event, we add 1 to all the positions after the occurrence's timestamp
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences
+        of the provided Configuration source, to populate CD part of the context.
+        """
+        if name not in self.base.keys():
+            self.base[name] = 0
+        pos_target, pos_occ = self.find_pos(name, occurrences, target_series)
+
+        for i in range(pos_target, len(target_series)):
+            if pos_occ < len(occurrences) and occurrences[pos_occ][1] <= target_series[i][1]:
+                self.base[name] += 1
+                self.base[name] = self.base[name] % (len(target_series) + 1)
+                self.existing_results[name].append(self.base[name])
+                self.existing_timestamps[name].append(target_series[i][1])
+                # finde next occurance after target_series[ti][1] timestamp
+                while occurrences[pos_occ][1] <= target_series[i][1] and pos_occ < len(occurrences) - 1:
+                    pos_occ += 1
+                if occurrences[pos_occ][1] <= target_series[i][
+                    1]:  # no other occurencies after target_series[ti][1] timestamp
+                    for innert1 in range(i + 1, len(target_series)):
+                        self.existing_results[name].append(self.base[name])
+                        self.existing_timestamps[name].append(target_series[innert1][1])
+                    break
+            else:
+                self.existing_results[name].append(self.base[name])
+                self.existing_timestamps[name].append(target_series[i][1])
+        self.trim(name, target_series)
+
+        return [self.existing_results[name]], [name]
+
+
+class map_configuration_to_continuous_deprecated:
+    """
+        Wrapper Class for mapping configuration events (defined as events with constant impact) to continuous time-series.
+
+    """
+
+    def __init__(self):
+        pass
+
+    def map(self, target_series, occurrences, name):
+        """
+         Configuration events, refers to configuration changes or events that alter the state of the monitored asset.
+          To transform these events into continuous signals, we start with a series of 0s, and after each occurrence of
+          such an event, we add 1 to all the positions after the occurrence's timestamp
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences
+        of the provided Configuration source, to populate CD part of the context.
+        """
+        vector = [0 for i in range(len(target_series))]
+        ci = 0
+        base = 0
+        for ti in range(len(target_series)):
+            if occurrences[ci][1] <= target_series[ti][1]:
+                base += 1
+                # finde next occurance after target_series[ti][1] timestamp
+                while occurrences[ci][1] <= target_series[ti][1] and ci < len(occurrences) - 1:
+                    ci += 1
+                if occurrences[ci][1] <= target_series[ti][
+                    1]:  # no other occurencies after target_series[ti][1] timestamp
+                    for innert1 in range(ti, len(target_series)):
+                        vector[innert1] = base
+                    break
+            vector[ti] = base
+        ## not stable
+        if len(set(vector)) == 1:
+            vector[0] = 0
+        return [vector], [name]
+
+
+class map_isolated_to_continuous(map_base):
+    """
+    Wrapper Class for mapping isolated events (defined as events with instant impact) to continuous time-series.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def map(self, target_series, occurrences, name):
+        """
+         Isolated events are discrete events that have an immediate impact on the behavior of the asset.
+         To transform such events into a continuous representation, we start with a series of 0s as an initial signal
+         and assign 1 to the position corresponding to the timestamps of the events. If the event timestamp does
+         not match any target_series timestamps, it is mapped to the closest timestamp in target_series.
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences
+        of the provided isolated source, to populate CD part of the context.
+        """
+        pos_target, pos_occ = self.find_pos(name, occurrences, target_series)
+
+        for i in range(pos_target, len(target_series)):
+            if pos_occ < len(occurrences) and occurrences[pos_occ][1] <= target_series[i][1]:
+                self.existing_results[name].append(1)
+                self.existing_timestamps[name].append(target_series[i][1])
+                # finde next occurance after target_series[ti][1] timestamp
+                while occurrences[pos_occ][1] <= target_series[i][1] and pos_occ < len(occurrences) - 1:
+                    pos_occ += 1
+                if occurrences[pos_occ][1] <= target_series[i][
+                    1]:  # no other occurencies after target_series[ti][1] timestamp
+                    for innert1 in range(i + 1, len(target_series)):
+                        self.existing_results[name].append(0)
+                        self.existing_timestamps[name].append(target_series[innert1][1])
+                    break
+            else:
+                self.existing_results[name].append(0)
+                self.existing_timestamps[name].append(target_series[i][1])
+        self.trim(name, target_series)
+
+        return [self.existing_results[name]], [name]
+
+
+class map_isolated_to_continuous_deprecated:
+    """
+           Wrapper Class for mapping isolated events (defined as events with instant impact) to continuous time-series.
+
+    """
+
+    def __init__(self):
+        pass
+
+    def map(self, target_series, occurrences, name):
+        """
+         Isolated events are discrete events that have an immediate impact on the behavior of the asset.
+         To transform such events into a continuous representation, we start with a series of 0s as an initial signal
+         and assign 1 to the position corresponding to the timestamps of the events. If the event timestamp does
+         not match any target_series timestamps, it is mapped to the closest timestamp in target_series.
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: Contain time stamps of the occurrences of an isolated type source.
+
+        **return**: A binary time series with same size as target_series, that models the occurrences
+        of the provided isolated source, to populate CD part of the context.
+        """
+        ci = 0
+        vector = [0 for i in range(len(target_series))]
+        for ti in range(len(target_series)):
+            if occurrences[ci][1] <= target_series[ti][1]:
+                vector[ti] = 1
+                # finde next occurance after target_series[ti][1] timestamp
+                while occurrences[ci][1] <= target_series[ti][1] and ci < len(occurrences) - 1:
+                    ci += 1
+                if occurrences[ci][1] <= target_series[ti][
+                    1]:  # no other occurencies after target_series[ti][1] timestamp
+                    break
+        return [vector], [name]
+
+
+class map_univariate_to_continuous_deprecated:
+    """
+        Wrapper Class for mapping univariate time-series (defined as events with instant impact) to continuous time-series with same frequency as a target time-series.
+    """
+
+    def __init__(self):
+        self.existing_results = {}
+
+    def map(self, target_series, occurrences, name):
+        """
+        For continuous data sources, we simply collect the values within the time window.
+        Although the time window is the same for all sources, each source may have a different sample rate.
+        To create a signal of the same size as target_series, we perform mean aggregation if a source has a higher
+        sample rate than target_series, using the mean value of the data between each timestamp of the target_series.
+
+         **Parameters**:
+
+        **target_series**: Used to align sample rate of the continuous series.
+
+        **occurrences**: The univariate time series.
+
+        **return**: A time series with same size as target_series, to populate CD part of context.
         """
 
-        alldata = []
-        alldata.append((target_series_name, [tag[0] for tag in target_series]))
-        for name in allcodes:
-            # already calculated in targetseries.
-            if target_series_name in name:
-                continue
+        if name not in self.existing_results.keys():
+            self.existing_results[name] = []
+        # position of first timestamp of target series in aggregated data
+        spos = -1
+        for tup in self.existing_results[name]:
+            spos += 1
+            if tup[1] >= target_series[0][1]:
+                break
 
+        self.existing_results[name] = self.existing_results[name][spos:]
 
-            occurrences = [
-                (value, ts)
-                for ts, code, value, _ in windowvalues
-                if name == code
-            ]
+        pos = 0
+        if len(self.existing_results[name]) > 0:
+            for q in range(len(occurrences)):
+                pos = q
+                if occurrences[q][1] > self.existing_results[name][-1][1]:
+                    break
 
-            if len(occurrences) == 0:
-                vector = None
-                alldata.append((name, vector))
-            elif type_of_series[name] in mapping_functions.keys():
-                mapper = mapping_functions[type_of_series[name]]
-                vectors, names = mapper.map(target_series, occurrences, name)
-                for in_vector, new_name in zip(vectors, names):
-                    if max(in_vector) == 0 and min(in_vector) == 0:
-                        vector = None
-                    else:
-                        vector = in_vector
-                    if new_name not in self.type_of_series.keys():
-                        self.type_of_series[new_name] = "configuration"
-                    alldata.append((new_name, vector))
+        vector = [tup[0] for tup in self.existing_results[name]] + [0 for i in range(
+            len(target_series) - len(self.existing_results[name]))]
+
+        for i in range(len(self.existing_results[name]), len(target_series)):
+            timestamp = target_series[i][1]
+            current_pos = pos
+            for q in range(pos, len(occurrences)):
+                if occurrences[q][1] > timestamp:
+                    current_pos = q
+                    break
+            if i == len(target_series) - 1:
+                current_pos = len(occurrences) + 1
+            # no data found
+            if current_pos == pos:
+                # if no data in betwwen values use the previus value
+                if i > 0:
+                    vector[i] = vector[i - 1]
+                # if no data until i timestamp use the first occurence as value
+                else:
+                    vector[i] = occurrences[0][0]
+            # if multiple values in between two timestamps use the mean of them as value
             else:
-                assert False,f" No mapping function defined for type {type_of_series[name]}"
-
-        return alldata
-
-
-    def select_values(self,windowvalues,series_name):
-        times, codes, values, _ = zip(*windowvalues)
-
-        mask = np.char.find(codes.astype(str), series_name) >= 0
-        target_series = np.column_stack((values[mask], times[mask]))
-        return target_series
-
-    def build_target_series_for_context(self, current: Eventpoint, windowvalues: list):
-        target_series_name = current.code
+                dataInBetween = [value for value, time in occurrences[pos:current_pos]]
+                vector[i] = sum(dataInBetween) / len(dataInBetween)
+            # if no other occurrences just repeat the last value
+            if current_pos == len(occurrences):
+                for k in range(i + 1, len(vector)):
+                    vector[k] = vector[k - 1]
+                break
+            pos = current_pos
+        self.existing_results[name] = [(v, tup[1]) for v, tup in zip(vector, target_series)]
+        return [vector], [name]
 
 
-        target_series = [
-            (value, ts)
-            for ts, code, value, _ in windowvalues
-            if target_series_name in code
-        ]
-        return target_series_name, target_series
+class map_univariate_to_continuous(map_base):
+    """
+        Wrapper Class for mapping univariate time-series (defined as events with instant impact) to continuous time-series with same frequency as a target time-series.
+    """
 
+    def __init__(self):
+        super().__init__()
 
+    def map(self, target_series, occurrences, name):
+        """
+        For continuous data sources, we simply collect the values within the time window.
+        Although the time window is the same for all sources, each source may have a different sample rate.
+        To create a signal of the same size as target_series, we perform mean aggregation if a source has a higher
+        sample rate than target_series, using the mean value of the data between each timestamp of the target_series.
 
-    def calculate_causality(self, dataor, names,timestamps):
+         **Parameters**:
 
-        data = np.array(dataor)
-        edges = self.causality_discovery(names, data,timestamps)
+        **target_series**: Used to align sample rate of the continuous series.
 
-        return edges
+        **occurrences**: The univariate time series.
 
-    def plot(self,contexts, filteredges=None,char=True):
-        if filteredges is None:
-            filteredges = [["", "", ""]]
-        show_context_list(contexts, self.target, filteredges=filteredges,char=char)
+        **return**: A time series with same size as target_series, to populate CD part of context.
+        """
+        pos_target, pos_occ = self.find_pos(name, occurrences, target_series)
+
+        for i in range(pos_target, len(target_series)):
+
+            current_pos = len(occurrences)
+            for q in range(pos_occ, len(occurrences)):
+                if occurrences[q][1] > target_series[i][1]:
+                    current_pos = q
+                    break
+            if current_pos == pos_occ:
+                if len(self.existing_results[name]) > 0:
+                    self.existing_results[name].append(self.existing_results[name][-1])
+                # if no data until i timestamp use the first occurence as value
+                else:
+                    self.existing_results[name].append(occurrences[pos_occ][0])
+            # if multiple values in between two timestamps use the mean of them as value
+            else:
+                if i == len(target_series) - 1:
+                    dataInBetween = [value for value, time in occurrences[pos_occ:]]
+                    self.existing_results[name].append(sum(dataInBetween) / len(dataInBetween))
+                else:
+                    dataInBetween = [value for value, time in occurrences[pos_occ:current_pos]]
+                    self.existing_results[name].append(sum(dataInBetween) / len(dataInBetween))
+            self.existing_timestamps[name].append(target_series[i][1])
+
+            # if no other occurrences just repeat the last value
+            if current_pos == len(occurrences):
+                for k in range(i + 1, len(target_series)):
+                    self.existing_results[name].append(self.existing_results[name][-1])
+                    self.existing_timestamps[name].append(target_series[k][1])
+                break
+            pos_occ = current_pos
+        self.trim(name, target_series)
+
+        return [self.existing_results[name]], [name]
+
+mapping_functions = {
+
+    "Univariate":map_univariate_to_continuous_deprecated(), # represent continuous sources
+
+    "isolated": map_isolated_to_continuous_deprecated(), # represent sources of events with instant impact
+
+    "configuration": map_configuration_to_continuous_deprecated(), # represent sources of events with constant impact
+
+    "categorical":map_categorical_to_continuous() # represent sources of catigorical values
+
+}
 

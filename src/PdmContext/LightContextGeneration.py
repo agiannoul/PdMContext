@@ -4,7 +4,6 @@ import pandas as pd
 from PdmContext.utils.structure import Eventpoint, Context
 from PdmContext.utils.causal_discovery_functions import calculate_with_pc
 from PdmContext.utils.showcontext import show_context_list
-from PdmContext.utils.mapping_functions import map_categorical_to_continuous, map_configuration_to_continuous,map_isolated_to_continuous,map_univariate_to_continuous
 
 class ContextGenerator:
 
@@ -67,6 +66,8 @@ class ContextGenerator:
 
         self.default_usage=False
         if mapping_functions is None:
+            from PdmContext.utils.mapping_functions import map_categorical_to_continuous, \
+                map_configuration_to_continuous, map_isolated_to_continuous, map_univariate_to_continuous
             self.default_usage=True
             self.mapping_functions={
                 "Univariate":map_univariate_to_continuous(),
