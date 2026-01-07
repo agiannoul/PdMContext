@@ -13,13 +13,23 @@ Context is implemented as an online process, where data are collected as they ar
 pip install PdMContext
 ```
 
-## Intantiating a context generator:
+## Instantiating a context generator:
 
 For Intantiation we need to pass:
 - **target**: string representing the name of target source.
 - **context_horizon**: the length of time window of available used to build context
 - **Causality_function**: a function that implements a causality discovery method (look at [Causality Discovery](#con-caus) )
 - **mapping_functions**: a dictionary of the available types of monitored data sources and their corresponding mapper (look at [Mapping Function](#con-caus) ).
+
+```python
+from PdMContext.ContextGenerator import ContextGenerator
+```
+
+Or in case we want to use a Lighter version of context:
+```python
+from PdMContext.LightContextGenerator import ContextGenerator
+```
+Then we can instantiate a context generator as follows:
 
 ```python
 con_gen=ContextGenerator(target="anomaly scores", context_horizon="8 hours",Causality_function,mapping_functions)
@@ -112,7 +122,7 @@ The default mappers support also data which are not numeric, but related to some
 The map_isolated_to_continuous, map_configuration_to_continuous, map_categorical_to_continuous classes are used of to transform the occurrence of events into continuous space time-series and add them to **CD**.
 
 
-## Causality Discovery Efficiency
+## Causality Discovery Efficiency (not stable)
 
 To calculate context we perform Causality Discovery over the mapped signals. Thus, causality discovery calculated is performed for every new observation of the target signal.
 To deal with that we implement a moving Causality Discovery version of PC algorithm combined with Fishers z-transformation independence test. 
