@@ -6,8 +6,27 @@ from PdmContext.utils.structure import Eventpoint, Context
 from PdmContext.utils.causal_discovery_functions import calculate_with_pc
 from PdmContext.utils.showcontext import show_context_list, show_context_interpretations
 from PdmContext.utils.mapping_functions import map_categorical_to_continuous, map_configuration_to_continuous,map_isolated_to_continuous,map_univariate_to_continuous
+from PdmContext.utils.context_store import ContextStore, ContextHistory
 from pathlib import Path
 import pickle
+
+import copy
+
+# minimum buffer size before the buffer is also trimmed when data are added (amortized trimming)
+BUFFER_TRIM_MIN = 1024
+
+# generator used by the processes of ContextGeneratorBatch.generate_contexts
+_batch_worker = None
+
+
+def _init_batch_worker(generator):
+    global _batch_worker
+    _batch_worker = generator
+
+
+def _batch_worker_context(datetime_index):
+    contextpbject, target_series_name, time_index = _batch_worker.create_context(datetime_index)
+    return contextpbject, time_index
 
 class ContextGeneratorBatch():
     def __init__(self,df_data,target,type_of_series,context_horizon="8 hours",Causalityfunct=calculate_with_pc,debug=False,file_path=None):
@@ -69,6 +88,33 @@ class ContextGeneratorBatch():
 
         return contextpbject
 
+    def generate_contexts(self, datetime_indexes, n_jobs=1):
+        """
+        Generate the contexts of several timestamps (same result as calling generate_context for each one).
+
+        **datetime_indexes**: the timestamps (of df_data index) for which contexts are generated.
+
+        **n_jobs**: number of processes (default 1: sequential). With n_jobs > 1 the contexts are generated in
+        parallel processes, so the causality function must be picklable (e.g. a module level function, not a lambda),
+        and on Windows/macOS the calling script needs an `if __name__ == "__main__":` guard.
+
+        **return**: list with the contexts, in the order of datetime_indexes.
+        """
+        if n_jobs == 1:
+            return [self.generate_context(datetime_index) for datetime_index in datetime_indexes]
+        from concurrent.futures import ProcessPoolExecutor
+        # each process gets a copy of the generator without the stored contexts and without saving to file
+        worker = copy.copy(self)
+        worker.contexts = {}
+        worker.file_path = None
+        datetime_indexes = list(datetime_indexes)
+        chunksize = max(1, len(datetime_indexes) // (4 * n_jobs))
+        with ProcessPoolExecutor(max_workers=n_jobs, initializer=_init_batch_worker, initargs=(worker,)) as pool:
+            results = list(pool.map(_batch_worker_context, datetime_indexes, chunksize=chunksize))
+        for contextpbject, time_index in results:
+            self.contexts[time_index] = contextpbject
+        return [contextpbject for contextpbject, time_index in results]
+
     def _save_contexts(self):
         if self.file_path is None:
             return
@@ -106,7 +152,7 @@ class ContextGeneratorBatch():
         # end = time.time()
         # print(f"Create series: {end-start}")
 
-        storing = self.calculate_edges(alldata, context.index[-1])
+        storing = self.calculate_edges(alldata, context.index[-1], list(context.index))
         storing["characterization"] = self.getcaracterize(storing)
 
         # print(f"Calculate edges: {end - start}")
@@ -115,7 +161,7 @@ class ContextGeneratorBatch():
         contextpbject = Context.context_from_dict(storing)
         return contextpbject, target_series_name,context.index[-1]
 
-    def calculate_edges(self,alldata, timestamp):
+    def calculate_edges(self,alldata, timestamp, timestamps=None):
         #start = time.time()
         storing = {}
         storing["timestamp"] = timestamp
@@ -141,7 +187,7 @@ class ContextGeneratorBatch():
                 if len(alldata) <= 1:
                     edges = []
                 else:
-                    edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names)
+                    edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names, timestamps)
                 #end=time.time()
                 #print(f"actual edge calculation {end-start}")
                 if edges is None:
@@ -182,7 +228,7 @@ class ContextGeneratorBatch():
                     previusoccurence = i
 
             if occurence - previusoccurence < 2:  # or len(values2)-occurence<2:
-                characterizations.append("uknown")
+                characterizations.append("unknown")
                 continue
             values2before = values2[previusoccurence:occurence]
             # stdv = statistics.stdev(values2before)
@@ -197,13 +243,13 @@ class ContextGeneratorBatch():
 
             stdv = statistics.stdev(values2before)
             if len(values2before) == 0:
-                char = "uknown"
+                char = "unknown"
             elif statistics.median(values2before) - statistics.median(values2after) > 2 * stdv:
                 char = "decrease"
             elif statistics.median(values2after) - statistics.median(values2before) > 2 * stdv:
                 char = "increase"
             else:
-                char = "uknown"
+                char = "unknown"
             characterizations.append(char)
         return characterizations
 
@@ -221,7 +267,7 @@ class ContextGenerator:
 
     def __init__(self, target, context_horizon="8 hours",
                  Causalityfunct=calculate_with_pc,
-                 mapping_functions=None,debug=False,characterize_it=True):
+                 mapping_functions=None,debug=False,characterize_it=True,causality_every=1):
         """
         This Class handle the Context Generation. It keeps an internal buffer to build the context for a target series based
         on the provided context_horizon. All data are passed though the collect_data method, which return a corresponding
@@ -236,12 +282,16 @@ class ContextGenerator:
         **context_horizon**: The time period to look back for context data, the form of that parameter is "8 hours"
 
         **Causalityfunct**: the causality discovery method to use to produce causal relationships between context data,
-            This must be a function with parameters two equal size lists, one with names and the other
-            with data (a list of list or 2D numpy array).
+            This must be a function f(names, data, timestamps), where names is the list with the names of the series,
+            data a 2D numpy array (one column per series) and timestamps the timestamps of the rows, which returns
+            a list of (cause, effect) edges.
 
         **mapping_functions**: Dictionary used to associate each type with a mapping function.
 
         User can use this dictionary to define his own mapping function and types of sources
+
+        The default mappers keep state per source name, so each ContextGenerator needs its own mapper objects
+        (do not share the same mapping_functions dictionary between generators).
 
         Default value None: use default mappers for types: isolated,configuration, categorical and univariate
 
@@ -256,15 +306,28 @@ class ContextGenerator:
                 Essentially the type of the events define the way that will be transformed to real values time-series.
 
         **debug**: If it runs on debug mode
+
+        **characterize_it**: when False, no characterization and interpretation of the edges are calculated (faster).
+
+        **causality_every**: run the causality discovery every causality_every contexts (default 1: for every context).
+        The contexts in between reuse the edges of the last causality discovery (only edges between series of the
+        context), which is faster when the causality discovery is expensive.
         """
+        assert int(causality_every) >= 1, "causality_every must be a positive integer"
         self.characterize_it=characterize_it
+        self.causality_every = int(causality_every)
+        self._contexts_since_causality = 0
+        self._last_edges = []
         self.debug = debug
         self.target = target
 
-        self.contexts = []
+        # contexts of the last horizon (memory linear to the horizon data, see utils.context_store)
+        self._context_store = ContextStore()
 
         self.causality_discovery = Causalityfunct
         self.buffer = []
+        # the buffer is also trimmed when it grows (e.g. when the target stops sending data)
+        self._buffer_trim_at = BUFFER_TRIM_MIN
 
         # helpers
         self.type_of_series = {}
@@ -292,7 +355,44 @@ class ContextGenerator:
         else:
             self.mapping_functions=mapping_functions
 
-    def collect_data(self, timestamp, source, name, value=None, type="Univariate", replace=[]):
+    @property
+    def contexts(self):
+        """
+        The contexts of the last horizon (oldest first), as a read only sequence of Context objects.
+
+        The contexts are kept in a memory bounded form and rebuilt when accessed (a returned context which is still
+        referenced is returned itself).
+        """
+        return ContextHistory(self._context_store)
+
+    @contexts.setter
+    def contexts(self, contexts):
+        self._context_store = ContextStore()
+        for context in contexts:
+            self._context_store.append(context, [])
+
+    def __setstate__(self, state):
+        # generators pickled with previous versions keep the contexts in a list
+        contexts = state.pop("contexts", None)
+        self.__dict__.update(state)
+        if "_context_store" not in state:
+            self._context_store = ContextStore()
+        if "_buffer_trim_at" not in state:
+            self._buffer_trim_at = BUFFER_TRIM_MIN
+        if "causality_every" not in state:
+            self.causality_every = 1
+            self._contexts_since_causality = 0
+            self._last_edges = []
+        if contexts is not None:
+            self.contexts = contexts
+
+    def _causality_due(self):
+        """True when the causality discovery runs for the current context (see causality_every)."""
+        due = self._contexts_since_causality == 0
+        self._contexts_since_causality = (self._contexts_since_causality + 1) % self.causality_every
+        return due
+
+    def collect_data(self, timestamp, source, name, value=None, type="Univariate", replace=None):
         '''
         This method is used when data are passed iteratively, and stored in buffer
         When data of target source arrive, a corresponding context is produced.
@@ -324,12 +424,16 @@ class ContextGenerator:
         **replace**: a list of tuples, which define a replacement policy. If a tuple (e,b) exist in replace list, then
         when a b event is inserted, it will replace an e event with the same timestamp (if exists).
 
+        NaN values are ignored (as if the sample did not arrive), also for the target (no context is created).
+
         **return**:  structure.Context object when the data name match to the target name or None.
         '''
 
         if value is None:
             if type not in self.mapping_functions.keys():
                 assert False, f"The type must be defined as one of mapping functions types: {self.mapping_functions.keys()} when no value is passed"
+        elif self._is_nan(value):
+            return None
         eventpoint = Eventpoint(code=name, source=source, timestamp=timestamp, details=value, type=type)
         self.add_to_buffer(eventpoint, replace)
         if self.target == name or self.target == f"{name}@{source}":
@@ -346,28 +450,43 @@ class ContextGenerator:
             e.type="Univariate"
         if replace is None:
             replace = []
-            index = len(self.buffer)
-            for i in range(len(self.buffer) - 1, 0, -1):
-                if self.buffer[i].timestamp < e.timestamp:
-                    index = i + 1
-                    break
-        else:
-            index = len(self.buffer)
-            for i in range(len(self.buffer) - 1, 0, -1):
-                # check for replacement
-                if self.buffer[i].timestamp == e.timestamp:
-                    for rep in replace:
-                        if self.buffer[i].code == rep[0] and e.code == rep[1]:
-                            self.buffer[i] = e
-                            return
-                    index = i + 1
-                if self.buffer[i].timestamp < e.timestamp:
-                    index = i + 1
-                    break
-        if index == len(self.buffer):
-            self.buffer.append(e)
-        else:
-            self.buffer = self.buffer[: index] + [e] + self.buffer[index:]
+        # check for replacement of an event with the same timestamp
+        for i in range(len(self.buffer) - 1, -1, -1):
+            if self.buffer[i].timestamp < e.timestamp:
+                break
+            if self.buffer[i].timestamp == e.timestamp:
+                for rep in replace:
+                    if self.buffer[i].code == rep[0] and e.code == rep[1]:
+                        self.buffer[i] = e
+                        return
+        # position after all events with timestamp <= e.timestamp (late data are placed in order)
+        index = len(self.buffer)
+        while index > 0 and self.buffer[index - 1].timestamp > e.timestamp:
+            index -= 1
+        self.buffer.insert(index, e)
+        # events older than the horizon are removed anyway when the next context is created
+        if len(self.buffer) > self._buffer_trim_at:
+            self.trim_buffer()
+            self._buffer_trim_at = max(BUFFER_TRIM_MIN, 2 * len(self.buffer))
+
+    def trim_buffer(self):
+        """
+        Keep only the events of the last horizon in the buffer, plus the last event before the horizon of sources
+        whose mapper needs the value active at the start of the window (e.g. categorical values sent only when they
+        change), one event per source.
+        """
+        last = self.buffer[-1]
+        pos = len(self.buffer) - 1
+        for i in range(len(self.buffer)):
+            if self.buffer[i].timestamp >= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
+                pos = i
+                break
+        kept_before = {}
+        for event in self.buffer[:pos]:
+            mapper = self.mapping_functions.get(event.type)
+            if getattr(mapper, "keep_last_before_horizon", False):
+                kept_before[(event.code, event.source)] = event
+        self.buffer = sorted(kept_before.values(), key=lambda event: event.timestamp) + self.buffer[pos:]
 
     def generate_context(self, e: Eventpoint, buffer):
         """
@@ -385,14 +504,15 @@ class ContextGenerator:
             contextcurrent=self.create_interpretation(contextcurrent, target_series_name)
         else:
             contextcurrent.CR["interpretation"]=[]
-        self.contexts.append(contextcurrent)
+        self._context_store.append(contextcurrent, getattr(self, "_target_times", []))
 
+        stored = self._context_store.items
         i=0
         pos=0
-        while self.contexts[i].timestamp < self.contexts[-1].timestamp - pd.Timedelta(self.horizon, self.horizon_time):
+        while stored[i].timestamp < stored[-1].timestamp - pd.Timedelta(self.horizon, self.horizon_time):
             pos=i
             i+=1
-        self.contexts=self.contexts[pos:]
+        self._context_store.keep_last(len(stored) - pos)
         return contextcurrent
 
     def create_interpretation(self, contextcurrent: Context, target_series_name):
@@ -405,7 +525,8 @@ class ContextGenerator:
 
         **target_series_name**: Then name of the target variable
         """
-        causeswindow = self.contexts
+        # the stored contexts provide the CR and timestamp of the previous contexts (used by interpret)
+        causeswindow = self._context_store.items
         interpr = self.interpret(contextcurrent, causeswindow, target_series_name, self.type_of_series)
         contextcurrent.CR["interpretation"] = interpr
         return contextcurrent
@@ -443,7 +564,7 @@ class ContextGenerator:
         """
 
         pairs = [(pair[0], pair[1], car) for pair, car in zip(context.CR['edges'], context.CR['characterization']) if
-                 target in pair[1]]
+                 target == pair[1]]
 
         # pairshop2 = []
         # intermediates=[pair[0] for pair in pairs]
@@ -465,7 +586,7 @@ class ContextGenerator:
                     interpretation.append((pair[0], pair[1], pair[2], context.timestamp))
                 elif values1[-2] == 1:
                     temptimestamp = context.timestamp
-                    lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
+                    lastcontext = self._context_store.items[max(len(self._context_store.items) - 2, 0)]
                     for interpair in lastcontext.CR["interpretation"]:
                         if interpair[0] == pair[0] and interpair[1] == pair[1]:
                             temptimestamp = interpair[3]
@@ -493,7 +614,7 @@ class ContextGenerator:
                                 counter += 1
                     if counter >= 0.8 * lead:
                         temptimestamp = context.timestamp
-                        lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
+                        lastcontext = self._context_store.items[max(len(self._context_store.items) - 2, 0)]
                         for interpair in lastcontext.CR["interpretation"]:
                             if interpair[0] == pair[0] and interpair[1] == pair[1]:
                                 temptimestamp = interpair[3]
@@ -501,7 +622,7 @@ class ContextGenerator:
             # for real value series
             elif len(set(context.CD[pair[0]])) > 2:
                 temptimestamp = context.timestamp
-                lastcontext = self.contexts[max(len(self.contexts) - 2, 0)]
+                lastcontext = self._context_store.items[max(len(self._context_store.items) - 2, 0)]
                 for interpair in lastcontext.CR["interpretation"]:
                     if interpair[0] == pair[0] and interpair[1] == pair[1]:
                         temptimestamp = interpair[3]
@@ -543,58 +664,51 @@ class ContextGenerator:
         # df with ,dt,code,source,value
 
         # Keep only last horizon events
-        last = self.buffer[-1]
-        pos = len(self.buffer) - 1
-        for i in range(len(self.buffer)):
-            if self.buffer[i].timestamp >= (last.timestamp - pd.Timedelta(self.horizon, self.horizon_time)):
-                pos = i
-                break
-        self.buffer = self.buffer[pos:]
+        untrimmed = self.buffer
+        self.trim_buffer()
 
         # end=time.time()
         # print(f"find position on buffer: {end-start}")
 
         # start = time.time()
-        dataforcontext = buffer
-        datatodf = [[pd.to_datetime(e.timestamp) for e in dataforcontext],
-                    [str(e.code) for e in dataforcontext],
-                    [str(e.source) for e in dataforcontext],
-                    [e.details for e in dataforcontext],
-                    [e.type for e in dataforcontext]]
+        if buffer is None or buffer is untrimmed:
+            buffer = self.buffer
 
-        npcontext = np.array(datatodf)
-        npcontext = npcontext.T
+        # one pass over the buffer (each event is preprocessed once, see _event_row):
+        # occurrences (value, time) and type (of the first event) of each source
+        occurrences_of = {}
+        first_type = {}
+        for e in buffer:
+            code, value, time, type_of_event = self._event_row(e)
+            occurrences = occurrences_of.get(code)
+            if occurrences is None:
+                occurrences_of[code] = [(value, time)]
+                first_type[code] = type_of_event
+            else:
+                occurrences.append((value, time))
 
-        npcontext = self.Numpy_preproccess(npcontext)
-
-        # end = time.time()
-        # print(f"preprocess df: {end - start}")
         ############# create context ############################
-        # start = time.time()
-        ## collect uniqeu data series
-        # allcodes = df['code'].unique()
-        allcodes = np.unique(npcontext[:, 1])
-        allcodes = [code for code in allcodes]
-        allcodes = set(allcodes)
-
+        ## collect uniqeu data series (in sorted order, as the order of the CD series)
+        allcodes = set(sorted(occurrences_of))
         for uncode in allcodes:
-            for qq in range(len(npcontext)):
-                if uncode in npcontext[qq][1]:
-                    self.type_of_series[uncode] = npcontext[qq][4]
-                    break
+            self.type_of_series[uncode] = first_type[uncode]
 
         ## build target series
-        target_series_name, target_series = self.build_target_series_for_context(current, npcontext)
+        target_series_name = current.code
+        target_key = self._series_key(current.code, current.source)
+        target_series = list(occurrences_of.get(target_key, []))
 
         ## create series for each source (alldata)
-        alldata = self.create_continuous_representation(target_series_name, target_series, npcontext,
-                                                        self.type_of_series, allcodes,self.mapping_functions)
+        alldata = self.create_continuous_representation(target_series_name, target_series, None,
+                                                        self.type_of_series, allcodes,self.mapping_functions,
+                                                        target_key=target_key, occurrences_of=occurrences_of)
         # end = time.time()
         # print(f"Create series: {end-start}")
 
+        self._target_times = [t[1] for t in target_series]
         storing = self.calculate_edges(alldata, current.timestamp,[t[1] for t in target_series])
         if self.characterize_it:
-            storing["characterization"] = self.get_characterization(storing)
+            storing["characterization"] = self.get_characterization(storing, target_series_name)
         else:
             storing["characterization"]=[]
             # print(f"Calculate edges: {end - start}")
@@ -603,7 +717,7 @@ class ContextGenerator:
         contextpbject = Context.context_from_dict(storing)
         return contextpbject, target_series_name
 
-    def get_characterization(self, context):
+    def get_characterization(self, context, target_series_name=None):
         """
         This method calculate the characterizations of (a,b) edges to characterize the influence of a in b by one of the
         three characterizations: unknown, decrease, increase.
@@ -612,13 +726,17 @@ class ContextGenerator:
         **Parameters**:
 
         **context**: dictionary with a kye 'edges' for which a parallel list of characterizations will be created.
+
+        **target_series_name**: name of the target series in the context (default: the target of the generator).
         """
+        if target_series_name is None:
+            target_series_name = self.target
         edges = context["edges"]
         characterizations = []
         for edge in edges:
-            if self.target in edge[0]:
+            if edge[0] == target_series_name or edge[0] == self.target:
                 char = self.characterize_event_continuous(context, edge)
-            elif self.type_of_series[edge[0]] == "isolation" or self.type_of_series[edge[0]] == "configuration":
+            elif self.type_of_series[edge[0]] == "isolated" or self.type_of_series[edge[0]] == "configuration":
                 char = self.characterize_event_edge(context, edge)
             else:
                 char = self.characterize_event_continuous(context, edge)
@@ -671,7 +789,8 @@ class ContextGenerator:
         # mean = statistics.stdev(values2after)
         # values2after = [v if v < mean + 3 * stdv else mean for v in values2after]
 
-        stdv = statistics.stdev(values2before)
+        stdv = self._stdev(values2before,
+                           compared=[statistics.median(values2before) - statistics.median(values2after)])
         if len(values2before) == 0:
             char = "unknown"
         elif statistics.median(values2before) - statistics.median(values2after) > 2 * stdv:
@@ -704,14 +823,15 @@ class ContextGenerator:
         values1 = [float(kati) for kati in context[name1]]
         values2 = [float(kati) for kati in context[name2]]
 
+        if len(values2) < 2:
+            return "unknown"
         prev = values2[0]
         diff = 0
         for v in values2[1:]:
             diff += (v - prev)
+            prev = v
 
-        if len(values2) == 0:
-            char = "unknown"
-        stdv = statistics.stdev(values2)
+        stdv = self._stdev(values2, compared=[diff])
         if diff > 2 * stdv:
             char = "increase"
         elif diff < -2 * stdv:
@@ -744,18 +864,18 @@ class ContextGenerator:
             storing[namedd] = datadd
 
         # For context with more than two series calculate PC casualities
-        count = len([1 for lista in alldata_data if lista is not None and len(set(lista)) > 1])
-        if count > 1 and len(alldata[0][1]) > 5:
-            alldata_names = [nn[0] for nn in alldata if nn[1] is not None and len(set(nn[1])) > 1]
-            alldata_data = [nn[1] for nn in alldata if nn[1] is not None and len(set(nn[1])) > 1]
+        varying = [nn for nn in alldata if nn[1] is not None and len(nn[1]) > 0 and self._is_varying(nn[1])]
+        if len(varying) > 1 and len(alldata[0][1]) > 5:
+            alldata_names = [nn[0] for nn in varying]
+            alldata_data = [nn[1] for nn in varying]
 
-            # end = time.time()
-            # print(f"before {end - start}")
-            # start=time.time()
-
-            edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names,timestamps)
-            # end=time.time()
-            # print(f"actual edge calculation {end-start}")
+            if self._causality_due():
+                edges = self.calculate_causality(np.column_stack(alldata_data), alldata_names,timestamps)
+                self._last_edges = [] if edges is None else edges
+            else:
+                # reuse the edges of the last causality discovery (between series of this context)
+                names = set(alldata_names)
+                edges = [edge for edge in self._last_edges if edge[0] in names and edge[1] in names]
             if edges is None:
                 singleedges = []
             else:
@@ -766,7 +886,8 @@ class ContextGenerator:
         storing["edges"] = []
         return storing
 
-    def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes,mapping_functions):
+    def create_continuous_representation(self, target_series_name, target_series, df, type_of_series, allcodes,mapping_functions,
+                                         target_key=None, occurrences_of=None):
         """
         This method handles the creation of continuous representation for all type of sources observed in context,
         and is the first part for creating the CD of the context.
@@ -785,20 +906,28 @@ class ContextGenerator:
 
         **mapping_functions**: Dictionary used to associate each type with a mapping function.
 
+        **target_key**: The name@source of the target series (when None, any source with target_series_name is the target).
+
+        **occurrences_of**: dictionary name -> list of (value, time) of each source (when None, collected from df).
+
         **return**: The CD part of the context.
         """
 
-        windowvalues = df  # .values
+        if occurrences_of is None:
+            windowvalues = df  # .values
+            # occurrences (value, time) of each source, collected in one pass over the buffer
+            occurrences_of = {}
+            for code, value, time in zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]):
+                occurrences_of.setdefault(code, []).append((value, time))
         alldata = []
         alldata.append((target_series_name, [tag[0] for tag in target_series]))
         for name in allcodes:
             # already calculated in targetseries.
-            if target_series_name in name:
+            if self._is_target(name, target_series_name, target_key):
                 continue
 
             # detect the occurancies
-            occurrences = [(value, time) for code, value, time in
-                           zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if name in code]
+            occurrences = occurrences_of.get(name, [])
 
             # # Filter rows where `name` is in column 1
             # mask = np.char.find(windowvalues[:, 1].astype(str), name) >= 0
@@ -832,11 +961,73 @@ class ContextGenerator:
 
     def build_target_series_for_context(self, current: Eventpoint, df: np.ndarray):
         target_series_name = current.code
+        target_key = self._series_key(current.code, current.source)
         windowvalues = df  # .values
         target_series = [(value, time) for code, value, time in
-                         zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if target_series_name in code]
+                         zip(windowvalues[:, 1], windowvalues[:, 3], windowvalues[:, 0]) if code == target_key]
 
         return target_series_name, target_series
+
+    @staticmethod
+    def _is_nan(value):
+        try:
+            return bool(value != value)
+        except (TypeError, ValueError):
+            return False
+
+    @staticmethod
+    def _stdev(values, compared=()):
+        """
+        Sample standard deviation, computed in floating point (much faster than statistics.stdev). When one of the
+        compared values is (almost) equal to 2 * stdev, the exact statistics.stdev is used, so the characterizations
+        are the same as with statistics.stdev.
+        """
+        stdv = float(np.std(np.asarray(values, dtype=float), ddof=1))
+        for value in compared:
+            if abs(abs(value) - 2 * stdv) <= 1e-9 * max(abs(value), 2 * stdv, 1e-300):
+                return statistics.stdev(values)
+        return stdv
+
+    @staticmethod
+    def _series_key(code, source):
+        # same naming as in Numpy_preproccess (name@source)
+        source = str(source)
+        return f"{code}{source}" if source[0] == "@" else f"{code}@{source}"
+
+    @staticmethod
+    def _is_target(name, target_series_name, target_key=None):
+        if target_key is not None:
+            return name == target_key
+        return name == target_series_name or name.split("@")[0] == target_series_name
+
+    @staticmethod
+    def _event_row(e: Eventpoint):
+        """
+        (name@source, value, timestamp, type) of an event, as produced by Numpy_preproccess for the buffer.
+        Computed once per event (cached in the event).
+        """
+        row = getattr(e, "_row", None)
+        if row is None:
+            time = e.timestamp if type(e.timestamp) is pd.Timestamp else pd.to_datetime(e.timestamp)
+            code, source, value, type_of_event = [None if isinstance(x, str) and x == "nan" else x
+                                                  for x in (str(e.code), str(e.source), e.details, e.type)]
+            if value is None and '0_' in code:
+                value = 0
+            elif value is None and '1_' in code:
+                value = 1
+            key = f"{code}{source}" if source[0] == "@" else f"{code}@{source}"
+            row = (key, value, time, type_of_event)
+            e._row = row
+        return row
+
+    @staticmethod
+    def _is_varying(series):
+        # same as len(set(series)) > 1, stops at the first different value
+        first = series[0]
+        for value in series:
+            if not (value is first or value == first):
+                return True
+        return False
 
     def Numpy_preproccess(self, npcontext):
         npcontext = np.where(npcontext == "nan", None, npcontext)

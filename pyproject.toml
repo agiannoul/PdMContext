@@ -1,6 +1,6 @@
 [project]
 name = "PdmContext"
-version = "0.2.1"
+version = "0.3.0"
 
 authors = [
   { name="Apostolos Giannoulidis", email="agiannous@csd.auth.gr" },
@@ -22,7 +22,20 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+[project.optional-dependencies]
+pc = ['gcastle>=1.0.3', 'torch']  # gCastle imports torch (not declared by gCastle)
+movingpc = ['gcastle>=1.0.3', 'torch', 'scipy']
+pca = ['scikit-learn']
+influxdb = ['influxdb']
+test = ['pytest']
 
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/PdmContext", "tests", "docs", "mkdocs.yml", "README.md", "CHANGELOG.md"]
 
 [build-system]
 requires = ["hatchling"]

@@ -1,0 +1,71 @@
+site_name: PdmContext
+site_description: Context for streaming, multimodal anomaly detection and predictive maintenance
+repo_url: https://github.com/agiannoul/PdMContext
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Light mode
+
+nav:
+  - Home: index.md
+  - Guide:
+      - Concepts: concepts.md
+      - Generating context: generating-context.md
+      - Mapping functions: mapping-functions.md
+      - Causality discovery: causality.md
+      - Streaming guarantees: streaming.md
+      - Clustering, distances and storage: clustering-and-storage.md
+  - API reference:
+      - ContextGeneration: api/context-generation.md
+      - Structure: api/structure.md
+      - Mapping functions: api/mapping-functions.md
+      - Causality discovery: api/causality.md
+      - Distances: api/distances.md
+      - Clustering and pipelines: api/clustering-pipelines.md
+      - Databases: api/databases.md
+      - Stream simulation and plots: api/simulation-plots.md
+  - Changelog: changelog.md
+  - Development: development.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: null
+            merge_init_into_class: true
+            show_signature_annotations: false
+            separate_signature: true
+            show_source: false
+            show_root_heading: true
+            members_order: source
+            filters: ["!^_"]
+            heading_level: 2
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.snippets
+  - toc:
+      permalink: true

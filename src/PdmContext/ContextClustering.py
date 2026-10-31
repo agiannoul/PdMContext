@@ -50,7 +50,11 @@ class DBscanContextStream():
         return self.distanceTouse(self.contexts[id1],self.contexts[id2])
 
     def distance_default(self,c1,c2):
-        return distances.distance_cc(c1, c2, self.a, self.b)[0]
+        # distance_cc returns either the similarity or a tuple (similarity, parts)
+        similarity = distances.distance_cc(c1, c2, self.a)
+        if isinstance(similarity, tuple):
+            return similarity[0]
+        return similarity
 
     def add_sample_to_cluster(self, context : Context):
 

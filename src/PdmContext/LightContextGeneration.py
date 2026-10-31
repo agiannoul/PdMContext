@@ -1,3 +1,10 @@
+"""
+Deprecated: this lightweight version is no longer maintained and will be removed in a future version.
+Use PdmContext.ContextGeneration.ContextGenerator (with characterize_it=False for a faster context without
+characterization and interpretation).
+"""
+import warnings
+
 import numpy as np
 
 import pandas as pd
@@ -44,7 +51,12 @@ class ContextGenerator:
                 Essentially the type of the events define the way that will be transformed to real values time-series.
 
         **debug**: If it runs on debug mode
+
+        Deprecated: use PdmContext.ContextGeneration.ContextGenerator instead.
         """
+        warnings.warn("PdmContext.LightContextGeneration is deprecated and will be removed in a future version, "
+                      "use PdmContext.ContextGeneration.ContextGenerator (characterize_it=False) instead.",
+                      DeprecationWarning, stacklevel=2)
         self.debug = debug
         self.target = target
 

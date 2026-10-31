@@ -480,18 +480,16 @@ def calculate_jaccard(a,context1,context2):
 
 def PCA_pre(context1,seriesnames):
     from sklearn.decomposition import PCA
-    if context1.details is not None and isinstance(context1.details, dict):
-        if "fft" in context1.details.keys():
-            return context1.details["sing"]
+    if isinstance(context1.details, dict) and "sing" in context1.details.keys():
+        return context1.details["sing"]
+    c1_array = build_2D_array(seriesnames, context1)
+    pca = PCA(n_components=len(seriesnames))
+    pca.fit(c1_array)
+    sing1 = pca.singular_values_
+    if isinstance(context1.details, dict):
+        context1.details["sing"] = sing1
     else:
-        c1_array = build_2D_array(seriesnames, context1)
-        pca = PCA(n_components=len(seriesnames))
-        pca.fit(c1_array)
-        sing1 = pca.singular_values_
-        if context1.details is None:
-            context1.details = {"sing":sing1}
-        else:
-            context1.details["sing"]= sing1
+        context1.details = {"sing": sing1}
     return context1.details["sing"]
 def build_2D_array(seriesnames,context1):
     context1series = []
@@ -538,7 +536,7 @@ def _sbd(x, y):
 
 def _ncc_c(x, y):
     den = np.array(norm(x) * norm(y))
-    den[den == 0] = np.Inf
+    den[den == 0] = np.inf
 
     x_len = len(x)
     fft_size = 1 << (2 * x_len - 1).bit_length()

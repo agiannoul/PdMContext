@@ -19,3 +19,11 @@ __pycache__/
 *.log.*
 *.db
 *.ignore
+# build output and notebook checkpoints
+dist/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# local notes
+BUGS_TODO.md
+site/

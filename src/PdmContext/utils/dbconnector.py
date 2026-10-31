@@ -8,6 +8,8 @@ from PdmContext.utils.structure import Context
 
 
 class SQLiteHandler:
+    # field names are placed in the SQL text, so only the table's columns are accepted
+    FIELDS = ("Date", "target", "contextpickle", "metadata", "value")
 
     def __init__(self, db_name):
         """
@@ -44,8 +46,12 @@ class SQLiteHandler:
         ''')
         self.conn.commit()
 
+    def _check_field(self, field_name):
+        assert field_name in self.FIELDS, f"Unknown field {field_name}, available fields: {self.FIELDS}"
+
     def create_index(self, field_name):
         # Create an index on a specified field (e.g., target)
+        self._check_field(field_name)
         self.cursor.execute(f'CREATE INDEX IF NOT EXISTS idx_{field_name} ON my_table({field_name})')
         self.conn.commit()
 
@@ -154,12 +160,15 @@ class SQLiteHandler:
 
     def get_records_by_index(self, field_name, value):
         # Retrieve records based on the indexed field (e.g., target)
+        self._check_field(field_name)
         self.cursor.execute(f'SELECT * FROM my_table WHERE {field_name} = ?', (value,))
         records = self.cursor.fetchall()
         return records
 
     def get_records_by_fields(self, field_name1, field1_value, field_name2, field2_value):
         # Retrieve records based on the values of Field1 and Field2
+        self._check_field(field_name1)
+        self._check_field(field_name2)
         self.cursor.execute(f'SELECT * FROM my_table WHERE {field_name1} = ? AND {field_name2} = ?',
                             (field1_value, field2_value))
         records = self.cursor.fetchall()
@@ -249,6 +258,7 @@ class InfluxDBHandler:
            **return**: A list of from PdmContext.utils.structure.Context objects
         """
 
+        target = self._escape(target)
         query = f'SELECT * FROM "{self.my_measurment}" WHERE ("target"::tag = \'{target}\') AND time >= {start_date.timestamp()} AND time <= {end_date.timestamp()}'
         result = self.client.query(query, database=self.db_name)
         return_list = []
@@ -269,6 +279,7 @@ class InfluxDBHandler:
 
         **return**: A list of from PdmContext.utils.structure.Context objects
         """
+        target = self._escape(target)
         query = (f'SELECT * FROM "{self.my_measurment}" WHERE ("target"::tag = \'{target}\') ')
         result = self.client.query(query, database=self.db_name)
         return_list = []
@@ -278,6 +289,11 @@ class InfluxDBHandler:
             return_list.append(contextdict)
 
         return return_list
+
+    @staticmethod
+    def _escape(value):
+        # escape quotes of values placed in the InfluxQL text
+        return str(value).replace("\\", "\\\\").replace("'", "\\'")
 
     def load_pickle(self, data_string):
         # Convert the string back to bytes

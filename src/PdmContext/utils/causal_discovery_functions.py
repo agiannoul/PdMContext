@@ -1,5 +1,5 @@
 import networkx as nx
-def empty_cause(names, data):
+def empty_cause(names, data, timestamps=None):
     return []
 
 
@@ -14,8 +14,13 @@ def calculate_with_pc(names, data,timestamps):
     **data**: Multivariate (2D) array containing different time series, each column represent a time series of Context CD part.
 
 
+    Requires the gcastle package (pip install PdmContext[pc]).
     """
-    from castle.algorithms import PC
+    try:
+        from castle.algorithms import PC
+    except ImportError as e:
+        raise ImportError("calculate_with_pc requires gcastle: pip install PdmContext[pc], "
+                          "or pass your own causality function as Causalityfunct.") from e
     try:
         pc = PC(variant='parallel')
         pc.learn(data)

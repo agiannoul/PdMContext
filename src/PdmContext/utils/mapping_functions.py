@@ -41,12 +41,20 @@ class map_base():
         self.existing_timestamps[name] = self.existing_timestamps[name][-len(target_series):]
         self.existing_results[name] = self.existing_results[name][-len(target_series):]
 
+    def result(self, name):
+        # return a copy, so later calls do not alter the series of already returned contexts
+        return [list(self.existing_results[name])], [name]
+
 
 class map_categorical_to_continuous:
     """
     Wrapper Class for mapping categorical to continuous time-series.
 
+    Categorical sources are usually sent only when they change, so the value active at the start of the context
+    window may have been sent before the window. The ContextGenerator keeps the last value of such sources
+    (mappers with keep_last_before_horizon=True) even when it is older than the context horizon.
     """
+    keep_last_before_horizon = True
 
     def __init__(self):
         pass
@@ -72,35 +80,31 @@ class map_categorical_to_continuous:
 
         **return**: A list of time-series to populate CD part of the context.
         """
-        vector = [[0] for i in range(len(target_series))]
+        # before the first known value no category is active
+        vector = [[] for i in range(len(target_series))]
         pos = 0
         unique_categories = set([occ[0] for occ in occurrences])
         # this is to aling the series in case of different sample Rate
         for i in range(len(target_series)):
             timestamp = target_series[i][1]
-            current_pos = pos
+            # position of the first occurrence after timestamp (len(occurrences) if there is none)
+            current_pos = len(occurrences)
             for q in range(pos, len(occurrences)):
                 if occurrences[q][1] > timestamp:
                     current_pos = q
                     break
-            # no data found
 
+            # no new value since the previous timestamp: use the previous value
             if current_pos == pos:
-                # if no data in betwwen values use the previus value
                 if i > 0:
-                    vector[i] = [occurrences[-1][0]]
-                # if no data until i timestamp use the first occurence as value
-                else:
-                    vector[i] = [occurrences[0][0]]
-            # if multiple values in between two timestamps use the last as value
+                    vector[i] = vector[i - 1]
+            # the value active at the first timestamp is the last one observed until then
+            elif i == 0:
+                vector[i] = [occurrences[current_pos - 1][0]]
+            # if multiple values in between two timestamps keep all of them
             else:
                 dataInBetween = [value for value, time in occurrences[pos:current_pos]]
                 vector[i] = [v for v in set(dataInBetween)]
-            # if no other occurrences just repeat the last value
-            if current_pos == len(occurrences):
-                for k in range(i + 1, len(vector)):
-                    vector[k] = [occurrences[-1][0]]
-                break
             pos = current_pos
         all_vectors = []
         all_names = []
@@ -158,7 +162,6 @@ class map_configuration_to_continuous(map_base):
         for i in range(pos_target, len(target_series)):
             if pos_occ < len(occurrences) and occurrences[pos_occ][1] <= target_series[i][1]:
                 self.base[name] += 1
-                self.base[name] = self.base[name] % (len(target_series) + 1)
                 self.existing_results[name].append(self.base[name])
                 self.existing_timestamps[name].append(target_series[i][1])
                 # finde next occurance after target_series[ti][1] timestamp
@@ -175,7 +178,14 @@ class map_configuration_to_continuous(map_base):
                 self.existing_timestamps[name].append(target_series[i][1])
         self.trim(name, target_series)
 
-        return [self.existing_results[name]], [name]
+        # keep the values bounded for endless streams: the series starts from 0 in each window
+        # (only the changes matter, so this is used instead of a modulo which creates false drops)
+        offset = min(self.existing_results[name])
+        if offset > 0:
+            self.existing_results[name] = [value - offset for value in self.existing_results[name]]
+            self.base[name] -= offset
+
+        return self.result(name)
 
 
 class map_configuration_to_continuous_deprecated:
@@ -267,7 +277,7 @@ class map_isolated_to_continuous(map_base):
                 self.existing_timestamps[name].append(target_series[i][1])
         self.trim(name, target_series)
 
-        return [self.existing_results[name]], [name]
+        return self.result(name)
 
 
 class map_isolated_to_continuous_deprecated:
@@ -442,7 +452,7 @@ class map_univariate_to_continuous(map_base):
             pos_occ = current_pos
         self.trim(name, target_series)
 
-        return [self.existing_results[name]], [name]
+        return self.result(name)
 
 mapping_functions = {
 

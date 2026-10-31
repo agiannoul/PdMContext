@@ -1,4 +1,10 @@
+"""
+Deprecated: MovingPC is experimental, not stable (it fails on long streams), and will be removed in a future version.
+Use PdmContext.utils.causal_discovery_functions.calculate_with_pc, optionally with
+ContextGenerator(..., causality_every=k) to run the causality discovery less often.
+"""
 import math
+import warnings
 
 import numpy as np
 import scipy.stats as stats
@@ -327,6 +333,13 @@ class PC():
 
 class MovingPC():
     def __init__(self):
+        """
+        Deprecated: experimental and not stable, will be removed in a future version. Use calculate_with_pc,
+        optionally with ContextGenerator(..., causality_every=k).
+        """
+        warnings.warn("PdmContext.utils.MovingPC is experimental, not stable and deprecated, it will be removed in a "
+                      "future version. Use calculate_with_pc, optionally with ContextGenerator(causality_every=k).",
+                      DeprecationWarning, stacklevel=2)
         self.pc = PC()
 
     def calculate_with_pc_moving(self,names, data,timestamps):

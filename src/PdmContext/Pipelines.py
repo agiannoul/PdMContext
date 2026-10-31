@@ -19,7 +19,7 @@ class ContextAndClustering():
         self.clustering = Clustring_object
         self.Contexter = context_generator_object
 
-    def collect_data(self, timestamp, source, name, value=None, type="Univariate"):
+    def collect_data(self, timestamp, source, name, value=None, type="Univariate", replace=None):
         """
         Call the PdmContext.ContextGeneration.ContextGenerator and pass the result to clustering technique
 
@@ -35,10 +35,12 @@ class ContextAndClustering():
 
         **type**: the type of the data can be one of "isolated","configuration" when no value is passed
 
+        **replace**: replacement policy passed to ContextGenerator.collect_data
+
         **return**: PdmContext.utils.structure.Context object when the data name match to the target name or None.
         """
 
-        contextTemp = self.Contexter.collect_data(timestamp, source, name, value=value, type=type)
+        contextTemp = self.Contexter.collect_data(timestamp, source, name, value=value, type=type, replace=replace)
         if contextTemp is not None:
             self.clustering.add_sample_to_cluster(contextTemp)
 
@@ -68,7 +70,7 @@ class ContextAndClusteringAndDatabase():
         self.Contexter = context_generator_object
         self.database = databaseStore_object
 
-    def collect_data(self, timestamp, source, name, value=None, type="Univariate"):
+    def collect_data(self, timestamp, source, name, value=None, type="Univariate", replace=None):
         """
         Call the PdmContext.ContextGeneration.ContextGenerator and pass the result to clustering technique
 
@@ -84,10 +86,12 @@ class ContextAndClusteringAndDatabase():
 
         **type**: the type of the data can be one of "isolated","configuration" when no value is passed
 
+        **replace**: replacement policy passed to ContextGenerator.collect_data
+
         **return**: PdmContext.utils.structure.Context object when the data name match to the target name or None.
         """
 
-        contextTemp = self.Contexter.collect_data(timestamp, source, name, value=value, type=type)
+        contextTemp = self.Contexter.collect_data(timestamp, source, name, value=value, type=type, replace=replace)
         if contextTemp is not None:
             self.clustering.add_sample_to_cluster(contextTemp)
             self.database.insert_record(timestamp, name, contextTemp)
@@ -111,7 +115,7 @@ class ContextAndDatabase():
         self.Contexter = context_generator_object
         self.database = databaseStore_object
 
-    def collect_data(self, timestamp, source, name, value=None, type="Univariate"):
+    def collect_data(self, timestamp, source, name, value=None, type="Univariate", replace=None):
         """
         Call the PdmContext.ContextGeneration.ContextGenerator and pass the result to clustering technique
 
@@ -127,10 +131,12 @@ class ContextAndDatabase():
 
         **type**: the type of the data can be one of "isolated","configuration" when no value is passed
 
+        **replace**: replacement policy passed to ContextGenerator.collect_data
+
         **return**: PdmContext.utils.structure.Context object when the data name match to the target name or None.
         """
 
-        contextTemp = self.Contexter.collect_data(timestamp, source, name, value=value, type=type)
+        contextTemp = self.Contexter.collect_data(timestamp, source, name, value=value, type=type, replace=replace)
         if contextTemp is not None:
             self.database.insert_record(timestamp, name, contextTemp)
         return contextTemp

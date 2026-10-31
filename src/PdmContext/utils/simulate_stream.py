@@ -55,9 +55,8 @@ class simulate_stream():
                 dict_df["type"].append(type)
 
         self.df = pd.DataFrame(dict_df)
-        self.df.sort_values(by="dt", inplace=True)
+        self.df = self.df.sort_values(by="dt")
         self.uniquedates = self.df["dt"].unique()
-        list(self.uniquedates).sort()
         self.targetname = targetname
         self.liststream = []
         self.current = 0
@@ -85,9 +84,10 @@ class simulate_stream():
         return self
 
     def __next__(self):
-        self.current += 1
         if self.current < len(self.liststream):
-            return self.liststream[self.current]
+            record = self.liststream[self.current]
+            self.current += 1
+            return record
         raise StopIteration
 
 

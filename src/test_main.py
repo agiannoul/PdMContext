@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from PdmContext.ContextGeneration import ContextGenerator
 from PdmContext.ContextClustering import DBscanContextStream
-from PdmContext.utils.causal_discovery_functions import calculatewithPc, empty_cause
+from PdmContext.utils.causal_discovery_functions import calculate_with_pc, empty_cause
 from PdmContext.utils.structure import Context
 from PdmContext.utils.distances import distance_cc
 from PdmContext.utils.simulate_stream import simulate_stream, simulate_from_df
@@ -20,7 +20,7 @@ def my_distance(c1: Context, c2: Context):
 
 
 def test_context_Generation_dummy():
-    con_gen = ContextGenerator(target="anomaly1", context_horizon="8", Causalityfunct=calculatewithPc, debug=False)
+    con_gen = ContextGenerator(target="anomaly1", context_horizon="8", Causalityfunct=calculate_with_pc, debug=False)
 
     configur = [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
     data1 = [random() for i in range(len(configur))]
@@ -44,7 +44,7 @@ def test_context_Generation_dummy():
 
 
 def test_context_Generation_dummy_and_Database_Sqlite():
-    con_gen = ContextGenerator(target="anomaly1", context_horizon="8", Causalityfunct=calculatewithPc, debug=False)
+    con_gen = ContextGenerator(target="anomaly1", context_horizon="8", Causalityfunct=calculate_with_pc, debug=False)
     database = SQLiteHandler(db_name="ContextDatabase")
     contextpipeline = ContextAndDatabase(context_generator_object=con_gen, databaseStore_object=database)
 
@@ -70,7 +70,7 @@ def test_context_Generation_dummy_and_Database_Sqlite():
 
 
 def test_context_Generation_with_clustering_and_Database():
-    con_gen = ContextGenerator(target="anomaly1", context_horizon="8", Causalityfunct=calculatewithPc, debug=False)
+    con_gen = ContextGenerator(target="anomaly1", context_horizon="8", Causalityfunct=calculate_with_pc, debug=False)
     database = SQLiteHandler(db_name="ContextDatabase.db")
     clustering = DBscanContextStream(cluster_similarity_limit=0.7, min_points=2, distancefunc=my_distance)
     contextpipeline = ContextAndClusteringAndDatabase(context_generator_object=con_gen, Clustring_object=clustering,
@@ -204,7 +204,7 @@ def interpert_Challenges():
     score = [1 + random() / 10 for i in range(30)] + [1 + (i / 5) + random() / 10 for i in range(5)] + [
         2 + random() / 10 for i in range(65)]
 
-    contextgenerator = ContextGenerator("score", context_horizon="100", Causalityfunct=calculatewithPc)
+    contextgenerator = ContextGenerator("score", context_horizon="100", Causalityfunct=calculate_with_pc)
 
     dfdata = {
         "score": score,
@@ -247,7 +247,7 @@ def interpert_challenges():
         2 + random() / 10 for i in range(65)]
 
     score[70] += 1
-    contextgenerator = ContextGenerator("score", context_horizon="100", Causalityfunct=calculatewithPc)
+    contextgenerator = ContextGenerator("score", context_horizon="100", Causalityfunct=calculate_with_pc)
 
     dfdata = {
         "score": score,
